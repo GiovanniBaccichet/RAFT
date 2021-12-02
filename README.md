@@ -9,7 +9,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/GiovanniBaccichet/RAFT">
-    <img src="imgs/Marketing_perspective_matte_s.png" alt="Logo" width="170">
+    <img src="imgs/Marketing_perspective_matte_s.png" alt="Logo" width="130">
   </a>
 
   <h3 align="center">RAFT Consensus Algorithm</h3>
@@ -17,7 +17,7 @@
   <p align="center">
     A java implementation 🗳️
     <br />
-    <a href="https://raft.github.io/"><strong>RAFT Whitepaper »</strong></a>
+    <a href="https://raft.github.io/"><strong>RAFT White Paper »</strong></a>
     <br />
     <br />
     <a href="https://github.com/GiovanniBaccichet/RAFT/issues">Report Bug 🐛</a>
