@@ -15,7 +15,7 @@
   <h3 align="center">RAFT Consensus Algorithm</h3>
 
   <p align="center">
-    A java implementation 🗳️
+    A java implementation using RMI 🗳️
     <br />
     <a href="https://raft.github.io/"><strong>RAFT White Paper »</strong></a>
     <br />
