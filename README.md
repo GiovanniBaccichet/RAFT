@@ -9,7 +9,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/GiovanniBaccichet/RAFT">
-    <img src="imgs/Marketing_perspective_matte_s.png" alt="Logo" width="130">
+    <img src="imgs/perspective_matte.png" alt="Logo" width="130">
   </a>
 
   <h3 align="center">RAFT Consensus Algorithm</h3>
