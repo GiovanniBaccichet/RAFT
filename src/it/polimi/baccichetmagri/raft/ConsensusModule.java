@@ -10,6 +10,8 @@ public abstract class ConsensusModule {
     private int lastApplied;
     private List<Integer> servers;
 
+    private NetworkHandler networkHandler;
+
     public VoteResult requestVote(int term, int cadidateID, int lastLogIndex, int lastLogTerm) {
 
         return null; // TODO cambiare
