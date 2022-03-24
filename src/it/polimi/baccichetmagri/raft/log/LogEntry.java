@@ -1,4 +1,4 @@
-package it.polimi.baccichetmagri.raft;
+package it.polimi.baccichetmagri.raft.log;
 
 public abstract class LogEntry {
 

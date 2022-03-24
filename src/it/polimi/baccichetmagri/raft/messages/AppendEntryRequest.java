@@ -1,4 +1,6 @@
-package it.polimi.baccichetmagri.raft;
+package it.polimi.baccichetmagri.raft.messages;
+
+import it.polimi.baccichetmagri.raft.log.LogEntry;
 
 public class AppendEntryRequest {
 
