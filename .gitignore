@@ -194,3 +194,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,java,intellij+all,visualstudiocode
+/Notes/.~lock.Note 16.03.odt#
