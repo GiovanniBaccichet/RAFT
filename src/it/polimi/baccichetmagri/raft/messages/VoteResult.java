@@ -1,9 +1,14 @@
-package it.polimi.baccichetmagri.raft;
+package it.polimi.baccichetmagri.raft.messages;
 
 public class VoteResult {
 
     private int term;
     private boolean voteGranted;
+
+    public VoteResult(int term, boolean voteGranted) {
+        this.term = term;
+        this.voteGranted = voteGranted;
+    }
 
     public int getTerm() {
         return term;
