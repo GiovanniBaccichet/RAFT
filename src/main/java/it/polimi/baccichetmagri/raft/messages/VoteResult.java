@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft.messages;
 
-public class VoteResult {
+public class VoteResult extends Message{
 
     private int term;
     private boolean voteGranted;

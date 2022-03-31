@@ -15,7 +15,7 @@ public class Log {
 
     public boolean containsEntry(int index, int term) {
         return false; // TODO cambiare
-    };
+    }
 
     // If there are no entry w/ the input index, it returns -1
     public int getEntryTerm(int index) {

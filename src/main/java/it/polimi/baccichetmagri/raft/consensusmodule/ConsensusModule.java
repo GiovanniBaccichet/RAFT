@@ -5,11 +5,11 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.messages.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.messages.VoteResult;
-import it.polimi.baccichetmagri.raft.network.NetworkHandler;
+import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
 
 import java.util.List;
 
-public abstract class ConsensusModule {
+public abstract class ConsensusModule implements ConsensusModuleInterface {
 
     protected int id;
     protected ConsensusPersistentState consensusPersistentState; // currentTerm, votedFor
@@ -19,18 +19,11 @@ public abstract class ConsensusModule {
     protected Log log;
     protected StateMachine stateMachine;
 
-    protected NetworkHandler networkHandler;
+    protected ServerSocketManager networkHandler;
 
-    /**
-     * Invoked by candidates to gather votes
-     * @param term candidate’s term
-     * @param cadidateID candidate requesting vote
-     * @param lastLogIndex index of candidate’s last log entry
-     * @param lastLogTerm term of candidate’s last log entry
-     * @return a VoteResult containing the current term and a boolean, true if candidate received vote
-     */
+
     public VoteResult requestVote(int term,
-                                  int cadidateID,
+                                  int candidateID,
                                   int lastLogIndex,
                                   int lastLogTerm) {
 
@@ -46,24 +39,15 @@ public abstract class ConsensusModule {
         //  If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
         Integer votedFor = this.consensusPersistentState.getVotedFor();
         int lastIndex = this.log.getLastIndex();
-        if ((votedFor == null || votedFor == cadidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
-            this.consensusPersistentState.setVotedFor(cadidateID);
+        if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
+            this.consensusPersistentState.setVotedFor(candidateID);
             return new VoteResult(currentTerm, true);
         }
 
         return new VoteResult(currentTerm, false);
     }
 
-    /**
-     * Invoked by leader to replicate log entries; also used as heartbeat
-     * @param term leader’s term
-     * @param leaderID so follower can redirect clients
-     * @param prevLogIndex index of log entry immediately preceding new ones
-     * @param prevLogTerm term of prevLogIndex entry
-     * @param logEntries log entries to store (empty for heartbeat; may send more than one for efficiency)
-     * @param leaderCommit leader’s commitIndex
-     * @return an AppendEntryResult containing the current term and a boolean, true if follower contained entry matching prevLogIndex and prevLogTerm
-     */
+
     public abstract AppendEntryResult appendEntries(int term,
                                                     int leaderID,
                                                     int prevLogIndex,

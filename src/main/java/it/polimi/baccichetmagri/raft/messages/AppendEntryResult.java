@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft.messages;
 
-public class AppendEntryResult {
+public class AppendEntryResult extends Message{
 
     private int term; // currentTerm, for leader to update itself
     private boolean success; // true if follower contained entry matching prevLogIndex and prevLogTerm

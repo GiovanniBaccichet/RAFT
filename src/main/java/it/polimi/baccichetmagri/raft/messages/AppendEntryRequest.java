@@ -2,7 +2,7 @@ package it.polimi.baccichetmagri.raft.messages;
 
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 
-public class AppendEntryRequest {
+public class AppendEntryRequest extends Message{
 
     private int term;
     private int leaderId;
