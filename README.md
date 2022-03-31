@@ -193,6 +193,21 @@ Network failure is simulated using [netem](https://wiki.linuxfoundation.org/netw
 
 Another useful feature of netem is the capability to control the bandwidth using the `rate` feature. Another options could have been playing with `iptables`.
 
+The following table clarifies VM's role and IP:
+
+| Name   | IP         |
+|--------|------------|
+| Client | 10.0.0.100 |
+| Router | 10.0.0.1   |
+| Switch | 10.0.0.2   |
+| Node 1 | 10.0.0.11  |
+| Node 2 | 10.0.0.12  |
+| Node 3 | 10.0.0.13  |
+| Node 4 | 10.0.0.14  |
+| Node 5 | 10.0.0.15  |
+
+Each node is identical to the other, since every one of them is configured by the same bash script, `vagrant/node.sh`.
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- CONTRIBUTING -->
@@ -237,7 +252,7 @@ Chiara Magri - `chiara.magri[at]mail.polimi.it`
 ## Acknowledgments 🥸
 
 * [The Raft Consensus Algorithm](https://raft.github.io/)
-* [netem](https://wiki.linuxfoundation.org/networking/netem#delay_distribution)
+* [The Linux Foundations - netem](https://wiki.linuxfoundation.org/networking/netem#delay_distribution)
 * []()
 
 <p align="right">(<a href="#top">back to top</a>)</p>
