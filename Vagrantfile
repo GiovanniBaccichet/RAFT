@@ -29,7 +29,7 @@ Vagrant.configure("2") do |config|
     client.vm.box = "ubuntu/focal64"
     client.vm.hostname = "client"
     client.vm.network "private_network", virtualbox__intnet: "broadcast_router-client", ip: "10.0.0.100"
-    client.vm.provision "shell", path: "vagrant/client.sh"
+    #client.vm.provision "shell", path: "vagrant/client.sh"
     client.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
@@ -42,7 +42,7 @@ Vagrant.configure("2") do |config|
     router.vm.hostname = "router"
     router.vm.network "private_network", virtualbox__intnet: "broadcast_router-client"
     router.vm.network "private_network", virtualbox__intnet: "broadcast_router-switch"
-    router.vm.provision "shell", path: "vagrant/router.sh"
+    #router.vm.provision "shell", path: "vagrant/router.sh"
     router.vm.provider "virtualbox" do |vb|
       vb.memory = 256
     end
@@ -59,7 +59,7 @@ Vagrant.configure("2") do |config|
     switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node3"
     switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node4"
     switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node5"
-    switch.vm.provision "shell", path: "vagrant/switch.sh"
+    #switch.vm.provision "shell", path: "vagrant/switch.sh"
     switch.vm.provider "virtualbox" do |vb|
       vb.memory = 256
     end
@@ -70,8 +70,8 @@ Vagrant.configure("2") do |config|
   config.vm.define "node1" do |node1|
     node1.vm.box = "ubuntu/focal64"
     node1.vm.hostname = "node1"
-    node1.vm.network "private_network", virtualbox__intnet: "broadcast_router-node1", ip: "10.0.0.1"
-    node1.vm.provision "shell", path: "vagrant/node.sh"
+    node1.vm.network "private_network", virtualbox__intnet: "broadcast_router-node1", ip: "10.0.0.11"
+    #node1.vm.provision "shell", path: "vagrant/node.sh"
     node1.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
@@ -82,8 +82,8 @@ Vagrant.configure("2") do |config|
   config.vm.define "node2" do |node2|
     node2.vm.box = "ubuntu/focal64"
     node2.vm.hostname = "node2"
-    node2.vm.network "private_network", virtualbox__intnet: "broadcast_router-node2", ip: "10.0.0.2"
-    node2.vm.provision "shell", path: "vagrant/node.sh"
+    node2.vm.network "private_network", virtualbox__intnet: "broadcast_router-node2", ip: "10.0.0.12"
+    #node2.vm.provision "shell", path: "vagrant/node.sh"
     node2.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
@@ -94,8 +94,8 @@ Vagrant.configure("2") do |config|
   config.vm.define "node3" do |node3|
     node3.vm.box = "ubuntu/focal64"
     node3.vm.hostname = "node3"
-    node3.vm.network "private_network", virtualbox__intnet: "broadcast_router-node3", ip: "10.0.0.3"
-    node3.vm.provision "shell", path: "vagrant/node.sh"
+    node3.vm.network "private_network", virtualbox__intnet: "broadcast_router-node3", ip: "10.0.0.13"
+    # node3.vm.provision "shell", path: "vagrant/node.sh"
     node3.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
@@ -106,8 +106,8 @@ Vagrant.configure("2") do |config|
   config.vm.define "node4" do |node4|
     node4.vm.box = "ubuntu/focal64"
     node4.vm.hostname = "node4"
-    node4.vm.network "private_network", virtualbox__intnet: "broadcast_router-node4", ip: "10.0.0.4"
-    node4.vm.provision "shell", path: "vagrant/node.sh"
+    node4.vm.network "private_network", virtualbox__intnet: "broadcast_router-node4", ip: "10.0.0.14"
+    # node4.vm.provision "shell", path: "vagrant/node.sh"
     node4.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
@@ -118,8 +118,8 @@ Vagrant.configure("2") do |config|
   config.vm.define "node5" do |node5|
     node5.vm.box = "ubuntu/focal64"
     node5.vm.hostname = "node5"
-    node5.vm.network "private_network", virtualbox__intnet: "broadcast_router-node5", ip: "10.0.0.5"
-    node5.vm.provision "shell", path: "vagrant/node.sh"
+    node5.vm.network "private_network", virtualbox__intnet: "broadcast_router-node5", ip: "10.0.0.15"
+    # node5.vm.provision "shell", path: "vagrant/node.sh"
     node5.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
