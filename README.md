@@ -105,27 +105,11 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+**To be added.**
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/GiovanniBaccichet/RAFT.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+**To be added.**
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -193,8 +177,8 @@ In order to work with a controlled environment, to properly asses the correctnes
 The software of choice for creating a suitable lab for testing purposes was **Vagrant** (and **VirtualBox**): both softwares are open source and offer the required capabilities for handling link failure, as well as process failure. This will be explained more in depth in the following.
 
 ```
-.
-└── RAFT/
+RAFT
+└── testing-env/
     ├── vagrant/
     │   ├── nodes/
     │   │   ├── node1.sh
