@@ -145,10 +145,32 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 <!-- ROADMAP -->
 ## Roadmap 🛣
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+Java implementation:
+
+- [ ] Consensus Module
+  - [ ] Persistent State Management
+  - [ ] Log Management
+  - [ ] Candidate
+  - [ ] Leader
+  - [ ] Follower
+- [ ] Vote Handling
+- [ ] Client
+- [ ] Server
+  - [ ] State Machine
+
+Testbed environment:
+
+- [X] Network Topology
+- [ ] Vagrant configuration
+  - [X] Router
+  - [ ] Switch
+  - [X] Nodes
+- [ ] Scripts for testing (link failure simulation *et similia*)
+
+Final touches:
+
+- [ ] UML Diagram
+- [ ] Class descriptions
 
 See the [open issues](https://github.com/GiovanniBaccichet/RAFT/issues) for a full list of proposed features (and known issues).
 
@@ -174,8 +196,14 @@ The software of choice for creating a suitable lab for testing purposes was **Va
 .
 └── RAFT/
     ├── vagrant/
+    │   ├── nodes/
+    │   │   ├── node1.sh
+    │   │   ├── node2.sh
+    │   │   ├── node3.sh
+    │   │   ├── node4.sh
+    │   │   └── node5.sh
     │   ├── client.sh
-    │   ├── node.sh
+    │   ├── raft-node.sh
     │   ├── router.sh
     │   └── switch.sh
     └── Vagrantfile
@@ -183,7 +211,7 @@ The software of choice for creating a suitable lab for testing purposes was **Va
 
 As shown in the box above, the VMs are creating following what's inside the `Vagrantfile` and configured based on the respective bash scripts contained in `vagrant/`.
 Network failure is simulated using [netem](https://wiki.linuxfoundation.org/networking/netem#delay_distribution), a tool that comes built-in Linux. This allows to simulate:
-- **Delay Listribution**: `tc qdisc change dev eth0 root netem delay 100ms 20ms distribution normal`
+- **Delay**: `tc qdisc change dev eth0 root netem delay 100ms 20ms distribution normal`
 
 - **(Random) Packet Loss**: `tc qdisc change dev eth0 root netem loss 0.1%`
 
@@ -193,20 +221,20 @@ Network failure is simulated using [netem](https://wiki.linuxfoundation.org/netw
 
 Another useful feature of netem is the capability to control the bandwidth using the `rate` feature. Another options could have been playing with `iptables`.
 
-The following table clarifies VM's role and IP:
+The following table binds each VM with the respective IP and subnet:
 
 | Name   | IP         |
 |--------|------------|
-| Client | 10.0.0.100 |
-| Router | 10.0.0.1   |
-| Switch | 10.0.0.2   |
-| Node 1 | 10.0.0.11  |
-| Node 2 | 10.0.0.12  |
-| Node 3 | 10.0.0.13  |
-| Node 4 | 10.0.0.14  |
-| Node 5 | 10.0.0.15  |
+| Client | `10.0.1.2` |
+| Router | `10.0.1.1`, `10.0.0.1`   |
+| Switch | -   |
+| Node 1 | `10.0.0.11`  |
+| Node 2 | `10.0.0.12`  |
+| Node 3 | `10.0.0.13`  |
+| Node 4 | `10.0.0.14`  |
+| Node 5 | `10.0.0.15`  |
 
-Each node is identical to the other, since every one of them is configured by the same bash script, `vagrant/node.sh`.
+Each `node` machine is identical to the other (every one of them is configured by the same bash script, `vagrant/raft-node.sh`).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -253,7 +281,6 @@ Chiara Magri - `chiara.magri[at]mail.polimi.it`
 
 * [The Raft Consensus Algorithm](https://raft.github.io/)
 * [The Linux Foundations - netem](https://wiki.linuxfoundation.org/networking/netem#delay_distribution)
-* []()
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

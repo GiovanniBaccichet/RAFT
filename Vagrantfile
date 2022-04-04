@@ -16,23 +16,7 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
     vb.customize ["modifyvm", :id, "--nicpromisc4", "allow-all"]
     vb.customize ["modifyvm", :id, "--nicpromisc5", "allow-all"]
-    vb.customize ["modifyvm", :id, "--nicpromisc6", "allow-all"]
-    vb.customize ["modifyvm", :id, "--nicpromisc7", "allow-all"]
-    vb.customize ["modifyvm", :id, "--nicpromisc8", "allow-all"]
-    vb.customize ["modifyvm", :id, "--nicpromisc9", "allow-all"]
     vb.cpus = 2
-  end
-
-  # CLIENT
-
-  config.vm.define "client" do |client|
-    client.vm.box = "ubuntu/focal64"
-    client.vm.hostname = "client"
-    client.vm.network "private_network", virtualbox__intnet: "broadcast_router-client", ip: "10.0.0.100"
-    #client.vm.provision "shell", path: "vagrant/client.sh"
-    client.vm.provider "virtualbox" do |vb|
-      vb.memory = 512
-    end
   end
 
   # ROUTER
@@ -40,9 +24,9 @@ Vagrant.configure("2") do |config|
   config.vm.define "router" do |router|
     router.vm.box = "ubuntu/focal64"
     router.vm.hostname = "router"
-    router.vm.network "private_network", virtualbox__intnet: "broadcast_router-client"
-    router.vm.network "private_network", virtualbox__intnet: "broadcast_router-switch"
-    #router.vm.provision "shell", path: "vagrant/router.sh"
+    router.vm.network "private_network", virtualbox__intnet: "broadcast_router-client", auto_config: false
+    router.vm.network "private_network", virtualbox__intnet: "broadcast_router-switch", auto_config: false
+    router.vm.provision "shell", path: "vagrant/router.sh"
     router.vm.provider "virtualbox" do |vb|
       vb.memory = 256
     end
@@ -53,74 +37,86 @@ Vagrant.configure("2") do |config|
   config.vm.define "switch" do |switch|
     switch.vm.box = "ubuntu/focal64"
     switch.vm.hostname = "switch"
-    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-switch"
-    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node1"
-    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node2"
-    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node3"
-    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node4"
-    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node5"
-    #switch.vm.provision "shell", path: "vagrant/switch.sh"
+    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-switch", auto_config: false
+    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node1", auto_config: false
+    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node2", auto_config: false
+    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node3", auto_config: false
+    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node4", auto_config: false
+    switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node5", auto_config: false
+    switch.vm.provision "shell", path: "vagrant/switch.sh"
     switch.vm.provider "virtualbox" do |vb|
       vb.memory = 256
     end
   end
 
-  # NODE N.1
+  # HOST: NODE n.1
 
-  config.vm.define "node1" do |node1|
+  config.vm.define "node-1" do |node1|
     node1.vm.box = "ubuntu/focal64"
-    node1.vm.hostname = "node1"
-    node1.vm.network "private_network", virtualbox__intnet: "broadcast_router-node1", ip: "10.0.0.11"
-    #node1.vm.provision "shell", path: "vagrant/node.sh"
+    node1.vm.hostname = "node-1"
+    node1.vm.network "private_network", virtualbox__intnet: "broadcast_router-node1", auto_config: false
+    node1.vm.provision "shell", path: "vagrant/nodes/node1.sh"
     node1.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
   end
 
-  # NODE N.2
+  # HOST: NODE n.2
 
-  config.vm.define "node2" do |node2|
+  config.vm.define "node-2" do |node2|
     node2.vm.box = "ubuntu/focal64"
-    node2.vm.hostname = "node2"
-    node2.vm.network "private_network", virtualbox__intnet: "broadcast_router-node2", ip: "10.0.0.12"
-    #node2.vm.provision "shell", path: "vagrant/node.sh"
+    node2.vm.hostname = "node-2"
+    node2.vm.network "private_network", virtualbox__intnet: "broadcast_router-node2", auto_config: false
+    node2.vm.provision "shell", path: "vagrant/nodes/node2.sh"
     node2.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
   end
 
-  # NODE N.3
+  # HOST: NODE n.3
 
-  config.vm.define "node3" do |node3|
+  config.vm.define "node-3" do |node3|
     node3.vm.box = "ubuntu/focal64"
-    node3.vm.hostname = "node3"
-    node3.vm.network "private_network", virtualbox__intnet: "broadcast_router-node3", ip: "10.0.0.13"
-    # node3.vm.provision "shell", path: "vagrant/node.sh"
+    node3.vm.hostname = "node-3"
+    node3.vm.network "private_network", virtualbox__intnet: "broadcast_router-node3", auto_config: false
+    node3.vm.provision "shell", path: "vagrant/nodes/node3.sh"
     node3.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
   end
 
-  # NODE N.4
+  # HOST: NODE n.4
 
-  config.vm.define "node4" do |node4|
+  config.vm.define "node-4" do |node4|
     node4.vm.box = "ubuntu/focal64"
-    node4.vm.hostname = "node4"
-    node4.vm.network "private_network", virtualbox__intnet: "broadcast_router-node4", ip: "10.0.0.14"
-    # node4.vm.provision "shell", path: "vagrant/node.sh"
+    node4.vm.hostname = "node-4"
+    node4.vm.network "private_network", virtualbox__intnet: "broadcast_router-node4", auto_config: false
+    node4.vm.provision "shell", path: "vagrant/nodes/node4.sh"
     node4.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
   end
 
-  # NODE N.5
+  # HOST: NODE n.5
 
-  config.vm.define "node5" do |node5|
+  config.vm.define "node-5" do |node5|
     node5.vm.box = "ubuntu/focal64"
-    node5.vm.hostname = "node5"
-    node5.vm.network "private_network", virtualbox__intnet: "broadcast_router-node5", ip: "10.0.0.15"
-    # node5.vm.provision "shell", path: "vagrant/node.sh"
+    node5.vm.hostname = "node-5"
+    node5.vm.network "private_network", virtualbox__intnet: "broadcast_router-node5", auto_config: false
+    node5.vm.provision "shell", path: "vagrant/nodes/node5.sh"
     node5.vm.provider "virtualbox" do |vb|
+      vb.memory = 512
+    end
+  end
+
+  # HOST: CLIENT
+
+  config.vm.define "client" do |client|
+    client.vm.box = "ubuntu/focal64"
+    client.vm.hostname = "client"
+    client.vm.network "private_network", virtualbox__intnet: "broadcast_router-client", auto_config: false
+    client.vm.provision "shell", path: "vagrant/client.sh"
+    client.vm.provider "virtualbox" do |vb|
       vb.memory = 512
     end
   end
