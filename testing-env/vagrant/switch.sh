@@ -13,13 +13,13 @@ sudo ovs-vsctl add-br switch
 sudo ovs-vsctl add-port switch enp0s8
 sudo ovs-vsctl add-port switch enp0s9
 sudo ovs-vsctl add-port switch enp0s10
-# sudo ovs-vsctl add-port switch enp0s11
-# sudo ovs-vsctl add-port switch enp0s12
-# sudo ovs-vsctl add-port switch enp0s13
+sudo ovs-vsctl add-port switch enp0s16
+sudo ovs-vsctl add-port switch enp0s17
+sudo ovs-vsctl add-port switch enp0s18
 
 sudo ip link set dev enp0s8 up
 sudo ip link set dev enp0s9 up
 sudo ip link set dev enp0s10 up
-# sudo ip link set dev enp0s11 up
-# sudo ip link set dev enp0s12 up
-# sudo ip link set dev enp0s13 up
+sudo ip link set dev enp0s16 up
+sudo ip link set dev enp0s17 up
+sudo ip link set dev enp0s18 up

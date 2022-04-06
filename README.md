@@ -160,6 +160,15 @@ See the [open issues](https://github.com/GiovanniBaccichet/RAFT/issues) for a fu
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+<!-- DESIGN -->
+## Design 🎠
+
+The UML diagram below displays all the classes used in out implementation of the Raft algorithm. It follow a description of the most important ones.
+
+**Add the diagram.**
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
 <!-- TESTING -->
 ## Testing 🧪
 
