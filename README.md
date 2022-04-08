@@ -145,9 +145,8 @@ Java implementation:
 Testbed environment:
 
 - [X] Network Topology
-- [ ] Vagrant configuration
+- [X] Vagrant configuration
   - [X] Router
-  - [ ] Switch
   - [X] Nodes
 - [ ] Scripts for testing (link failure simulation *et similia*)
 
@@ -179,9 +178,9 @@ Since the algorithm is <mark>robust against any non-byzantine failure, links can
 
 In order to work with a controlled environment, to properly asses the correctness of the implementation, we decided to virtualize the 5 hosts, plus a router and a switch to network them together. The challenge was to test the above mentioned failures:
 
-- Links can have omissions → <mark>explain more in detail</mark>
-- Links can have delays → <mark>explain more in detail</mark>
-- Processes can stop at any time → <mark>explain more in detail</mark>
+- Links can have omissions;
+- Links can have delays;
+- Processes can stop at any time.
 
 The software of choice for creating a suitable lab for testing purposes was **Vagrant** (and **VirtualBox**): both softwares are open source and offer the required capabilities for handling link failure, as well as process failure. This will be explained more in depth in the following.
 
@@ -197,8 +196,7 @@ RAFT
     │   │   └── node5.sh
     │   ├── client.sh
     │   ├── raft-node.sh
-    │   ├── router.sh
-    │   └── switch.sh
+    │   └── router.sh
     └── Vagrantfile
 ```
 
@@ -220,7 +218,6 @@ The following table binds each VM with the respective IP and subnet:
 |--------|------------|
 | Client | `10.0.1.2` |
 | Router | `10.0.1.1`, `10.0.0.1`   |
-| Switch | -   |
 | Node 1 | `10.0.0.11`  |
 | Node 2 | `10.0.0.12`  |
 | Node 3 | `10.0.0.13`  |
