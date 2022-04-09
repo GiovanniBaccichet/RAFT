@@ -1,61 +1,98 @@
 #!/bin/bash
+# utilitymenu.sh - A sample shell script to display menus on screen
+# Store menu options selected by the user
+INPUT=/tmp/menu.sh.$$
 
-# while-menu-dialog: a menu driven system information program
+# Storage file for displaying cal and date command output
+OUTPUT=/tmp/output.sh.$$
 
-DIALOG_CANCEL=1
-DIALOG_ESC=255
-HEIGHT=0
-WIDTH=0
+# get text editor or fall back to vi_editor
+vi_editor=${EDITOR-vi}
 
-display_result() {
-  dialog --title "$1" \
-    --no-collapse \
-    --msgbox "$result" 0 0
+# trap and delete temp files
+trap "rm $OUTPUT; rm $INPUT; exit" SIGHUP SIGINT SIGTERM
+
+#
+# Purpose - display output using msgbox 
+#  $1 -> set msgbox height
+#  $2 -> set msgbox width
+#  $3 -> set msgbox title
+#
+function display_output(){
+	local h=${1-10}			# box height default 10
+	local w=${2-41} 		# box width default 41
+	local t=${3-Output} 	# box title 
+	dialog --backtitle "Raft Consensus Algorithm Testbed" --title "${t}" --clear --msgbox "$(<$OUTPUT)" ${h} ${w}
+}
+#
+# Purpose - display current system date & time
+#
+function sys_util(){
+	dialog --clear --backtitle "Raft Consensus Algorithm Testbed" \
+--title "[ C O N T R O L - C E N T E R ]" \
+--menu "Choose which network behavior to simulate, the select the desired interface and insert the required parameters:" 15 60 8 \
+Startup "Start the testbed" \
+Shut\ Down "Halt the testbed" \
+Back "" 2>"${INPUT}"
 }
 
-while true; do
-  exec 3>&1
-  selection=$(dialog \
-    --backtitle "System Information" \
-    --title "Menu" \
-    --clear \
-    --cancel-label "Exit" \
-    --menu "Please select:" $HEIGHT $WIDTH 4 \
-    "1" "Display System Information" \
-    "2" "Display Disk Space" \
-    "3" "Display Home Space Utilization" \
-    2>&1 1>&3)
-  exit_status=$?
-  exec 3>&-
-  case $exit_status in
-    $DIALOG_CANCEL)
-      clear
-      echo "Program terminated."
-      exit
-      ;;
-    $DIALOG_ESC)
-      clear
-      echo "Program aborted." >&2
-      exit 1
-      ;;
-  esac
-  case $selection in
-    1 )
-      result=$(echo "Hostname: $HOSTNAME"; uptime)
-      display_result "System Information"
-      ;;
-    2 )
-      result=$(df -h)
-      display_result "Disk Space"
-      ;;
-    3 )
-      if [[ $(id -u) -eq 0 ]]; then
-        result=$(du -sh /home/* 2> /dev/null)
-        display_result "Home Space Utilization (All Users)"
-      else
-        result=$(du -sh $HOME 2> /dev/null)
-        display_result "Home Space Utilization ($USER)"
-      fi
-      ;;
-  esac
+sys_menuitem=$(<"${INPUT}")
+
+# make decsion 
+case $sys_menuitem in
+	Startup) vagrant up;;
+	Shut\ Down) vagrant halt;;
+	Exit) echo "Bye"; break;;
+esac
+#
+# Purpose - display a calendar
+#
+function sim_menu(){
+	dialog --clear --backtitle "Raft Consensus Algorithm Testbed" \
+--title "[ C O N T R O L - C E N T E R ]" \
+--menu "Choose which network behavior to simulate, the select the desired interface and insert the required parameters:" 15 100 8 \
+Link\ Delay "Simulate link delay using SWITCH" \
+Packet\ Loss "Simulate packet loss using SWITCH" \
+Packet\ Duplication "Simulate packet duplication using SWITCH" \
+Packet\ Corruption "Simulate packet corruption using SWITCH" \
+Stop\ Process "Simulate process crash using NODE" \
+Back "" 2>"${INPUT}"
+}
+
+sim_menuitem=$(<"${INPUT}")
+
+# make decsion 
+case $sim_menuitem in
+	System\ Utility) sys_util;;
+	Simulation) sim_menu;;
+	Exit) echo "Bye"; break;;
+esac
+#
+# set infinite loop
+#
+while true
+do
+
+### display main menu ###
+dialog --clear --backtitle "Raft Consensus Algorithm Testbed" \
+--title "[ C O N T R O L - C E N T E R ]" \
+--menu "Choose which network behavior to simulate, the select the desired interface and insert the required parameters:" 15 60 8 \
+System\ Utility "Manage the Vagrant testbed" \
+Simulation "Manage the network simulation" \
+Exit "" 2>"${INPUT}"
+
+menuitem=$(<"${INPUT}")
+
+
+# make decsion 
+case $menuitem in
+	System\ Utility) sys_util;;
+	Simulation) sim_menu;;
+	Exit) echo "Bye"; break;;
+esac
+
 done
+
+# if temp files found, delete em
+[ -f $OUTPUT ] && rm $OUTPUT
+[ -f $INPUT ] && rm $INPUT

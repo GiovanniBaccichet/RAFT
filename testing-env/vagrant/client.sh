@@ -4,7 +4,7 @@ export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update
 sudo apt-get install net-tools
 
-sudo ip addr add 10.0.1.2/27 dev enp0s8
+sudo ip addr add 10.0.1.2/24 dev enp0s8
 sudo ip link set dev enp0s8 up
 
-sudo ip route add 10.0.0.0/27 via 10.0.1.1
+sudo ip route add 10.0.0.0/24 via 10.0.1.1

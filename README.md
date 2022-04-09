@@ -129,7 +129,7 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 <!-- ROADMAP -->
 ## Roadmap 🛣
 
-Java implementation:
+Java **implementation**:
 
 - [ ] Consensus Module
   - [ ] Persistent State Management
@@ -142,13 +142,17 @@ Java implementation:
 - [ ] Server
   - [ ] State Machine
 
-Testbed environment:
+**Testbed** environment:
 
 - [X] Network Topology
 - [X] Vagrant configuration
   - [X] Router
+  - [X] Switch
   - [X] Nodes
 - [ ] Scripts for testing (link failure simulation *et similia*)
+  - [X] GUI
+  - [ ] Adding `tc` rules
+  - [ ] Removing `tc` rules
 
 Final touches:
 
@@ -178,9 +182,9 @@ Since the algorithm is <mark>robust against any non-byzantine failure, links can
 
 In order to work with a controlled environment, to properly asses the correctness of the implementation, we decided to virtualize the 5 hosts, plus a router and a switch to network them together. The challenge was to test the above mentioned failures:
 
-- Links can have omissions;
-- Links can have delays;
-- Processes can stop at any time.
+- **Links** can have **omissions**;
+- **Links** can have **delays**;
+- **Processes** can **stop** at any time.
 
 The software of choice for creating a suitable lab for testing purposes was **Vagrant** (and **VirtualBox**): both softwares are open source and offer the required capabilities for handling link failure, as well as process failure. This will be explained more in depth in the following.
 
@@ -196,7 +200,8 @@ RAFT
     │   │   └── node5.sh
     │   ├── client.sh
     │   ├── raft-node.sh
-    │   └── router.sh
+    │   ├── router.sh
+    │   └── switch.sh
     └── Vagrantfile
 ```
 
@@ -218,6 +223,7 @@ The following table binds each VM with the respective IP and subnet:
 |--------|------------|
 | Client | `10.0.1.2` |
 | Router | `10.0.1.1`, `10.0.0.1`   |
+| Switch | -  |
 | Node 1 | `10.0.0.11`  |
 | Node 2 | `10.0.0.12`  |
 | Node 3 | `10.0.0.13`  |
@@ -225,6 +231,13 @@ The following table binds each VM with the respective IP and subnet:
 | Node 5 | `10.0.0.15`  |
 
 Each `node` machine is identical to the other (every one of them is configured by the same bash script, `vagrant/raft-node.sh`).
+
+### Failure Simulation ⚡️
+
+As disclosed above, link failure is handled using the **traffic control** tool (`tc`) that comes built-in Linux. In order to make testing easier we created a script that, running on the host machine and using `vagrant ssh`, can add traffic control rules to the switch's interfaces and, using `netem` simulate the different behaviors listed in the previous section. Moreover, the user can halt VMs and kill processes in order to simulate processes crashing.
+Said script is `control-center.sh` and looks like this:
+
+[![control-center.sh screenshot][control-center]]()
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -282,3 +295,5 @@ Chiara Magri - `chiara.magri[at]mail.polimi.it`
 [raft-animation]: media/raft_animation.gif
 
 [net-topology]: media/net_topology.png
+
+[control-center]: media/control-center.png
