@@ -29,11 +29,10 @@ function display_output(){
 #
 function sys_util(){
 	dialog --clear --backtitle "Raft Consensus Algorithm Testbed" \
---title "[ C O N T R O L - C E N T E R ]" \
---menu "Choose which network behavior to simulate, the select the desired interface and insert the required parameters:" 15 60 8 \
+--title "[ S Y S - U T I L I T Y ]" \
+--menu "Manage the VMs:" 15 60 8 \
 Startup "Start the testbed" \
-Shut\ Down "Halt the testbed" \
-Back "" 2>"${INPUT}"
+Shut\ Down "Halt the testbed" 2>"${INPUT}"
 }
 
 sys_menuitem=$(<"${INPUT}")
@@ -49,14 +48,13 @@ esac
 #
 function sim_menu(){
 	dialog --clear --backtitle "Raft Consensus Algorithm Testbed" \
---title "[ C O N T R O L - C E N T E R ]" \
+--title "[ S I M U L A T I O N ]" \
 --menu "Choose which network behavior to simulate, the select the desired interface and insert the required parameters:" 15 100 8 \
 Link\ Delay "Simulate link delay using SWITCH" \
 Packet\ Loss "Simulate packet loss using SWITCH" \
 Packet\ Duplication "Simulate packet duplication using SWITCH" \
 Packet\ Corruption "Simulate packet corruption using SWITCH" \
-Stop\ Process "Simulate process crash using NODE" \
-Back "" 2>"${INPUT}"
+Stop\ Process "Simulate process crash using NODE" 2>"${INPUT}"
 }
 
 sim_menuitem=$(<"${INPUT}")
@@ -76,7 +74,7 @@ do
 ### display main menu ###
 dialog --clear --backtitle "Raft Consensus Algorithm Testbed" \
 --title "[ C O N T R O L - C E N T E R ]" \
---menu "Choose which network behavior to simulate, the select the desired interface and insert the required parameters:" 15 60 8 \
+--menu "Raft Consensus Algorithm testbed manager." 15 60 8 \
 System\ Utility "Manage the Vagrant testbed" \
 Simulation "Manage the network simulation" \
 Exit "" 2>"${INPUT}"

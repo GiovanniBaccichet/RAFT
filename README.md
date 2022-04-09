@@ -237,7 +237,9 @@ Each `node` machine is identical to the other (every one of them is configured b
 As disclosed above, link failure is handled using the **traffic control** tool (`tc`) that comes built-in Linux. In order to make testing easier we created a script that, running on the host machine and using `vagrant ssh`, can add traffic control rules to the switch's interfaces and, using `netem` simulate the different behaviors listed in the previous section. Moreover, the user can halt VMs and kill processes in order to simulate processes crashing.
 Said script is `control-center.sh` and looks like this:
 
-[![control-center.sh screenshot][control-center]]()
+[![control-center.sh screenshot - main menu][control-center]]()
+
+[![control-center.sh screenshot - simulation menu][control-center-simulation]]()
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -297,3 +299,5 @@ Chiara Magri - `chiara.magri[at]mail.polimi.it`
 [net-topology]: media/net_topology.png
 
 [control-center]: media/control-center.png
+
+[control-center-simulation]: media/control-center-simulation.png
