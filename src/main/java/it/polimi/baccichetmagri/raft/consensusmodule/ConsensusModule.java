@@ -22,7 +22,7 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
     protected ServerSocketManager networkHandler;
 
 
-    public VoteResult requestVote(int term,
+    public synchronized VoteResult requestVote(int term,
                                   int candidateID,
                                   int lastLogIndex,
                                   int lastLogTerm) {

@@ -2,6 +2,8 @@ package it.polimi.baccichetmagri.raft.messages;
 
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
+import java.io.IOException;
+
 public abstract class Message {
 
     protected final MessageId messageId;
@@ -14,5 +16,5 @@ public abstract class Message {
         return this.messageId;
     }
 
-    public abstract void execute(ConsensusModuleProxy consensusModuleProxy);
+    public abstract void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException;
 }

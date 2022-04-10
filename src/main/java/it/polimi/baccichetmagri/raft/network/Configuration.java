@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.network;
 
 import com.google.gson.reflect.TypeToken;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
 import it.polimi.baccichetmagri.raft.utils.ResourcesLoader;
 
@@ -16,7 +17,7 @@ public class Configuration {
     /**
      * @param id the id of the ConsensusModule of the machine (to not create a connection with itself)
      */
-    public Configuration(int id) {
+    public Configuration(int id, ConsensusModule consensusModule) {
 
         // load configuration file with <id, ip> of other servers
         Map<Integer, String> addresses = ResourcesLoader.loadJson("configuration.json",
@@ -25,7 +26,7 @@ public class Configuration {
         // create list of proxies
         for (Map.Entry<Integer, String> address : addresses.entrySet()) {
             if (address.getKey() != id) {
-                this.proxies.add(new ConsensusModuleProxy(address.getKey(), address.getValue()));
+                this.proxies.add(new ConsensusModuleProxy(address.getKey(), address.getValue(), consensusModule));
             }
         }
     }

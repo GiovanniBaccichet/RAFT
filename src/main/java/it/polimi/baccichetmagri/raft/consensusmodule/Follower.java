@@ -6,7 +6,7 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 public class Follower extends ConsensusModule {
 
     @Override
-    public AppendEntryResult appendEntries(int term,
+    public synchronized AppendEntryResult appendEntries(int term,
                                            int leaderID,
                                            int prevLogIndex,
                                            int prevLogTerm,

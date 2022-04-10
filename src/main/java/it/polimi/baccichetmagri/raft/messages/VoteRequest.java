@@ -2,12 +2,14 @@ package it.polimi.baccichetmagri.raft.messages;
 
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
+import java.io.IOException;
+
 public class VoteRequest extends Message{
 
-    private int term;
-    private int candidateId;
-    private int lastLogIndex;
-    private int lastLogTerm;
+    private final int term;
+    private final int candidateId;
+    private final int lastLogIndex;
+    private final int lastLogTerm;
 
     public VoteRequest(int term, int candidateId, int lastLogIndex, int lastLogTerm) {
         super(MessageId.VoteRequest);
@@ -18,7 +20,7 @@ public class VoteRequest extends Message{
     }
 
     @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) {
-
+    public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
+        consensusModuleProxy.callRequestVote(this.term, this.candidateId, this.lastLogIndex, this.lastLogTerm);
     }
 }

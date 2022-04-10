@@ -3,14 +3,16 @@ package it.polimi.baccichetmagri.raft.messages;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
+import java.io.IOException;
+
 public class AppendEntryRequest extends Message{
 
-    private int term;
-    private int leaderId;
-    private int prevLogIndex;
-    private int prevLogTerm;
-    private LogEntry[] logEntries;
-    private int leaderCommit;
+    private final int term;
+    private final int leaderId;
+    private final int prevLogIndex;
+    private final int prevLogTerm;
+    private final LogEntry[] logEntries;
+    private final int leaderCommit;
 
     public AppendEntryRequest(int term, int leaderId, int prevLogIndex, int prevLogTerm,
                               LogEntry[] logEntries, int leaderCommit) {
@@ -24,7 +26,8 @@ public class AppendEntryRequest extends Message{
     }
 
     @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) {
-
+    public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
+        consensusModuleProxy.callAppendEntries(this.term, this.leaderId, this.prevLogIndex, this.prevLogTerm,
+                this.logEntries, this.leaderCommit);
     }
 }

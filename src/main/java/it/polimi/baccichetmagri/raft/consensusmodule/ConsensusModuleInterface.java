@@ -4,6 +4,8 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.messages.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.messages.VoteResult;
 
+import java.io.IOException;
+
 public interface ConsensusModuleInterface {
 
     /**
@@ -14,7 +16,7 @@ public interface ConsensusModuleInterface {
      * @param lastLogTerm term of candidate’s last log entry
      * @return a VoteResult containing the current term and a boolean, true if candidate received vote
      */
-    VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm);
+    VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException;
 
     /**
      * Invoked by leader to replicate log entries; also used as heartbeat.
@@ -27,5 +29,5 @@ public interface ConsensusModuleInterface {
      * @return an AppendEntryResult containing the current term and a boolean, true if follower contained entry matching prevLogIndex and prevLogTerm
      */
     AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm,
-                                    LogEntry[] logEntries, int leaderCommit);
+                                    LogEntry[] logEntries, int leaderCommit) throws IOException;
 }
