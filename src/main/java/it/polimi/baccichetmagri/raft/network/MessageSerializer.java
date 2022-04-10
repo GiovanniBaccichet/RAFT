@@ -1,0 +1,38 @@
+package it.polimi.baccichetmagri.raft.network;
+
+import com.google.gson.Gson;
+import it.polimi.baccichetmagri.raft.messages.*;
+import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
+
+public class MessageSerializer {
+
+    private final Gson gson = new Gson();
+
+    public String serialize(Message message) {
+        return this.gson.toJson(message);
+    }
+
+    public Message deserialiaze(String jsonMessage) throws BadMessageException {
+        if (jsonMessage == null) {
+            throw new NullPointerException();
+        }
+
+        GenericMessage message = this.gson.fromJson(jsonMessage, GenericMessage.class);
+        switch (message.getMessageId()) {
+            case AppendEntryRequest:
+                return this.gson.fromJson(jsonMessage, AppendEntryRequest.class);
+            case AppendEntryResult:
+                return this.gson.fromJson(jsonMessage, AppendEntryResult.class);
+            case ExecuteCommandRequest:
+                return this.gson.fromJson(jsonMessage, ExecuteCommandRequest.class);
+            case ExecuteCommandResult:
+                return this.gson.fromJson(jsonMessage, ExecuteCommandResult.class);
+            case VoteRequest:
+                return this.gson.fromJson(jsonMessage, VoteRequest.class);
+            case VoteResult:
+                return this.gson.fromJson(jsonMessage, VoteResult.class);
+            default:
+                throw new BadMessageException("invalid message: " + jsonMessage);
+        }
+    }
+}

@@ -31,7 +31,7 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
 
         //  Reply false if term < currentTerm
         if (term < currentTerm) {
-            return new VoteResult(currentTerm, false);
+            return new VoteResult(currentTerm, false, this.id);
         }
 
         this.updateTerm(currentTerm);
@@ -41,10 +41,10 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
         int lastIndex = this.log.getLastIndex();
         if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
             this.consensusPersistentState.setVotedFor(candidateID);
-            return new VoteResult(currentTerm, true);
+            return new VoteResult(currentTerm, true, this.id);
         }
 
-        return new VoteResult(currentTerm, false);
+        return new VoteResult(currentTerm, false, this.id);
     }
 
 

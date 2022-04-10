@@ -18,7 +18,7 @@ public class Follower extends ConsensusModule {
 
         //  Reply false if term < currentTerm or Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
         if (term < currentTerm || !this.log.containsEntry(prevLogIndex, prevLogTerm)) {
-            return new AppendEntryResult(currentTerm, false);
+            return new AppendEntryResult(currentTerm, false, this.id);
         }
 
         this.updateTerm(term); // If term T > currentTerm: set currentTerm = T
@@ -48,7 +48,7 @@ public class Follower extends ConsensusModule {
             this.checkCommitIndex(); // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
         }
 
-        return new AppendEntryResult(currentTerm, true);
+        return new AppendEntryResult(currentTerm, true, this.id);
     }
 
     // If RPC request or response contains term T > currentTerm: set currentTerm = T (ALREADY follower)
