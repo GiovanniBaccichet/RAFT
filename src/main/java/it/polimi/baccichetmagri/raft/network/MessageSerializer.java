@@ -18,7 +18,7 @@ public class MessageSerializer {
         }
 
         GenericMessage message = this.gson.fromJson(jsonMessage, GenericMessage.class);
-        switch (message.getMessageId()) {
+        switch (message.getMessageType()) {
             case AppendEntryRequest:
                 return this.gson.fromJson(jsonMessage, AppendEntryRequest.class);
             case AppendEntryResult:

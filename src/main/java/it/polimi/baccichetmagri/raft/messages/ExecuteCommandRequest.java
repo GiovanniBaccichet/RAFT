@@ -7,8 +7,8 @@ public class ExecuteCommandRequest extends Message{
 
     private Command command;
 
-    public ExecuteCommandRequest(Command command) { // called by clients
-        super(MessageId.ExecuteCommandRequest);
+    public ExecuteCommandRequest(Command command, int messageId) { // called by clients
+        super(MessageType.ExecuteCommandRequest, messageId);
         this.command = command;
     }
 

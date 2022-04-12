@@ -15,8 +15,8 @@ public class AppendEntryRequest extends Message{
     private final int leaderCommit;
 
     public AppendEntryRequest(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                              LogEntry[] logEntries, int leaderCommit) {
-        super(MessageId.AppendEntryRequest);
+                              LogEntry[] logEntries, int leaderCommit, int messageId) {
+        super(MessageType.AppendEntryRequest, messageId);
         this.term = term;
         this.leaderId = leaderId;
         this.prevLogIndex = prevLogIndex;

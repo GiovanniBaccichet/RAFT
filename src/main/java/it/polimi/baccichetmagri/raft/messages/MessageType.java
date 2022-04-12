@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft.messages;
 
-public enum MessageId {
+public enum MessageType {
     AppendEntryRequest,
     AppendEntryResult,
     ExecuteCommandRequest,

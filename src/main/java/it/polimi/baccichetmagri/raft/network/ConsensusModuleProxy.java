@@ -10,15 +10,28 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable {
+
+    private static final int RAFT_PORT = 9876;
 
     private final int id;
     private final String ip;
     private Socket socket;
+
     private final MessageSerializer messageSerializer;
+
     private boolean isRunning;
-    private ConsensusModule consensusModule;
+
+    private final ConsensusModule consensusModule;
+
+    private final BlockingQueue<VoteResult> voteResultsQueue;
+    private final BlockingQueue<AppendEntryResult> appendEntryResultsQueue;
+
+    private int nextVoteRequestId;
+    private int nextAppendEntryRequestId;
 
     public ConsensusModuleProxy(int id, String ip, ConsensusModule consensusModule) {
         this.id = id;
@@ -26,6 +39,10 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         this.messageSerializer = new MessageSerializer();
         this.isRunning = false;
         this.consensusModule = consensusModule;
+        this.voteResultsQueue = new LinkedBlockingQueue<>();
+        this.appendEntryResultsQueue = new LinkedBlockingQueue<>();
+        this.nextVoteRequestId = 0;
+        this.nextAppendEntryRequestId = 0;
     }
 
     public void run() {
@@ -49,20 +66,15 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     public int getId() {
-        return id;
+        return this.id;
     }
 
     public void setSocket(Socket socket) {
         this.socket = socket;
-        if (!isRunning) {
+        if (!this.isRunning) {
             (new Thread(this)).start();
             this.isRunning = true;
         }
-    }
-
-    public void setSocket(Socket socket, Message message) {
-        this.setSocket(socket);
-
     }
 
     /**
@@ -75,9 +87,23 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
-        VoteRequest voteRequest = new VoteRequest(term, candidateID, lastLogIndex, lastLogTerm);
-        this.sendMessage(voteRequest);
-        return null; // TODO
+        VoteResult voteResult = null;
+        try {
+            int voteRequestId = this.nextVoteRequestId;
+            this.nextVoteRequestId++;
+            VoteRequest voteRequest = new VoteRequest(term, candidateID, lastLogIndex, lastLogTerm, voteRequestId);
+            this.sendMessage(voteRequest);
+
+            while(voteResult == null) {
+                voteResult = this.voteResultsQueue.take();
+                if (voteResult.getMessageId() != voteRequestId) {
+                    voteResult = null;
+                }
+            }
+        } catch (InterruptedException e) {
+            // TODO: if the thread has been interrupted while waiting
+        }
+        return voteResult;
     }
 
     /**
@@ -92,10 +118,24 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     @Override
     public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) throws IOException {
-        AppendEntryRequest appendEntryRequest = new AppendEntryRequest(term, leaderID, prevLogIndex, prevLogTerm,
-                logEntries, leaderCommit);
-        this.sendMessage(appendEntryRequest);
-        return null; // TODO
+        AppendEntryResult appendEntryResult = null;
+        try {
+            int appendEntryRequestId = this.nextAppendEntryRequestId;
+            this.nextAppendEntryRequestId++;
+            AppendEntryRequest appendEntryRequest = new AppendEntryRequest(term, leaderID, prevLogIndex, prevLogTerm,
+                    logEntries, leaderCommit, appendEntryRequestId);
+            this.sendMessage(appendEntryRequest);
+            while (appendEntryResult == null) {
+                appendEntryResult = this.appendEntryResultsQueue.take();
+                if (appendEntryResult.getMessageId() != appendEntryRequestId) {
+                    appendEntryResult = null;
+                }
+            }
+
+        } catch (InterruptedException e) {
+            // TODO: if the thread has been interrupted while waiting
+        }
+        return appendEntryResult;
     }
 
     /**
@@ -128,19 +168,25 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     public void receiveVoteResult(VoteResult voteResult) {
-        // TODO
+        this.voteResultsQueue.add(voteResult);
     }
 
     public void receiveAppendEntriesResult(AppendEntryResult appendEntryResult) {
-        // TODO
+        this.appendEntryResultsQueue.add(appendEntryResult);
     }
 
     private void sendMessage(Message message) throws IOException {
+        if (!this.isRunning || this.socket == null) {
+            this.setSocket(new Socket(this.ip, RAFT_PORT));
+        }
         PrintWriter out = new PrintWriter(this.socket.getOutputStream());
         out.println(this.messageSerializer.serialize(message));
     }
 
     private Message readMessage() throws IOException, BadMessageException {
+        if (!this.isRunning || this.socket == null) {
+            this.setSocket(new Socket(this.ip, RAFT_PORT));
+        }
         Scanner in = new Scanner(this.socket.getInputStream());
         String jsonMessage = in.nextLine();
         return this.messageSerializer.deserialiaze(jsonMessage);

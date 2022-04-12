@@ -11,8 +11,8 @@ public class VoteRequest extends Message{
     private final int lastLogIndex;
     private final int lastLogTerm;
 
-    public VoteRequest(int term, int candidateId, int lastLogIndex, int lastLogTerm) {
-        super(MessageId.VoteRequest);
+    public VoteRequest(int term, int candidateId, int lastLogIndex, int lastLogTerm, int messageId) {
+        super(MessageType.VoteRequest, messageId);
         this.term = term;
         this.candidateId = candidateId;
         this.lastLogIndex = lastLogIndex;

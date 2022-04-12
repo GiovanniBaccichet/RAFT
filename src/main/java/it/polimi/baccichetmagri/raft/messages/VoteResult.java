@@ -7,8 +7,8 @@ public class VoteResult extends Message{
     private final int term;
     private final boolean voteGranted;
 
-    public VoteResult(int term, boolean voteGranted, int senderId) {
-        super(MessageId.VoteResult);
+    public VoteResult(int term, boolean voteGranted, int messageId) {
+        super(MessageType.VoteResult, messageId);
         this.term = term;
         this.voteGranted = voteGranted;
     }

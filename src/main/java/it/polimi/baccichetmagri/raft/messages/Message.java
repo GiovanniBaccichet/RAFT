@@ -6,13 +6,19 @@ import java.io.IOException;
 
 public abstract class Message {
 
-    protected final MessageId messageId;
+    private final MessageType messageType;
+    private final int messageId;
 
-    public Message(MessageId messageId) {
+    public Message(MessageType messageType, int messageId) {
+        this.messageType = messageType;
         this.messageId = messageId;
     }
 
-    public MessageId getMessageId() {
+    public MessageType getMessageType() {
+        return this.messageType;
+    }
+
+    public int getMessageId() {
         return this.messageId;
     }
 

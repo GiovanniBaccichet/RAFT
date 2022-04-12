@@ -7,8 +7,8 @@ public class AppendEntryResult extends Message{
     private final int term; // currentTerm, for leader to update itself
     private final boolean success; // true if follower contained entry matching prevLogIndex and prevLogTerm
 
-    public AppendEntryResult(int term, boolean success, int senderId) {
-        super(MessageId.AppendEntryResult);
+    public AppendEntryResult(int term, boolean success, int messageId) {
+        super(MessageType.AppendEntryResult, messageId);
         this.term = term;
         this.success = success;
     }
