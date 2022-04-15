@@ -141,18 +141,22 @@ Java **implementation**:
 - [ ] Client
 - [ ] Server
   - [ ] State Machine
+- [ ] Thread Management
+- [ ] Failed Leader w/ pending messages
 
 **Testbed** environment:
 
 - [X] Network Topology
 - [X] Vagrant configuration
   - [X] Router
-  - [X] Switch
+  - [X] Main Switch
+  - [ ] Sub-Switches
   - [X] Nodes
 - [ ] Scripts for testing (link failure simulation *et similia*)
   - [X] GUI
   - [ ] Adding `tc` rules
-  - [ ] Removing `tc` rules
+  - [ ] Deleting `tc` rules
+  - [ ] Network partition support
 
 Final touches:
 
@@ -169,6 +173,18 @@ See the [open issues](https://github.com/GiovanniBaccichet/RAFT/issues) for a fu
 The UML diagram below displays all the classes used in out implementation of the Raft algorithm. It follow a description of the most important ones.
 
 **Add the diagram.**
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+### Thread Management 🏎
+
+To be discussed.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+### ACK Handling 🤝
+
+TO be discussed if the Leader fails and has still to receive messages.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -231,6 +247,12 @@ The following table binds each VM with the respective IP and subnet:
 | Node 5 | `10.0.0.15`  |
 
 Each `node` machine is identical to the other (every one of them is configured by the same bash script, `vagrant/raft-node.sh`).
+
+### Network Partitioning 🔪
+
+Network is divided into 2 portions: one partition can fail wrt the other one. 
+
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 ### Failure Simulation ⚡️
 
