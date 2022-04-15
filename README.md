@@ -142,7 +142,7 @@ Java **implementation**:
 - [ ] Server
   - [ ] State Machine
 - [ ] Thread Management
-- [ ] Failed Leader w/ pending messages
+- [ ] ACKs - failed Leader w/ pending messages
 
 **Testbed** environment:
 
@@ -184,7 +184,7 @@ To be discussed.
 
 ### ACK Handling 🤝
 
-TO be discussed if the Leader fails and has still to receive messages.
+To be discussed if the Leader fails and has still to receive messages.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -239,7 +239,7 @@ The following table binds each VM with the respective IP and subnet:
 |--------|------------|
 | Client | `10.0.1.2` |
 | Router | `10.0.1.1`, `10.0.0.1`   |
-| Switch | -  |
+| Switches | -  |
 | Node 1 | `10.0.0.11`  |
 | Node 2 | `10.0.0.12`  |
 | Node 3 | `10.0.0.13`  |
@@ -248,9 +248,15 @@ The following table binds each VM with the respective IP and subnet:
 
 Each `node` machine is identical to the other (every one of them is configured by the same bash script, `vagrant/raft-node.sh`).
 
+<p align="right">(<a href="#top">back to top</a>)</p>
+
 ### Network Partitioning 🔪
 
-Network is divided into 2 portions: one partition can fail wrt the other one. 
+As shown in the above diagram, **network is divided into 2 portions**. This choice was taken in order to allow network partitioning and test the behavior of our Raft algorithm implementation in a particular case: network can fail partially. Moreover, one portion of the network (the orange one) can re-establish consensus, while the remaining part (the blue one) should'n be able to reach *quorum*, since there are only 2 nodes.
+
+The switch layering is managed by the open source tool [**Open vSwitch**](https://www.openvswitch.org/), which allowed us to create 3 virtual bridges, connected together in order to simulate a somehow realistic scenario. The nodes in the green zone of the diagram are virtual switches, and will be used in the *Failure Simulation* (see following section). 
+
+The setup is handled by the `vagrant/switch.sh` script. From that one can really understand what is going on in terms of configuration.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

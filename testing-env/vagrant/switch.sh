@@ -10,16 +10,16 @@ apt-get install -y openvswitch-common openvswitch-switch apt-transport-https ca-
 
 sudo ovs-vsctl add-br switch
 
-sudo ovs-vsctl add-port switch enp0s8
-sudo ovs-vsctl add-port switch enp0s9
-sudo ovs-vsctl add-port switch enp0s10
-sudo ovs-vsctl add-port switch enp0s16
-sudo ovs-vsctl add-port switch enp0s17
-sudo ovs-vsctl add-port switch enp0s18
+sudo ovs-vsctl add-port switch enp0s8 # Router
+sudo ovs-vsctl add-port switch enp0s9 # Node 1
+sudo ovs-vsctl add-port switch enp0s10 # Node 2
+sudo ovs-vsctl add-port switch enp0s16 # Node 3
+sudo ovs-vsctl add-port switch enp0s17 # Node 4
+sudo ovs-vsctl add-port switch enp0s18 # Node 5
 
-sudo ip link set dev enp0s8 up
-sudo ip link set dev enp0s9 up
-sudo ip link set dev enp0s10 up
-sudo ip link set dev enp0s16 up
-sudo ip link set dev enp0s17 up
-sudo ip link set dev enp0s18 up
+sudo ip link set dev enp0s8 up # Router
+sudo ip link set dev enp0s9 up # Node 1
+sudo ip link set dev enp0s10 up # Node 2
+sudo ip link set dev enp0s16 up # Node 3
+sudo ip link set dev enp0s17 up # Node 4
+sudo ip link set dev enp0s18 up # Node 5
