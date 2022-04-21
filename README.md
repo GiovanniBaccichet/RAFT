@@ -314,6 +314,7 @@ Chiara Magri - `chiara.magri[at]mail.polimi.it`
 
 * [The Raft Consensus Algorithm](https://raft.github.io/)
 * [The Linux Foundations - netem](https://wiki.linuxfoundation.org/networking/netem#delay_distribution)
+* [Open vSwitch](https://www.openvswitch.org/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

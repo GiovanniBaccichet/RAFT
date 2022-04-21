@@ -47,7 +47,7 @@ Vagrant.configure("2") do |config|
       switch.vm.network "private_network", virtualbox__intnet: "broadcast_router-node5", auto_config: false
       switch.vm.provision "shell", path: "vagrant/switch.sh"
       switch.vm.provider "virtualbox" do |vb|
-        vb.memory = 1024
+        vb.memory = 512
       end
     end
 
