@@ -258,6 +258,11 @@ The switch layering is managed by the open source tool [**Open vSwitch**](https:
 
 The setup is handled by the `vagrant/switch.sh` script. From that one can really understand what is going on in terms of configuration.
 
+The internal configuration of the above mentioned virtual bridges can be easily visualized in the following diagram.
+
+[![Switch configuration - testing the implementation][switch-config]](https://github.com/GiovanniBaccichet/RAFT)
+
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ### Failure Simulation ⚡️
@@ -326,6 +331,8 @@ Chiara Magri - `chiara.magri[at]mail.polimi.it`
 [raft-animation]: media/raft_animation.gif
 
 [net-topology]: media/net_topology.png
+
+[switch-config]: media/v_switch-config.png
 
 [control-center]: media/control-center.png
 
