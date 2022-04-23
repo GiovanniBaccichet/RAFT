@@ -262,6 +262,10 @@ The internal configuration of the above mentioned virtual bridges can be easily 
 
 [![Switch configuration - testing the implementation][switch-config]](https://github.com/GiovanniBaccichet/RAFT)
 
+Three bridges are connected to each other using the `patchN` ports and, as the names suggest, `vSwitchRouter` is connected to the router, `vSwitchPart1` connects the hosts in the upper network partition, while `vSwitchPart2` connects the remaining 3 hosts of the lower network partition.
+
+This configuration adds complexity to the testbed, but allows to test **partition tolerance** of our implementation.
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
