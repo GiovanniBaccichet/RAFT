@@ -7,10 +7,23 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
 class Follower extends ConsensusModuleImpl {
 
-    Follower(int id, Configuration configuration, Log log, StateMachine stateMachine) {
-        super(id, configuration, log, stateMachine);
+    Timer timer;
+
+    Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
+             ConsensusModule container) {
+        super(id, configuration, log, stateMachine, container);
+        this.timer = new Timer();
+    }
+
+    @Override
+    void initialize() {
+        this.startElectionTimer();
     }
 
     @Override
@@ -20,12 +33,14 @@ class Follower extends ConsensusModuleImpl {
                                                         int prevLogTerm,
                                                         LogEntry[] logEntries,
                                                         int leaderCommit) {
+        this.stopElectionTimer();
 
         // Read currentTerm (1 time access)
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
 
         //  Reply false if term < currentTerm
         if (term < currentTerm ) {
+            this.startElectionTimer();
             return new AppendEntryResult(currentTerm, false);
         }
 
@@ -39,6 +54,7 @@ class Follower extends ConsensusModuleImpl {
 
         //  Reply false  if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
         if (!this.log.containsEntry(prevLogIndex, prevLogTerm)) {
+            this.startElectionTimer();
             return new AppendEntryResult(currentTerm, false);
         }
 
@@ -67,6 +83,7 @@ class Follower extends ConsensusModuleImpl {
             this.checkCommitIndex(); // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
         }
 
+        this.startElectionTimer();
         return new AppendEntryResult(currentTerm, true);
     }
 
@@ -74,11 +91,13 @@ class Follower extends ConsensusModuleImpl {
                                                int candidateID,
                                                int lastLogIndex,
                                                int lastLogTerm) {
+        this.stopElectionTimer();
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
 
         //  Reply false if term < currentTerm
         if (term < currentTerm) {
+            this.startElectionTimer();
             return new VoteResult(currentTerm, false);
         }
 
@@ -89,9 +108,11 @@ class Follower extends ConsensusModuleImpl {
         int lastIndex = this.log.getLastIndex();
         if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
             this.consensusPersistentState.setVotedFor(candidateID);
+            this.startElectionTimer();
             return new VoteResult(currentTerm, true);
         }
 
+        this.startElectionTimer();
         return new VoteResult(currentTerm, false);
     }
 
@@ -102,6 +123,26 @@ class Follower extends ConsensusModuleImpl {
         if (term > this.consensusPersistentState.getCurrentTerm()) {
             this.consensusPersistentState.setCurrentTerm(term);
         }
+    }
+
+    private synchronized void toCandidate() {
+        this.container.changeConsensusModuleImpl(new Candidate(this.id, this.configuration, this.log,
+                this.stateMachine, this.container));
+    }
+
+    private void startElectionTimer() {
+        int delay = (new Random()).nextInt(ConsensusModuleImpl.ELECTION_TIMEOUT_MAX -
+                ConsensusModuleImpl.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleImpl.ELECTION_TIMEOUT_MIN;
+        this.timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                toCandidate();
+            }
+        }, delay);
+    }
+
+    private void stopElectionTimer() {
+        this.timer.cancel();
     }
 
 }

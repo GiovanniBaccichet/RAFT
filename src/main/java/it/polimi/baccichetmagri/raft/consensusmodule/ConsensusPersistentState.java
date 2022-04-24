@@ -1,6 +1,8 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
-class ConsensusPersistentState {
+class ConsensusPersistentState { // TODO
+
+
 
     // currentTerm: latest term server has seen (initialized to 0 on first boot, increases monotonically)
 
@@ -22,3 +24,6 @@ class ConsensusPersistentState {
 
     }
 }
+
+
+

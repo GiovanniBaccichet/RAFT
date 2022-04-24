@@ -14,7 +14,7 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     private ConsensusModuleImpl consensusModuleImpl;
 
     public ConsensusModule(int id, Configuration configuration, Log log, StateMachine stateMachine) {
-        this.consensusModuleImpl = new Follower(id, configuration, log, stateMachine);
+        this.consensusModuleImpl = new Follower(id, configuration, log, stateMachine, this);
     }
 
     @Override
@@ -33,5 +33,6 @@ public class ConsensusModule  implements ConsensusModuleInterface {
 
     void changeConsensusModuleImpl(ConsensusModuleImpl consensusModuleImpl) {
         this.consensusModuleImpl = consensusModuleImpl;
+        this.consensusModuleImpl.initialize();
     }
 }

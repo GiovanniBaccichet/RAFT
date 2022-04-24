@@ -14,8 +14,13 @@ class Leader extends ConsensusModuleImpl {
     private Map<Integer, Integer> nextIndex; // for each server, index of the next log entry to send to that server (initialized to leader last log index + 1)
     private Map<Integer, Integer> matchIndex; // for each server, index of highest log entry known to be replicated on server (initialized to 0, increases monotonically)
 
-    Leader(int id, Configuration configuration, Log log, StateMachine stateMachine) {
-        super(id, configuration, log, stateMachine);
+    Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModule consensusModule) {
+        super(id, configuration, log, stateMachine, consensusModule);
+    }
+
+    @Override
+    void initialize() {
+
     }
 
     @Override

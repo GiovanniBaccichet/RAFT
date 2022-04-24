@@ -9,8 +9,14 @@ import it.polimi.baccichetmagri.raft.network.Configuration;
 
 public class Candidate extends ConsensusModuleImpl {
 
-    Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine) {
-        super(id, configuration, log, stateMachine);
+    Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine,
+              ConsensusModule container) {
+        super(id, configuration, log, stateMachine, container);
+    }
+
+    @Override
+    void initialize() {
+
     }
 
     @Override
