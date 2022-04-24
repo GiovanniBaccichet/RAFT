@@ -21,6 +21,6 @@ public class VoteRequest extends Message{
 
     @Override
     public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
-        consensusModuleProxy.callRequestVote(this.term, this.candidateId, this.lastLogIndex, this.lastLogTerm);
+        consensusModuleProxy.callRequestVote(this.term, this.candidateId, this.lastLogIndex, this.lastLogTerm, this.getMessageId());
     }
 }

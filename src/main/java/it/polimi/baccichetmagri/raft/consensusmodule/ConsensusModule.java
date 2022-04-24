@@ -1,10 +1,11 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.messages.AppendEntryResult;
-import it.polimi.baccichetmagri.raft.messages.VoteResult;
+import it.polimi.baccichetmagri.raft.messages.VoteResultMsg;
 import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
 
 import java.util.List;
@@ -23,15 +24,15 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
 
 
     public synchronized VoteResult requestVote(int term,
-                                  int candidateID,
-                                  int lastLogIndex,
-                                  int lastLogTerm) {
+                                               int candidateID,
+                                               int lastLogIndex,
+                                               int lastLogTerm) {
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
 
         //  Reply false if term < currentTerm
         if (term < currentTerm) {
-            return new VoteResult(currentTerm, false, this.id);
+            return new VoteResult(currentTerm, false);
         }
 
         this.updateTerm(currentTerm);
@@ -41,10 +42,10 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
         int lastIndex = this.log.getLastIndex();
         if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
             this.consensusPersistentState.setVotedFor(candidateID);
-            return new VoteResult(currentTerm, true, this.id);
+            return new VoteResult(currentTerm, true);
         }
 
-        return new VoteResult(currentTerm, false, this.id);
+        return new VoteResult(currentTerm, false);
     }
 
 

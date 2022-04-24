@@ -2,6 +2,8 @@ package it.polimi.baccichetmagri.raft.network;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.messages.*;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
@@ -27,8 +29,8 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
 
     private final ConsensusModule consensusModule;
 
-    private final BlockingQueue<VoteResult> voteResultsQueue;
-    private final BlockingQueue<AppendEntryResult> appendEntryResultsQueue;
+    private final BlockingQueue<VoteResultMsg> voteResultsQueueMsg;
+    private final BlockingQueue<AppendEntryResultMsg> appendEntryResultsQueue;
 
     private int nextVoteRequestId;
     private int nextAppendEntryRequestId;
@@ -39,7 +41,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         this.messageSerializer = new MessageSerializer();
         this.isRunning = false;
         this.consensusModule = consensusModule;
-        this.voteResultsQueue = new LinkedBlockingQueue<>();
+        this.voteResultsQueueMsg = new LinkedBlockingQueue<>();
         this.appendEntryResultsQueue = new LinkedBlockingQueue<>();
         this.nextVoteRequestId = 0;
         this.nextAppendEntryRequestId = 0;
@@ -87,23 +89,23 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
-        VoteResult voteResult = null;
+        VoteResultMsg voteResultMsg = null;
         try {
             int voteRequestId = this.nextVoteRequestId;
             this.nextVoteRequestId++;
             VoteRequest voteRequest = new VoteRequest(term, candidateID, lastLogIndex, lastLogTerm, voteRequestId);
             this.sendMessage(voteRequest);
 
-            while(voteResult == null) {
-                voteResult = this.voteResultsQueue.take();
-                if (voteResult.getMessageId() != voteRequestId) {
-                    voteResult = null;
+            while(voteResultMsg == null) {
+                voteResultMsg = this.voteResultsQueueMsg.take();
+                if (voteResultMsg.getMessageId() != voteRequestId) {
+                    voteResultMsg = null;
                 }
             }
         } catch (InterruptedException e) {
             // TODO: if the thread has been interrupted while waiting
         }
-        return voteResult;
+        return voteResultMsg.getVoteResult();
     }
 
     /**
@@ -118,7 +120,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     @Override
     public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) throws IOException {
-        AppendEntryResult appendEntryResult = null;
+        AppendEntryResultMsg appendEntryResult = null;
         try {
             int appendEntryRequestId = this.nextAppendEntryRequestId;
             this.nextAppendEntryRequestId++;
@@ -135,7 +137,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         } catch (InterruptedException e) {
             // TODO: if the thread has been interrupted while waiting
         }
-        return appendEntryResult;
+        return appendEntryResult.getAppendEntryResult();
     }
 
     /**
@@ -146,9 +148,9 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @param lastLogTerm
      * @throws IOException
      */
-    public void callRequestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
+    public void callRequestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm, int messageId) throws IOException {
         VoteResult voteResult = this.consensusModule.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
-        this.sendMessage(voteResult);
+        this.sendMessage(new VoteResultMsg(voteResult, messageId));
     }
 
     /**
@@ -161,17 +163,17 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @param leaderCommit
      * @throws IOException
      */
-    public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) throws IOException {
+    public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit, int messageId) throws IOException {
         AppendEntryResult appendEntryResult = this.consensusModule.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
                 logEntries, leaderCommit);
-        this.sendMessage(appendEntryResult);
+        this.sendMessage(new AppendEntryResultMsg(appendEntryResult, messageId));
     }
 
-    public void receiveVoteResult(VoteResult voteResult) {
-        this.voteResultsQueue.add(voteResult);
+    public void receiveVoteResult(VoteResultMsg voteResultMsg) {
+        this.voteResultsQueueMsg.add(voteResultMsg);
     }
 
-    public void receiveAppendEntriesResult(AppendEntryResult appendEntryResult) {
+    public void receiveAppendEntriesResult(AppendEntryResultMsg appendEntryResult) {
         this.appendEntryResultsQueue.add(appendEntryResult);
     }
 

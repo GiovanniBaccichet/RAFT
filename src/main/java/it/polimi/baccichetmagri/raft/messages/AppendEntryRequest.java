@@ -28,6 +28,6 @@ public class AppendEntryRequest extends Message{
     @Override
     public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
         consensusModuleProxy.callAppendEntries(this.term, this.leaderId, this.prevLogIndex, this.prevLogTerm,
-                this.logEntries, this.leaderCommit);
+                this.logEntries, this.leaderCommit, this.getMessageId());
     }
 }

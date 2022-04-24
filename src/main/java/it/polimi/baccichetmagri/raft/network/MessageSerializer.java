@@ -22,7 +22,7 @@ public class MessageSerializer {
             case AppendEntryRequest:
                 return this.gson.fromJson(jsonMessage, AppendEntryRequest.class);
             case AppendEntryResult:
-                return this.gson.fromJson(jsonMessage, AppendEntryResult.class);
+                return this.gson.fromJson(jsonMessage, AppendEntryResultMsg.class);
             case ExecuteCommandRequest:
                 return this.gson.fromJson(jsonMessage, ExecuteCommandRequest.class);
             case ExecuteCommandResult:
@@ -30,7 +30,7 @@ public class MessageSerializer {
             case VoteRequest:
                 return this.gson.fromJson(jsonMessage, VoteRequest.class);
             case VoteResult:
-                return this.gson.fromJson(jsonMessage, VoteResult.class);
+                return this.gson.fromJson(jsonMessage, VoteResultMsg.class);
             default:
                 throw new BadMessageException("invalid message: " + jsonMessage);
         }

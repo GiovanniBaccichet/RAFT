@@ -1,24 +1,25 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
-import it.polimi.baccichetmagri.raft.messages.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.messages.AppendEntryResultMsg;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 
 public class Follower extends ConsensusModule {
 
     @Override
     public synchronized AppendEntryResult appendEntries(int term,
-                                           int leaderID,
-                                           int prevLogIndex,
-                                           int prevLogTerm,
-                                           LogEntry[] logEntries,
-                                           int leaderCommit) {
+                                                        int leaderID,
+                                                        int prevLogIndex,
+                                                        int prevLogTerm,
+                                                        LogEntry[] logEntries,
+                                                        int leaderCommit) {
 
         // Read currentTerm (1 time access)
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
 
         //  Reply false if term < currentTerm or Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
         if (term < currentTerm || !this.log.containsEntry(prevLogIndex, prevLogTerm)) {
-            return new AppendEntryResult(currentTerm, false, this.id);
+            return new AppendEntryResult(currentTerm, false);
         }
 
         this.updateTerm(term); // If term T > currentTerm: set currentTerm = T
@@ -48,7 +49,7 @@ public class Follower extends ConsensusModule {
             this.checkCommitIndex(); // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
         }
 
-        return new AppendEntryResult(currentTerm, true, this.id);
+        return new AppendEntryResult(currentTerm, true);
     }
 
     // If RPC request or response contains term T > currentTerm: set currentTerm = T (ALREADY follower)

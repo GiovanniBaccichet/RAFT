@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
-import it.polimi.baccichetmagri.raft.messages.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 
 public class Candidate extends ConsensusModule {
