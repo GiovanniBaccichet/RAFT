@@ -5,6 +5,8 @@ import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.machine.Command;
+import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.messages.*;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 
@@ -137,6 +139,11 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
             // TODO: if the thread has been interrupted while waiting
         }
         return appendEntryResult.getAppendEntryResult();
+    }
+
+    @Override
+    public StateMachineResult executeCommand(Command command) {
+        return null;
     }
 
     /**

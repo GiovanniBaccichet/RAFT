@@ -23,7 +23,7 @@ public class Server {
             Configuration configuration = new Configuration();
             ConsensusModule consensusModule = new ConsensusModule(id, configuration, log, stateMachine);
             configuration.initialize(id, consensusModule);
-            ServerSocketManager serverSocketManager = new ServerSocketManager(configuration);
+            ServerSocketManager serverSocketManager = new ServerSocketManager(configuration, consensusModule);
             serverSocketManager.run();
         } catch (NumberFormatException e) {
             logger.log(Level.SEVERE, "Invalid ID argument, please insert an integer number");

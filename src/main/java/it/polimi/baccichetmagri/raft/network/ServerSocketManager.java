@@ -1,5 +1,7 @@
 package it.polimi.baccichetmagri.raft.network;
 
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,11 +13,12 @@ public class ServerSocketManager implements Runnable{
 
     private final ServerSocket serverSocket;
     private final Configuration configuration;
+    private final ConsensusModule consensusModule;
 
-    public ServerSocketManager(Configuration configuration) throws IOException {
+    public ServerSocketManager(Configuration configuration, ConsensusModule consensusModule) throws IOException {
         this.serverSocket = new ServerSocket(PORT);
         this.configuration = configuration;
-        MessageSerializer messageSerializer = new MessageSerializer();
+        this.consensusModule = consensusModule;
     }
 
     public void run() { // TODO: running on main thread, no need to call method run() -> change name
@@ -34,7 +37,7 @@ public class ServerSocketManager implements Runnable{
                     this.configuration.getConsensusModuleProxy(id).setSocket(socket);
                 } else if (connectMessage.equals("CLIENT")){
                     //if the message is "CLIENT", the connection is requested from a client
-                    ClientProxy clientProxy = new ClientProxy(socket);
+                    ClientProxy clientProxy = new ClientProxy(socket, this.consensusModule);
                 } else {
                     socket.close();
                 }

@@ -4,7 +4,9 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResu
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
+import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.io.IOException;
@@ -25,6 +27,11 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     @Override
     public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) throws IOException {
         return this.consensusModuleImpl.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
+    }
+
+    @Override
+    public StateMachineResult executeCommand(Command command) {
+        return this.consensusModuleImpl.executeCommand(command);
     }
 
     public int getId() {

@@ -3,7 +3,8 @@ package it.polimi.baccichetmagri.raft.consensusmodule;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
-import it.polimi.baccichetmagri.raft.messages.VoteResultMsg;
+import it.polimi.baccichetmagri.raft.machine.Command;
+import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 
 import java.io.IOException;
 
@@ -31,4 +32,6 @@ public interface ConsensusModuleInterface {
      */
     AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm,
                                     LogEntry[] logEntries, int leaderCommit) throws IOException;
+
+    StateMachineResult executeCommand(Command command);
 }

@@ -4,7 +4,9 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResu
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
+import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.util.Map;
@@ -32,6 +34,11 @@ class Leader extends ConsensusModuleImpl {
     public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
 
         return null; // TODO cambiare
+    }
+
+    @Override
+    public StateMachineResult executeCommand(Command command) {
+        return null;
     }
 
 }
