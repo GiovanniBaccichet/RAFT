@@ -28,7 +28,7 @@ public class Server {
         } catch (NumberFormatException e) {
             logger.log(Level.SEVERE, "Invalid ID argument, please insert an integer number");
         } catch (IOException e) {
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE, "Impossible to open the server socket.");
         }
     }
 

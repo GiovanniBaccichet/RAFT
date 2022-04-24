@@ -9,21 +9,21 @@ public class ServerSocketManager implements Runnable{
 
     public static final int PORT = 43827;
 
-    private ServerSocket serverSocket;
-    private Configuration configuration;
-    private MessageSerializer messageSerializer;
+    private final ServerSocket serverSocket;
+    private final Configuration configuration;
 
     public ServerSocketManager(Configuration configuration) throws IOException {
         this.serverSocket = new ServerSocket(PORT);
         this.configuration = configuration;
-        this.messageSerializer = new MessageSerializer();
+        MessageSerializer messageSerializer = new MessageSerializer();
     }
 
-    public void run() {
+    public void run() { // TODO: running on main thread, no need to call method run() -> change name
         while (true) {
+            Socket socket = null;
             try {
                 // accept new connections and read the first message
-                Socket socket = this.serverSocket.accept();
+                socket = this.serverSocket.accept();
                 Scanner in = new Scanner(socket.getInputStream());
                 String connectMessage = in.nextLine();
 
@@ -42,6 +42,11 @@ public class ServerSocketManager implements Runnable{
                 e.printStackTrace();
             } catch (NumberFormatException e) { // thrown by Integer.parseInt()
                 e.printStackTrace();
+                try {
+                    socket.close();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
             }
         }
     }
