@@ -17,7 +17,6 @@ public class ServerSocketManager implements Runnable{
         this.serverSocket = new ServerSocket(PORT);
         this.configuration = configuration;
         this.messageSerializer = new MessageSerializer();
-        (new Thread(this)).start();
     }
 
     public void run() {

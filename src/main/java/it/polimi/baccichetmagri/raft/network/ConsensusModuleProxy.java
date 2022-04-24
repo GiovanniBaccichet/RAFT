@@ -17,8 +17,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable {
 
-    private static final int RAFT_PORT = 9876;
-
     private final int id;
     private final String ip;
     private Socket socket;
@@ -38,6 +36,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     public ConsensusModuleProxy(int id, String ip, ConsensusModule consensusModule) {
         this.id = id;
         this.ip = ip;
+        this.socket = null;
         this.messageSerializer = new MessageSerializer();
         this.isRunning = false;
         this.consensusModule = consensusModule;
@@ -141,20 +140,20 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     /**
-     * Calls ConsensusModule::requestVote and sends the result to the peer.
+     * Calls ConsensusModuleImpl::requestVote and sends the result to the peer.
      * @param term
      * @param candidateID
      * @param lastLogIndex
      * @param lastLogTerm
      * @throws IOException
      */
-    public void callRequestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm, int messageId) throws IOException {
+    public void callRequestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm, int requestId) throws IOException {
         VoteResult voteResult = this.consensusModule.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
-        this.sendMessage(new VoteResultMsg(voteResult, messageId));
+        this.sendMessage(new VoteResultMsg(voteResult, requestId));
     }
 
     /**
-     * Calls ConsensusModule::appendEntries and sends the result to the peer.
+     * Calls ConsensusModuleImpl::appendEntries and sends the result to the peer.
      * @param term
      * @param leaderID
      * @param prevLogIndex
@@ -163,10 +162,11 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @param leaderCommit
      * @throws IOException
      */
-    public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit, int messageId) throws IOException {
+    public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries,
+                                  int leaderCommit, int requestId) throws IOException {
         AppendEntryResult appendEntryResult = this.consensusModule.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
                 logEntries, leaderCommit);
-        this.sendMessage(new AppendEntryResultMsg(appendEntryResult, messageId));
+        this.sendMessage(new AppendEntryResultMsg(appendEntryResult, requestId));
     }
 
     public void receiveVoteResult(VoteResultMsg voteResultMsg) {
@@ -178,19 +178,23 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     private void sendMessage(Message message) throws IOException {
-        if (!this.isRunning || this.socket == null) {
-            this.setSocket(new Socket(this.ip, RAFT_PORT));
-        }
+        this.checkSocket();
         PrintWriter out = new PrintWriter(this.socket.getOutputStream());
         out.println(this.messageSerializer.serialize(message));
     }
 
     private Message readMessage() throws IOException, BadMessageException {
-        if (!this.isRunning || this.socket == null) {
-            this.setSocket(new Socket(this.ip, RAFT_PORT));
-        }
+        this.checkSocket();
         Scanner in = new Scanner(this.socket.getInputStream());
         String jsonMessage = in.nextLine();
         return this.messageSerializer.deserialiaze(jsonMessage);
+    }
+
+    private void checkSocket() throws IOException {
+        PrintWriter out = new PrintWriter(this.socket.getOutputStream());
+        if (!this.isRunning) {
+            this.setSocket(new Socket(this.ip, ServerSocketManager.PORT));
+            out.println("SERVER " + this.consensusModule.getId());
+        }
     }
 }

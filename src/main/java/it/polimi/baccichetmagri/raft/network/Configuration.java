@@ -2,6 +2,7 @@ package it.polimi.baccichetmagri.raft.network;
 
 import com.google.gson.reflect.TypeToken;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.network.exceptions.NoKnownLeaderException;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
 import it.polimi.baccichetmagri.raft.utils.ResourcesLoader;
 
@@ -12,12 +13,13 @@ import java.util.*;
  */
 public class Configuration {
 
-    private List<ConsensusModuleProxy> proxies = new ArrayList<>();
+    private final List<ConsensusModuleProxy> proxies = new ArrayList<>();
+    private Integer leaderId;
 
     /**
-     * @param id the id of the ConsensusModule of the machine (to not create a connection with itself)
+     * @param id the id of the ConsensusModuleImpl of the machine (to not create a connection with itself)
      */
-    public Configuration(int id, ConsensusModule consensusModule) {
+    public void initialize(int id, ConsensusModule consensusModule) {
 
         // load configuration file with <id, ip> of other servers
         Map<Integer, String> addresses = ResourcesLoader.loadJson("configuration.json",
@@ -44,5 +46,15 @@ public class Configuration {
 
     }
 
+    public int getLeaderId() throws NoKnownLeaderException {
+        if (this.leaderId == null) {
+            throw new NoKnownLeaderException();
+        }
+        return this.leaderId;
+    }
+
+    public void setLeaderId(int leaderId) {
+        this.leaderId = leaderId;
+    }
 
 }
