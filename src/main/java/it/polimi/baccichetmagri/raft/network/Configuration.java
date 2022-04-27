@@ -42,6 +42,10 @@ public class Configuration {
         return this.proxies.listIterator();
     }
 
+    public int getServersNumber() {
+        return this.proxies.size() + 1; // includes also this server
+    }
+
     public void changeConfiguration(String configurationJson) {
 
     }

@@ -17,7 +17,7 @@ import java.util.TimerTask;
 
 class Follower extends ConsensusModuleImpl {
 
-    Timer timer;
+    private Timer timer;
 
     Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
              ConsensusModule container) {

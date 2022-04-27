@@ -19,7 +19,7 @@ public interface ConsensusModuleInterface {
      * @param lastLogTerm term of candidate’s last log entry
      * @return a VoteReply containing the current term and a boolean, true if candidate received vote
      */
-    VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException;
+    VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException, InterruptedException;
 
     /**
      * Invoked by leader to replicate log entries; also used as heartbeat.

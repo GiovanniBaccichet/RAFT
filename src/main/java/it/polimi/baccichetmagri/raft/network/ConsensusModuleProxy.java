@@ -96,9 +96,8 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @return
      */
     @Override
-    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
+    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException, InterruptedException {
         VoteReply voteResultMsg = null;
-        try {
             int voteRequestId = this.nextVoteRequestId;
             this.nextVoteRequestId++;
             VoteRequest voteRequest = new VoteRequest(term, candidateID, lastLogIndex, lastLogTerm, voteRequestId);
@@ -110,9 +109,6 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
                     voteResultMsg = null;
                 }
             }
-        } catch (InterruptedException e) {
-            // TODO: if the thread has been interrupted while waiting
-        }
         return voteResultMsg.getVoteResult();
     }
 
