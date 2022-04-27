@@ -3,10 +3,10 @@ package it.polimi.baccichetmagri.raft.network;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
-import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.messages.*;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 
@@ -29,8 +29,8 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
 
     private final ConsensusModule consensusModule;
 
-    private final BlockingQueue<VoteResultMsg> voteResultsQueueMsg;
-    private final BlockingQueue<AppendEntryResultMsg> appendEntryResultsQueue;
+    private final BlockingQueue<VoteReply> voteResultsQueueMsg;
+    private final BlockingQueue<AppendEntryReply> appendEntryResultsQueue;
 
     private int nextVoteRequestId;
     private int nextAppendEntryRequestId;
@@ -72,6 +72,10 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         return this.id;
     }
 
+    public String getIp() {
+        return this.ip;
+    }
+
     public void setSocket(Socket socket) {
         this.socket = socket;
         if (!this.isRunning) {
@@ -90,7 +94,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
-        VoteResultMsg voteResultMsg = null;
+        VoteReply voteResultMsg = null;
         try {
             int voteRequestId = this.nextVoteRequestId;
             this.nextVoteRequestId++;
@@ -121,7 +125,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     @Override
     public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) throws IOException {
-        AppendEntryResultMsg appendEntryResult = null;
+        AppendEntryReply appendEntryResult = null;
         try {
             int appendEntryRequestId = this.nextAppendEntryRequestId;
             this.nextAppendEntryRequestId++;
@@ -142,7 +146,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     @Override
-    public StateMachineResult executeCommand(Command command) {
+    public ExecuteCommandResult executeCommand(Command command) {
         return null;
     }
 
@@ -156,7 +160,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     public void callRequestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm, int requestId) throws IOException {
         VoteResult voteResult = this.consensusModule.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
-        this.sendMessage(new VoteResultMsg(voteResult, requestId));
+        this.sendMessage(new VoteReply(voteResult, requestId));
     }
 
     /**
@@ -173,14 +177,14 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
                                   int leaderCommit, int requestId) throws IOException {
         AppendEntryResult appendEntryResult = this.consensusModule.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
                 logEntries, leaderCommit);
-        this.sendMessage(new AppendEntryResultMsg(appendEntryResult, requestId));
+        this.sendMessage(new AppendEntryReply(appendEntryResult, requestId));
     }
 
-    public void receiveVoteResult(VoteResultMsg voteResultMsg) {
+    public void receiveVoteResult(VoteReply voteResultMsg) {
         this.voteResultsQueueMsg.add(voteResultMsg);
     }
 
-    public void receiveAppendEntriesResult(AppendEntryResultMsg appendEntryResult) {
+    public void receiveAppendEntriesResult(AppendEntryReply appendEntryResult) {
         this.appendEntryResultsQueue.add(appendEntryResult);
     }
 

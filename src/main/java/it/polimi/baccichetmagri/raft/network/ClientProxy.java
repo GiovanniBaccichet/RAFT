@@ -1,9 +1,9 @@
 package it.polimi.baccichetmagri.raft.network;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
-import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.messages.ExecuteCommandRequest;
-import it.polimi.baccichetmagri.raft.messages.ExecuteCommandResult;
+import it.polimi.baccichetmagri.raft.messages.ExecuteCommandReply;
 import it.polimi.baccichetmagri.raft.messages.Message;
 import it.polimi.baccichetmagri.raft.messages.MessageType;
 
@@ -16,8 +16,8 @@ import java.util.logging.Logger;
 
 public class ClientProxy implements Runnable{
 
-    private Socket socket;
-    private ConsensusModule consensusModule;
+    private final Socket socket;
+    private final ConsensusModule consensusModule;
 
     public ClientProxy(Socket socket, ConsensusModule consensusModule) {
         this.socket = socket;
@@ -30,7 +30,7 @@ public class ClientProxy implements Runnable{
         Logger logger = Logger.getLogger(ClientProxy.class.getName());
         logger.setLevel(Level.FINE);
 
-        Message message = null;
+        Message message;
 
         try {
 
@@ -50,12 +50,12 @@ public class ClientProxy implements Runnable{
 
         if (message.getMessageType() == MessageType.ExecuteCommandRequest) {
 
-            StateMachineResult stateMachineResult = this.consensusModule.executeCommand(
+            ExecuteCommandResult executeCommandResult = this.consensusModule.executeCommand(
                     ((ExecuteCommandRequest) message).getCommand());
 
             try {
                 PrintWriter out = new PrintWriter(this.socket.getOutputStream());
-                out.println(new ExecuteCommandResult(stateMachineResult, message.getMessageId()));
+                out.println(new ExecuteCommandReply(executeCommandResult, message.getMessageId()));
             } catch (Exception e) {
                 e.printStackTrace();
                 logger.log(Level.SEVERE, "Error in sending the response to the client. Socket closed.");

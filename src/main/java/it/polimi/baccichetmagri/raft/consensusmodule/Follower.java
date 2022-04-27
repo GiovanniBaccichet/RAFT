@@ -1,12 +1,12 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.util.Random;
@@ -47,7 +47,7 @@ class Follower extends ConsensusModuleImpl {
         }
 
         // Update leader
-        this.configuration.setLeaderId(leaderID);
+        this.configuration.setLeader(leaderID);
 
         // If term T > currentTerm: set currentTerm = T
         if (term > currentTerm) {
@@ -90,8 +90,9 @@ class Follower extends ConsensusModuleImpl {
     }
 
     @Override
-    public synchronized StateMachineResult executeCommand(Command command) {
-        return null;
+    public synchronized ExecuteCommandResult executeCommand(Command command) {
+        return new ExecuteCommandResult(null, false,
+                this.configuration.getLeaderIP());
     }
 
     public synchronized VoteResult requestVote(int term,

@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
@@ -33,7 +34,7 @@ public class Candidate extends ConsensusModuleImpl {
     }
 
     @Override
-    public StateMachineResult executeCommand(Command command) {
+    public ExecuteCommandResult executeCommand(Command command) {
         return null;
     }
 

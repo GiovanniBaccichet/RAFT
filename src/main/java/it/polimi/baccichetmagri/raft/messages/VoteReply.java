@@ -3,11 +3,11 @@ package it.polimi.baccichetmagri.raft.messages;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
-public class VoteResultMsg extends Message{
+public class VoteReply extends Message{
 
     private final VoteResult voteResult;
 
-    public VoteResultMsg(VoteResult voteResult, int messageId) {
+    public VoteReply(VoteResult voteResult, int messageId) {
         super(MessageType.VoteResult, messageId);
         this.voteResult = voteResult;
     }

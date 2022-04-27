@@ -3,11 +3,11 @@ package it.polimi.baccichetmagri.raft.messages;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
-public class AppendEntryResultMsg extends Message{
+public class AppendEntryReply extends Message{
 
     private final AppendEntryResult appendEntryResult;
 
-    public AppendEntryResultMsg(AppendEntryResult appendEntryResult, int messageId) {
+    public AppendEntryReply(AppendEntryResult appendEntryResult, int messageId) {
         super(MessageType.AppendEntryResult, messageId);
         this.appendEntryResult = appendEntryResult;
     }

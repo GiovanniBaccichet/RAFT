@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
@@ -52,7 +53,7 @@ abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
                                                     int leaderCommit);
 
     @Override
-    public abstract StateMachineResult executeCommand(Command command);
+    public abstract ExecuteCommandResult executeCommand(Command command);
 
     int getId() {
         return this.id;

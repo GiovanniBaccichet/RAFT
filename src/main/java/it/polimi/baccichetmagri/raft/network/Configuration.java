@@ -46,14 +46,14 @@ public class Configuration {
 
     }
 
-    public int getLeaderId() throws NoKnownLeaderException {
+    public String getLeaderIP() throws NoKnownLeaderException {
         if (this.leaderId == null) {
             throw new NoKnownLeaderException();
         }
-        return this.leaderId;
+        return this.getConsensusModuleProxy(this.leaderId).getIp();
     }
 
-    public void setLeaderId(int leaderId) {
+    public void setLeader(int leaderId) {
         this.leaderId = leaderId;
     }
 
