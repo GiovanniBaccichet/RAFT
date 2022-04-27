@@ -14,7 +14,7 @@ public class VoteReply extends Message{
 
     @Override
     public void execute(ConsensusModuleProxy consensusModuleProxy) {
-        consensusModuleProxy.receiveVoteResult(this);
+        consensusModuleProxy.receiveVoteReply(this);
     }
 
     public VoteResult getVoteResult() {

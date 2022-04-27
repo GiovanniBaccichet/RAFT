@@ -14,7 +14,7 @@ public class AppendEntryReply extends Message{
 
     @Override
     public void execute(ConsensusModuleProxy consensusModuleProxy) {
-        consensusModuleProxy.receiveAppendEntriesResult(this);
+        consensusModuleProxy.receiveAppendEntriesReply(this);
     }
 
     public AppendEntryResult getAppendEntryResult() {

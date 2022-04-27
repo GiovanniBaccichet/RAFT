@@ -35,6 +35,9 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     private int nextVoteRequestId;
     private int nextAppendEntryRequestId;
 
+    private boolean discardAppendEntryReplies;
+    private boolean discardVoteReplies;
+
     public ConsensusModuleProxy(int id, String ip, ConsensusModule consensusModule) {
         this.id = id;
         this.ip = ip;
@@ -180,12 +183,24 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         this.sendMessage(new AppendEntryReply(appendEntryResult, requestId));
     }
 
-    public void receiveVoteResult(VoteReply voteResultMsg) {
-        this.voteResultsQueueMsg.add(voteResultMsg);
+    public void receiveVoteReply(VoteReply voteReply) {
+        if (!this.discardVoteReplies) {
+            this.voteResultsQueueMsg.add(voteReply);
+        }
     }
 
-    public void receiveAppendEntriesResult(AppendEntryReply appendEntryResult) {
-        this.appendEntryResultsQueue.add(appendEntryResult);
+    public void receiveAppendEntriesReply(AppendEntryReply appendEntryReply) {
+        if (!this.discardAppendEntryReplies) {
+            this.appendEntryResultsQueue.add(appendEntryReply);
+        }
+    }
+
+    public void discardAppendEntryReplies(boolean discard) {
+        this.discardAppendEntryReplies = discard;
+    }
+
+    public void discardVoteReplies(boolean discard) {
+        this.discardVoteReplies = discard;
     }
 
     private void sendMessage(Message message) throws IOException {

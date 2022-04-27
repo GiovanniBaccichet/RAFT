@@ -8,7 +8,9 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
+import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,7 +26,9 @@ class Follower extends ConsensusModuleImpl {
     }
 
     @Override
-    void initialize() {
+    synchronized void initialize() {
+        this.configuration.discardAppendEntryReplies(true);
+        this.configuration.discardRequestVoteReplies(true);
         this.startElectionTimer();
     }
 

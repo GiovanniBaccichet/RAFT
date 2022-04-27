@@ -22,8 +22,9 @@ class Leader extends ConsensusModuleImpl {
     }
 
     @Override
-    void initialize() {
-
+    synchronized void initialize() {
+        this.configuration.discardRequestVoteReplies(false);
+        this.configuration.discardAppendEntryReplies(false);
     }
 
     @Override

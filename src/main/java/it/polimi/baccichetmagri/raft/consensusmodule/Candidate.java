@@ -7,7 +7,6 @@ import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 public class Candidate extends ConsensusModuleImpl {
@@ -18,8 +17,9 @@ public class Candidate extends ConsensusModuleImpl {
     }
 
     @Override
-    void initialize() {
-
+    synchronized void initialize() {
+        this.configuration.discardAppendEntryReplies(true);
+        this.configuration.discardRequestVoteReplies(false);
     }
 
     @Override

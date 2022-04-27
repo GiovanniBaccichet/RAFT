@@ -57,4 +57,15 @@ public class Configuration {
         this.leaderId = leaderId;
     }
 
+    public void discardAppendEntryReplies(boolean discard) {
+        for (ConsensusModuleProxy proxy : this.proxies) {
+            proxy.discardAppendEntryReplies(discard);
+        }
+    }
+
+    public void discardRequestVoteReplies(boolean discard) {
+        for (ConsensusModuleProxy proxy : this.proxies) {
+            proxy.discardVoteReplies(discard);
+        }
+    }
 }
