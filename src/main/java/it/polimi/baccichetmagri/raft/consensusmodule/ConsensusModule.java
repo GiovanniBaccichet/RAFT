@@ -1,77 +1,46 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.messages.AppendEntryResult;
-import it.polimi.baccichetmagri.raft.messages.VoteResult;
-import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
+import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
+import it.polimi.baccichetmagri.raft.network.Configuration;
 
-import java.util.List;
+import java.io.IOException;
 
-public abstract class ConsensusModule implements ConsensusModuleInterface {
+public class ConsensusModule  implements ConsensusModuleInterface {
 
-    protected int id;
-    protected ConsensusPersistentState consensusPersistentState; // currentTerm, votedFor
-    protected int commitIndex; // index of highest log entry known to be committed (initialized to 0, increases monotonically)
-    protected int lastApplied; // index of highest log entry applied to state machine (initialized to 0, increases monotonically)
-    protected List<Integer> servers; // IDs of other servers
-    protected Log log;
-    protected StateMachine stateMachine;
+    private ConsensusModuleImpl consensusModuleImpl;
 
-    protected ServerSocketManager networkHandler;
-
-
-    public synchronized VoteResult requestVote(int term,
-                                  int candidateID,
-                                  int lastLogIndex,
-                                  int lastLogTerm) {
-
-        int currentTerm = this.consensusPersistentState.getCurrentTerm();
-
-        //  Reply false if term < currentTerm
-        if (term < currentTerm) {
-            return new VoteResult(currentTerm, false, this.id);
-        }
-
-        this.updateTerm(currentTerm);
-
-        //  If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
-        Integer votedFor = this.consensusPersistentState.getVotedFor();
-        int lastIndex = this.log.getLastIndex();
-        if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
-            this.consensusPersistentState.setVotedFor(candidateID);
-            return new VoteResult(currentTerm, true, this.id);
-        }
-
-        return new VoteResult(currentTerm, false, this.id);
+    public ConsensusModule(int id, Configuration configuration, Log log, StateMachine stateMachine) {
+        this.consensusModuleImpl = new Follower(id, configuration, log, stateMachine, this);
     }
 
-
-    public abstract AppendEntryResult appendEntries(int term,
-                                                    int leaderID,
-                                                    int prevLogIndex,
-                                                    int prevLogTerm,
-                                                    LogEntry[] logEntries,
-                                                    int leaderCommit);
-
-    /**
-     * If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
-     */
-    protected void checkCommitIndex() {
-        while (this.commitIndex > this.lastApplied) {
-            this.lastApplied++;
-            this.stateMachine.executeCommand(this.log.getEntryCommand(lastApplied));
-        }
+    @Override
+    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
+        return this.consensusModuleImpl.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
     }
 
-    // If RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
-    protected void updateTerm(int term) {
-        if (term > this.consensusPersistentState.getCurrentTerm()) {
-            this.consensusPersistentState.setCurrentTerm(term);
-            // TODO Convert to follower
-        }
+    @Override
+    public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) throws IOException {
+        return this.consensusModuleImpl.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
     }
 
+    @Override
+    public ExecuteCommandResult executeCommand(Command command) {
+        return this.consensusModuleImpl.executeCommand(command);
+    }
 
+    public int getId() {
+        return this.consensusModuleImpl.getId();
+    }
+
+    void changeConsensusModuleImpl(ConsensusModuleImpl consensusModuleImpl) {
+        this.consensusModuleImpl = consensusModuleImpl;
+        this.consensusModuleImpl.initialize();
+    }
 }

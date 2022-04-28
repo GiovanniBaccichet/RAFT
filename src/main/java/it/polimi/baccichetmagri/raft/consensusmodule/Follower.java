@@ -1,33 +1,74 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
-import it.polimi.baccichetmagri.raft.messages.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
+import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.machine.Command;
+import it.polimi.baccichetmagri.raft.machine.StateMachine;
+import it.polimi.baccichetmagri.raft.network.Configuration;
+import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
-public class Follower extends ConsensusModule {
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
+class Follower extends ConsensusModuleImpl {
+
+    private Timer timer;
+
+    Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
+             ConsensusModule container) {
+        super(id, configuration, log, stateMachine, container);
+        this.timer = new Timer();
+    }
+
+    @Override
+    synchronized void initialize() {
+        this.configuration.discardAppendEntryReplies(true);
+        this.configuration.discardRequestVoteReplies(true);
+        this.startElectionTimer();
+    }
 
     @Override
     public synchronized AppendEntryResult appendEntries(int term,
-                                           int leaderID,
-                                           int prevLogIndex,
-                                           int prevLogTerm,
-                                           LogEntry[] logEntries,
-                                           int leaderCommit) {
+                                                        int leaderID,
+                                                        int prevLogIndex,
+                                                        int prevLogTerm,
+                                                        LogEntry[] logEntries,
+                                                        int leaderCommit) {
+        this.stopElectionTimer();
 
         // Read currentTerm (1 time access)
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
 
-        //  Reply false if term < currentTerm or Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
-        if (term < currentTerm || !this.log.containsEntry(prevLogIndex, prevLogTerm)) {
-            return new AppendEntryResult(currentTerm, false, this.id);
+        //  Reply false if term < currentTerm
+        if (term < currentTerm ) {
+            this.startElectionTimer();
+            return new AppendEntryResult(currentTerm, false);
         }
 
-        this.updateTerm(term); // If term T > currentTerm: set currentTerm = T
+        // Update leader
+        this.configuration.setLeader(leaderID);
+
+        // If term T > currentTerm: set currentTerm = T
+        if (term > currentTerm) {
+            this.updateTerm(term);
+        }
+
+        //  Reply false  if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
+        if (!this.log.containsEntry(prevLogIndex, prevLogTerm)) {
+            this.startElectionTimer();
+            return new AppendEntryResult(currentTerm, false);
+        }
 
         // If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it
         boolean conflict = false;
         for (int i = prevLogIndex + 1; i < logEntries.length && !conflict; i++) {
             int entryTerm = this.log.getEntryTerm(i);
-            if (entryTerm > 0 && entryTerm != term) {
+            if (entryTerm != term) {
                 this.log.deleteEntriesFrom(i);
                 conflict = true;
             }
@@ -48,8 +89,45 @@ public class Follower extends ConsensusModule {
             this.checkCommitIndex(); // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
         }
 
-        return new AppendEntryResult(currentTerm, true, this.id);
+        this.startElectionTimer();
+        return new AppendEntryResult(currentTerm, true);
     }
+
+    @Override
+    public synchronized ExecuteCommandResult executeCommand(Command command) {
+        return new ExecuteCommandResult(null, false,
+                this.configuration.getLeaderIP());
+    }
+
+    public synchronized VoteResult requestVote(int term,
+                                               int candidateID,
+                                               int lastLogIndex,
+                                               int lastLogTerm) {
+        this.stopElectionTimer();
+
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+
+        //  Reply false if term < currentTerm
+        if (term < currentTerm) {
+            this.startElectionTimer();
+            return new VoteResult(currentTerm, false);
+        }
+
+        this.updateTerm(currentTerm);
+
+        //  If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
+        Integer votedFor = this.consensusPersistentState.getVotedFor();
+        int lastIndex = this.log.getLastIndex();
+        if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
+            this.consensusPersistentState.setVotedFor(candidateID);
+            this.startElectionTimer();
+            return new VoteResult(currentTerm, true);
+        }
+
+        this.startElectionTimer();
+        return new VoteResult(currentTerm, false);
+    }
+
 
     // If RPC request or response contains term T > currentTerm: set currentTerm = T (ALREADY follower)
     @Override
@@ -57,6 +135,26 @@ public class Follower extends ConsensusModule {
         if (term > this.consensusPersistentState.getCurrentTerm()) {
             this.consensusPersistentState.setCurrentTerm(term);
         }
+    }
+
+    private synchronized void toCandidate() {
+        this.container.changeConsensusModuleImpl(new Candidate(this.id, this.configuration, this.log,
+                this.stateMachine, this.container));
+    }
+
+    private void startElectionTimer() {
+        int delay = (new Random()).nextInt(ConsensusModuleImpl.ELECTION_TIMEOUT_MAX -
+                ConsensusModuleImpl.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleImpl.ELECTION_TIMEOUT_MIN;
+        this.timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                toCandidate();
+            }
+        }, delay);
+    }
+
+    private void stopElectionTimer() {
+        this.timer.cancel();
     }
 
 }
