@@ -117,7 +117,7 @@ class Candidate extends ConsensusModuleImpl {
         }
     }
 
-    private synchronized void startElectionTimer() {
+    private void startElectionTimer() {
         int delay = (new Random()).nextInt(ConsensusModuleImpl.ELECTION_TIMEOUT_MAX -
                 ConsensusModuleImpl.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleImpl.ELECTION_TIMEOUT_MIN;
         // when the timer expires, interrupt all threads where RequestVoteRPC was sent
@@ -133,12 +133,12 @@ class Candidate extends ConsensusModuleImpl {
         this.timer.cancel();
     }
 
-    private synchronized void toFollower() {
+    private void toFollower() {
         this.container.changeConsensusModuleImpl(new Follower(this.id, this.configuration, this.log,
                 this.stateMachine, this.container));
     }
 
-    private synchronized void toLeader() {
+    private void toLeader() {
         this.container.changeConsensusModuleImpl(new Leader(this.id, this.configuration, this.log,
                 this.stateMachine, this.container));
     }
