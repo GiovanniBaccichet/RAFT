@@ -2,10 +2,15 @@ package it.polimi.baccichetmagri.raft.log;
 
 import it.polimi.baccichetmagri.raft.machine.Command;
 
-public abstract class LogEntry {
+public class LogEntry {
 
     private int term;
     private Command command;
+
+    public LogEntry(int term, Command command) {
+        this.term = term;
+        this.command = command;
+    }
 
     @Override
     public String toString() {

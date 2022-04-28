@@ -9,7 +9,10 @@ import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
+import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 class Leader extends ConsensusModuleImpl {
@@ -19,16 +22,29 @@ class Leader extends ConsensusModuleImpl {
 
     Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModule consensusModule) {
         super(id, configuration, log, stateMachine, consensusModule);
+        this.nextIndex = new HashMap<>();
+        this.matchIndex = new HashMap<>();
+        Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
+        int lastLogIndex = this.log.getLastIndex();
+        while (proxies.hasNext()) {
+            int proxyId = proxies.next().getId();
+            this.nextIndex.put(proxyId, lastLogIndex + 1);
+            this.matchIndex.put(proxyId, 0);
+        }
     }
 
     @Override
     synchronized void initialize() {
         this.configuration.discardRequestVoteReplies(false);
         this.configuration.discardAppendEntryReplies(false);
+        int lastLogIndex = this.log.getLastIndex();
+        // send initial empty AppendEntriesRPC (heartbeat)
+        this.callAppendEntriesOnAllServers(this.consensusPersistentState.getCurrentTerm(), this.id,
+                lastLogIndex, this.log.getEntryTerm(lastLogIndex), new LogEntry[0], this.commitIndex);
     }
 
     @Override
-    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
+    public synchronized VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
         return null;
     }
 
@@ -39,8 +55,17 @@ class Leader extends ConsensusModuleImpl {
     }
 
     @Override
-    public ExecuteCommandResult executeCommand(Command command) {
-        return null;
+    public synchronized ExecuteCommandResult executeCommand(Command command) {
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        // append command to local log as new entry
+        this.log.appendEntry(new LogEntry(currentTerm, command));
+
+        // call AppendEntriesRPC in parallel on all other servers
+
+        return null; // TODO cambiare
     }
 
+    private void callAppendEntriesOnAllServers(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
+
+    }
 }
