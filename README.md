@@ -81,9 +81,9 @@ Raft is a **consensus algorithm** that is designed to be easy to understand. It'
   <img src="media/raft_animation.gif">
 </p>
 
-Consensus is a fundamental problem in fault-tolerant distributed systems. Consensus involves multiple servers agreeing on values. Once they reach a decision on a value, that decision is final. Typical consensus algorithms make progress when any majority of their servers is available; for example, a cluster of 5 servers can continue to operate even if 2 servers fail. If more servers fail, they stop making progress (but will never return an incorrect stateMachineResult).
+Consensus is a fundamental problem in fault-tolerant distributed systems. Consensus involves multiple servers agreeing on values. Once they reach a decision on a value, that decision is final. Typical consensus algorithms make progress when any majority of their servers is available; for example, a cluster of 5 servers can continue to operate even if 2 servers fail. If more servers fail, they stop making progress (but will never return an incorrect `stateMachineResult`).
 
-Consensus typically arises in the context of replicated state machines, a general approach to building fault-tolerant systems. Each server has a state machine and a log. The state machine is the component that we want to make fault-tolerant, such as a hash table. It will appear to clients that they are interacting with a single, reliable state machine, even if a minority of the servers in the cluster fail. Each state machine takes as input commands from its log. In our hash table example, the log would include commands like set $x$ to 3. A consensus algorithm is used to agree on the commands in the servers' logs. The consensus algorithm must ensure that if any state machine applies set $x$ to 3 as the $n^{th}$ command, no other state machine will ever apply a different $n^{th}$ command. As a stateMachineResult, each state machine processes the same series of commands and thus produces the same series of results and arrives at the same series of states.
+Consensus typically arises in the context of replicated state machines, a general approach to building fault-tolerant systems. Each server has a state machine and a log. The state machine is the component that we want to make fault-tolerant, such as a hash table. It will appear to clients that they are interacting with a single, reliable state machine, even if a minority of the servers in the cluster fail. Each state machine takes as input commands from its log. In our hash table example, the log would include commands like set $x$ to 3. A consensus algorithm is used to agree on the commands in the servers' logs. The consensus algorithm must ensure that if any state machine applies set $x$ to 3 as the $n^{th}$ command, no other state machine will ever apply a different $n^{th}$ command. As a `stateMachineResult`, each state machine processes the same series of commands and thus produces the same series of results and arrives at the same series of states.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -178,15 +178,9 @@ See the [open issues](https://github.com/GiovanniBaccichet/RAFT/issues) for a fu
 <!-- DESIGN -->
 ## Design 🎠
 
-The UML diagram below displays all the classes used in out implementation of the Raft algorithm. It follow a description of the most important ones.
+The UML diagram below displays all the classes used in out implementation of the Raft algorithm. It follows a description of the most important ones.
 
-**Add the diagram.**
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-### Thread Management 🏎
-
-To be discussed.
+[![UML Class Diagram of our Java implementation of the Raft Algorithm][uml-class-diagram]](https://github.com/GiovanniBaccichet/RAFT)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -324,6 +318,7 @@ Chiara Magri - `chiara.magri[at]mail.polimi.it`
 ## Acknowledgments 🥸
 
 * [The Raft Consensus Algorithm](https://raft.github.io/)
+* [Documentation | Vagrant by HashiCorp](https://www.vagrantup.com/docs)
 * [The Linux Foundations - netem](https://wiki.linuxfoundation.org/networking/netem#delay_distribution)
 * [Open vSwitch](https://www.openvswitch.org/)
 
@@ -335,6 +330,8 @@ Chiara Magri - `chiara.magri[at]mail.polimi.it`
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
 [raft-animation]: media/raft_animation.gif
+
+[uml-class-diagram]: media/uml-class-diagram.jpg
 
 [net-topology]: media/net_topology.png
 
