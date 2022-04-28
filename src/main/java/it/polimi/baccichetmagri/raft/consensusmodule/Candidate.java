@@ -16,12 +16,13 @@ import java.util.*;
 class Candidate extends ConsensusModuleImpl {
 
     private final Timer timer;
-    private List<Thread> requestVoteRPCThreads;
+    private Election election; // represents the current election
 
     Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine,
               ConsensusModule container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
+
     }
 
     @Override
@@ -33,21 +34,37 @@ class Candidate extends ConsensusModuleImpl {
 
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
-        return null;
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        if (term > currentTerm) { // there is an election occurring in a term > currentTerm, convert to follower
+            this.stopElectionTimer();
+            this.election.loseElection();
+        }
+        return new VoteResult(currentTerm, false);
     }
 
     @Override
     public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
 
-        return null; // TODO cambiare
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        // reply false if term < currentTerm
+        if (term < currentTerm) {
+            return new AppendEntryResult(currentTerm, false);
+        } else {
+            // a new leader has been established, convert to follower and process the request as follower
+            this.stopElectionTimer();
+            this.election.loseElection();
+            this.configuration.setLeader(leaderID);
+            Follower follower = new Follower(this.id, this.configuration, this.log, this.stateMachine, this.container);
+            return follower.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
+        }
     }
 
     @Override
-    public ExecuteCommandResult executeCommand(Command command) {
-        return null;
+    public synchronized ExecuteCommandResult executeCommand(Command command) {
+        return new ExecuteCommandResult(null, false, null);
     }
 
-    private void startElection() {
+    private synchronized void startElection() {
 
         // increment current term
         this.consensusPersistentState.setCurrentTerm(this.consensusPersistentState.getCurrentTerm() + 1);
@@ -59,34 +76,40 @@ class Candidate extends ConsensusModuleImpl {
         this.startElectionTimer();
 
         // send RequestVote RPCs to all other servers
-        Election election = new Election(this.configuration.getServersNumber() / 2
+        this.election = new Election(this.configuration.getServersNumber() / 2
                 + this.configuration.getServersNumber() % 2);
-        election.incrementVotesReceived();
+        this.election.incrementVotesReceived();
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         int lastLogIndex = this.log.getLastIndex();
         int lastLogTerm = this.log.getEntryTerm(lastLogIndex);
+        List<Thread> requestVoteRPCThreads = new ArrayList<>();
 
         while(proxies.hasNext()) {
             ConsensusModuleProxy proxy = proxies.next();
-            (new Thread(() -> {
+            Thread rpcThread = new Thread(() -> {
                 try {
                     VoteResult voteResult = proxy.requestVote(currentTerm, id, lastLogIndex, lastLogTerm);
                     if (!voteResult.isVoteGranted() && voteResult.getTerm() > currentTerm) {
-                        election.loseElection();
+                        this.election.loseElection();
                     } else if (voteResult.isVoteGranted()) {
-                        election.incrementVotesReceived();
+                        this.election.incrementVotesReceived();
                     }
                 } catch (IOException e) {
-
+                    // error in network communication, assume vote not granted
                 } catch (InterruptedException e) {
-                    // the thread has been interrupted, so the election has expired
-                    election.expireElection();
+
                 }
-            })).start();
+            });
+            requestVoteRPCThreads.add(rpcThread);
+            rpcThread.start();
         }
 
-        ElectionOutcome electionOutcome = election.getElectionOutcome();
+        ElectionOutcome electionOutcome = this.election.getElectionOutcome();
+        this.stopElectionTimer();
+        for(Thread rpcThread : requestVoteRPCThreads) {
+            rpcThread.interrupt();
+        }
         switch (electionOutcome) {
             case WON: this.toLeader();
             case LOST: this.toFollower();
@@ -94,27 +117,30 @@ class Candidate extends ConsensusModuleImpl {
         }
     }
 
-    private void startElectionTimer() {
+    private synchronized void startElectionTimer() {
         int delay = (new Random()).nextInt(ConsensusModuleImpl.ELECTION_TIMEOUT_MAX -
                 ConsensusModuleImpl.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleImpl.ELECTION_TIMEOUT_MIN;
+        // when the timer expires, interrupt all threads where RequestVoteRPC was sent
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                startElection();
+                election.expireElection();
             }
         }, delay);
     }
 
-    private void stopElectionTimer() {
+    private synchronized void stopElectionTimer() {
         this.timer.cancel();
     }
 
-    private void toFollower() {
-
+    private synchronized void toFollower() {
+        this.container.changeConsensusModuleImpl(new Follower(this.id, this.configuration, this.log,
+                this.stateMachine, this.container));
     }
 
-    private void toLeader() {
-
+    private synchronized void toLeader() {
+        this.container.changeConsensusModuleImpl(new Leader(this.id, this.configuration, this.log,
+                this.stateMachine, this.container));
     }
 
 
