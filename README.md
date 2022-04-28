@@ -129,7 +129,8 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 <!-- ROADMAP -->
 ## Roadmap 🛣
 
-Java **implementation**:
+<details>
+  <summary>Java implementation:</summary>
 
 - [ ] Consensus Module
   - [ ] Persistent State Management
@@ -142,15 +143,17 @@ Java **implementation**:
 - [ ] Server
   - [ ] State Machine
 - [ ] Thread Management
-- [ ] ACKs - failed Leader w/ pending messages
 
-**Testbed** environment:
+</details>
+
+<details>
+  <summary>Testbed environment:</summary>
 
 - [X] Network Topology
 - [X] Vagrant configuration
   - [X] Router
   - [X] Main Switch
-  - [ ] Sub-Switches
+  - [X] Sub-Switches
   - [X] Nodes
 - [ ] Scripts for testing (link failure simulation *et similia*)
   - [X] GUI
@@ -158,10 +161,15 @@ Java **implementation**:
   - [ ] Deleting `tc` rules
   - [ ] Network partition support
 
-Final touches:
+</details>
+
+<details>
+  <summary>Final touches:</summary>
 
 - [ ] UML Diagram
 - [ ] Class descriptions
+
+</details>
 
 See the [open issues](https://github.com/GiovanniBaccichet/RAFT/issues) for a full list of proposed features (and known issues).
 
@@ -179,12 +187,6 @@ The UML diagram below displays all the classes used in out implementation of the
 ### Thread Management 🏎
 
 To be discussed.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-### ACK Handling 🤝
-
-To be discussed if the Leader fails and has still to receive messages.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
