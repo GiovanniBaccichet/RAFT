@@ -155,11 +155,11 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
   - [X] Main Switch
   - [X] Sub-Switches
   - [X] Nodes
-- [ ] Scripts for testing (link failure simulation *et similia*)
+- [X] Scripts for testing (link failure simulation *et similia*)
   - [X] GUI
-  - [ ] Adding `tc` rules
-  - [ ] Deleting `tc` rules
-  - [ ] Network partition support
+  - [X] Adding `tc` rules
+  - [X] Deleting `tc` rules
+  - [X] Network partition support
 
 </details>
 

@@ -42,8 +42,4 @@ class Election {
     }
 }
 
-enum ElectionOutcome {
-    WON,
-    LOST,
-    EXPIRED
-}
+

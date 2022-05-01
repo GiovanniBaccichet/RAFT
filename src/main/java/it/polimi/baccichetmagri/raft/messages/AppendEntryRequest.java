@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft.messages;
 
-import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.log.entries.LogEntry;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
 import java.io.IOException;
