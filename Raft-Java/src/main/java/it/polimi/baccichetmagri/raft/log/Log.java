@@ -1,9 +1,30 @@
 package it.polimi.baccichetmagri.raft.log;
 
+import it.polimi.baccichetmagri.raft.log.storage.LogStorage;
 import it.polimi.baccichetmagri.raft.machine.Command;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 // log[]: log entries; each entry contains command for state machine, and term when entry was received by leader (first index is 1)
 public class Log {
+
+    private final ReadWriteLock readWriteLock; // Multi-threaded inputs (different sockets) require locking
+
+    private final List<LogEntry> logEntries; // Term + command
+
+    private final LogStorage storage;
+
+    private int index; // Index is required to guarantee Log Matching Property (along w/ term)
+
+    public Log(LogStorage logStorage) {
+        readWriteLock = new ReentrantReadWriteLock();
+        storage = logStorage;
+        index = 0;
+        logEntries = new ArrayList<>();
+    }
 
     public void appendEntry(LogEntry logEntry) {
 

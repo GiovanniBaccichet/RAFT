@@ -12,9 +12,15 @@ public class LogEntry {
         this.command = command;
     }
 
+    public int getTerm() {
+        return term;
+    }
+
     @Override
     public String toString() {
-
-        return null; // TODO cambiare
+        return "LogEntry{" +
+                ", term=" + term +
+                ", command=" + command +
+                '}';
     }
 }

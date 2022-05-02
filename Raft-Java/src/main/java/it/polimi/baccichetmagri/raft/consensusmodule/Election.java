@@ -41,9 +41,3 @@ class Election {
         return this.electionOutcome;
     }
 }
-
-enum ElectionOutcome {
-    WON,
-    LOST,
-    EXPIRED
-}

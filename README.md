@@ -92,7 +92,6 @@ Consensus typically arises in the context of replicated state machines, a genera
 ### Built With 🏗
 
 * [Java](https://www.java.com/it/)
-* [Apache Log4j](https://logging.apache.org/log4j/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
