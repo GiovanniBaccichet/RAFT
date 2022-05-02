@@ -1,17 +1,9 @@
 package it.polimi.baccichetmagri.raft.log;
 
-import it.polimi.baccichetmagri.raft.log.entries.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
-import org.apache.logging.log4j.Logger;
-
-import java.util.concurrent.locks.ReadWriteLock;
-
-import static org.apache.logging.log4j.LogManager.getLogger;
 
 // log[]: log entries; each entry contains command for state machine, and term when entry was received by leader (first index is 1)
 public class Log {
-
-    private static final Logger LOGGER = getLogger();
 
     public void appendEntry(LogEntry logEntry) {
 
