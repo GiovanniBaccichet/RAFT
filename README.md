@@ -144,7 +144,7 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 - [ ] Thread Management
 - [ ] Log Management
   - [X] Entities
-  - [ ] Persistence
+  - [X] Persistence
   - [ ] Truncation
   - [ ] Snapshots
 
