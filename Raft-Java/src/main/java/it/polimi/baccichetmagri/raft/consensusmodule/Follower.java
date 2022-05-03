@@ -78,7 +78,7 @@ class Follower extends ConsensusModuleImpl {
         int lastLogIndex = this.log.getLastIndex();
         for (int i = 0; i < logEntries.length; i++) {
             if (lastLogIndex < prevLogIndex + i + 1) {
-                this.log.appendEntry(logEntries[i]);
+                this.log.appendEntry(i, logEntries[i]); // TODO check se ha senso
                 lastLogIndex++;
             }
         }

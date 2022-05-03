@@ -21,7 +21,7 @@ public class Server {
         logger.setLevel(Level.FINE);
         try {
             int id = Integer.parseInt(args[0]);
-            Log log = new Log(new PersistentLogStorage(Path.of("/"))); // TODO Cambiare path
+            Log log = new Log(new PersistentLogStorage(Path.of(System.getProperty("user.dir")))); // Log saved to the current user's home folder
             StateMachine stateMachine = new StateMachineImplementation();
             Configuration configuration = new Configuration();
             ConsensusModule consensusModule = new ConsensusModule(id, configuration, log, stateMachine);

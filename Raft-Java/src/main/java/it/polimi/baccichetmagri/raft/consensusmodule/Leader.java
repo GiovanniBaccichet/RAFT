@@ -7,7 +7,6 @@ import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
@@ -58,7 +57,7 @@ class Leader extends ConsensusModuleImpl {
     public synchronized ExecuteCommandResult executeCommand(Command command) {
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         // append command to local log as new entry
-        this.log.appendEntry(new LogEntry(currentTerm, command));
+        this.log.appendEntry(log.getLastIndex()+1, new LogEntry(currentTerm, command)); // TODO check se ha senso
 
         // call AppendEntriesRPC in parallel on all other servers
 

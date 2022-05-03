@@ -21,7 +21,7 @@ public interface LogStorage {
 
     List<LogEntry> getEntries(int fromIndexInclusive, int toIndexExclusive);
 
-    default int getLastLogIndex() {
+    default int getLastIndex() {
         return size();
     }
 
@@ -32,7 +32,7 @@ public interface LogStorage {
     default Optional<Integer> getLastLogTerm() {
         return isEmpty() ?
                 Optional.empty()
-                : Optional.of(getEntry(getLastLogIndex()).getTerm());
+                : Optional.of(getEntry(getLastIndex()).getTerm());
     }
 
     default boolean isEmpty() {
