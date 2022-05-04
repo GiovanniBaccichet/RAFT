@@ -67,7 +67,8 @@ class Leader extends ConsensusModuleImpl {
         // append command to local log as new entry
         LogEntry logEntry = new StateMachineEntry(new Term(currentTerm), this.id, command);
         LogEntry[] logEntries = {logEntry};
-        this.log.appendEntry(logEntry);
+        //this.log.appendEntry(logEntry);
+        this.log.appendEntry(log.getLastIndex()+1, new LogEntry(currentTerm, command)); // TODO check se ha senso
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
         this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getEntryTerm(lastLogIndex),
