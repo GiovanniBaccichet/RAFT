@@ -1,20 +1,17 @@
 package it.polimi.baccichetmagri.raft.log.storage;
 
-import it.polimi.baccichetmagri.raft.log.Term;
-import it.polimi.baccichetmagri.raft.log.entries.LogEntry;
+import it.polimi.baccichetmagri.raft.log.LogEntry;
 
 import java.util.List;
 import java.util.Optional;
 
-import static sun.jvm.hotspot.runtime.BasicObjectLock.size; // Not sure about this
-
 public interface LogStorage {
 
-    void addLogEntry(LogEntry logEntry);
+    void add(LogEntry logEntry);
 
     void truncate(int fromIndex);
 
-    default boolean isPopulated(int index){
+    default boolean hasEntry(int index) {
         return size() >= index;
     }
 
@@ -24,7 +21,7 @@ public interface LogStorage {
 
     List<LogEntry> getEntries(int fromIndexInclusive, int toIndexExclusive);
 
-    default int getLastLogIndex() {
+    default int getLastIndex() {
         return size();
     }
 
@@ -32,10 +29,10 @@ public interface LogStorage {
         return size() + 1;
     }
 
-    default Optional<Term> getLastLogTerm() {
+    default Optional<Integer> getLastLogTerm() {
         return isEmpty() ?
                 Optional.empty()
-                : Optional.of(getEntry(getLastLogIndex()).getTerm());
+                : Optional.of(getEntry(getLastIndex()).getTerm());
     }
 
     default boolean isEmpty() {

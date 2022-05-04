@@ -41,5 +41,3 @@ class Election {
         return this.electionOutcome;
     }
 }
-
-

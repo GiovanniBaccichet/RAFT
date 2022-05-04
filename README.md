@@ -134,7 +134,6 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 
 - [ ] Consensus Module
   - [ ] Persistent State Management
-  - [ ] Log Management
   - [ ] Candidate
   - [ ] Leader
   - [ ] Follower
@@ -143,6 +142,11 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 - [ ] Server
   - [ ] State Machine
 - [ ] Thread Management
+- [ ] Log Management
+  - [X] Entities
+  - [X] Persistence
+  - [ ] Truncation
+  - [ ] Snapshots
 
 </details>
 
@@ -198,11 +202,11 @@ In order to work with a controlled environment, to properly asses the correctnes
 - **Links** can have **delays**;
 - **Processes** can **stop** at any time.
 
-The software of choice for creating a suitable lab for testing purposes was **Vagrant** (and **VirtualBox**): both softwares are open source and offer the required capabilities for handling link failure, as well as process failure. This will be explained more in depth in the following.
+The software of choice for creating a suitable lab for testing purposes was **Vagrant** (and **VirtualBox**): both software are open source and offer the required capabilities for handling link failure, as well as process failure. This will be explained more in depth in the following.
 
 ```
 RAFT
-└── testing-env/
+└── Testing\ Environment/
     ├── vagrant/
     │   ├── nodes/
     │   │   ├── node1.sh
