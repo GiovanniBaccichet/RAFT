@@ -4,25 +4,32 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResu
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
-import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.log.Term;
+import it.polimi.baccichetmagri.raft.log.entries.LogEntry;
+import it.polimi.baccichetmagri.raft.log.entries.StateMachineEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 class Leader extends ConsensusModuleImpl {
 
-    private Map<Integer, Integer> nextIndex; // for each server, index of the next log entry to send to that server (initialized to leader last log index + 1)
-    private Map<Integer, Integer> matchIndex; // for each server, index of highest log entry known to be replicated on server (initialized to 0, increases monotonically)
+    private final Map<Integer, Integer> nextIndex; // for each server, index of the next log entry to send to that server
+                                             // (initialized to leader last log index + 1)
+    private final Map<Integer, Integer> matchIndex; // for each server, index of the highest log entry known to be replicated on server
+                                              // (initialized to 0, increases monotonically)
 
     Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModule consensusModule) {
         super(id, configuration, log, stateMachine, consensusModule);
-        this.nextIndex = new HashMap<>();
-        this.matchIndex = new HashMap<>();
+        this.nextIndex = new ConcurrentHashMap<>();
+        this.matchIndex = new ConcurrentHashMap<>();
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         int lastLogIndex = this.log.getLastIndex();
         while (proxies.hasNext()) {
@@ -56,15 +63,44 @@ class Leader extends ConsensusModuleImpl {
     @Override
     public synchronized ExecuteCommandResult executeCommand(Command command) {
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        int lastLogIndex = this.log.getLastIndex();
         // append command to local log as new entry
+        LogEntry logEntry = new StateMachineEntry(new Term(currentTerm), this.id, command);
+        LogEntry[] logEntries = {logEntry};
+        //this.log.appendEntry(logEntry);
         this.log.appendEntry(log.getLastIndex()+1, new LogEntry(currentTerm, command)); // TODO check se ha senso
 
-        // call AppendEntriesRPC in parallel on all other servers
+        // send AppendEntriesRPC in parallel to all other servers to replicate the entry
+        this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getEntryTerm(lastLogIndex),
+                logEntries, this.commitIndex);
+
+
 
         return null; // TODO cambiare
     }
 
     private void callAppendEntriesOnAllServers(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
+        Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
+        while (proxies.hasNext()) {
+            ConsensusModuleProxy proxy = proxies.next();
+            new Thread(() -> {
+                boolean done = false;
+                while (!done) {
+                    try {
+                        AppendEntryResult appendEntryResult = proxy.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
+                        if (appendEntryResult.isSuccess()) {
+                            // update next index
+                            this.nextIndex.put(proxy.getId(), prevLogIndex + logEntries.length + 1);
+                            done = true;
+                        } else {
+                            // decrement next index
+                            this.nextIndex.put(proxy.getId(), this.nextIndex.get(proxy.getId()) - 1);
+                        }
 
+                    } catch (IOException e) {
+                        // error in network communication, redo call
+                    }
+                }}).start();
+        }
     }
 }

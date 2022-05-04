@@ -6,7 +6,7 @@ import it.polimi.baccichetmagri.raft.messages.MessageType;
 public class GenericMessage extends Message {
 
     public GenericMessage(MessageType messageType) {
-        super(messageType);
+        super(messageType, 0);
     }
 
     @Override
