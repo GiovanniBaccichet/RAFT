@@ -1,17 +1,14 @@
-package it.polimi.baccichetmagri.raft.log.storage;
-
-import it.polimi.baccichetmagri.raft.log.LogEntry;
+package it.polimi.baccichetmagri.raft.log;
 
 import java.io.*;
 
 public class EntrySerializer {
 
-    public static final EntrySerializer INSTANCE = new EntrySerializer();
+    private EntrySerializer(){
 
-    private EntrySerializer() {
     }
 
-    public byte[] serialize(LogEntry entry) {
+    public static byte[] serialize(LogEntry entry) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
@@ -23,7 +20,7 @@ public class EntrySerializer {
         }
     }
 
-    public LogEntry deserialize(byte[] entryBytes) {
+    public static LogEntry deserialize(byte[] entryBytes) {
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(entryBytes))) {
             return (LogEntry) ois.readObject();
         } catch (ClassNotFoundException | IOException ex) {

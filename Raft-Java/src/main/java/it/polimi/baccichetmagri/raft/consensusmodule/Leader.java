@@ -4,9 +4,7 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResu
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
-import it.polimi.baccichetmagri.raft.log.Term;
-import it.polimi.baccichetmagri.raft.log.entries.LogEntry;
-import it.polimi.baccichetmagri.raft.log.entries.StateMachineEntry;
+import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
@@ -65,9 +63,8 @@ class Leader extends ConsensusModuleImpl {
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         int lastLogIndex = this.log.getLastIndex();
         // append command to local log as new entry
-        LogEntry logEntry = new StateMachineEntry(new Term(currentTerm), this.id, command);
+        LogEntry logEntry = new LogEntry(currentTerm, command);
         LogEntry[] logEntries = {logEntry};
-        //this.log.appendEntry(logEntry);
         this.log.appendEntry(log.getLastIndex()+1, new LogEntry(currentTerm, command)); // TODO check se ha senso
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
