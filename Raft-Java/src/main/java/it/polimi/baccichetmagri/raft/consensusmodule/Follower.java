@@ -77,7 +77,7 @@ class Follower extends ConsensusModuleImpl {
         int lastLogIndex = this.log.getLastLogIndex();
         for (int i = 0; i < logEntries.length; i++) {
             if (lastLogIndex < prevLogIndex + i + 1) {
-                this.log.appendEntry(prevLogIndex + i + 1, logEntries[i]);
+                this.log.appendEntry(logEntries[i]);
                 lastLogIndex++;
             }
         }
@@ -101,7 +101,7 @@ class Follower extends ConsensusModuleImpl {
     public synchronized VoteResult requestVote(int term,
                                                int candidateID,
                                                int lastLogIndex,
-                                               int lastLogTerm) {
+                                               int lastLogTerm) throws IOException{
         this.stopElectionTimer();
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();

@@ -10,6 +10,8 @@ import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
+import java.io.IOException;
+
 abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
 
     protected final static int ELECTION_TIMEOUT_MIN = 150; // milliseconds
@@ -42,7 +44,7 @@ abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
     public abstract VoteResult requestVote(int term,
                                                int candidateID,
                                                int lastLogIndex,
-                                               int lastLogTerm);
+                                               int lastLogTerm) throws IOException;
 
     @Override
     public abstract AppendEntryResult appendEntries(int term,
@@ -50,7 +52,7 @@ abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
                                                     int prevLogIndex,
                                                     int prevLogTerm,
                                                     LogEntry[] logEntries,
-                                                    int leaderCommit);
+                                                    int leaderCommit) throws IOException;
 
     @Override
     public abstract ExecuteCommandResult executeCommand(Command command);

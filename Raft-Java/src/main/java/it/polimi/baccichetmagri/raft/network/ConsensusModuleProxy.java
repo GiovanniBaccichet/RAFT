@@ -158,7 +158,13 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @throws IOException
      */
     public void callRequestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm, int requestId) throws IOException {
-        VoteResult voteResult = this.consensusModule.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
+        VoteResult voteResult = null;
+        try {
+            voteResult = this.consensusModule.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
+        } catch (IOException e) {
+            // TODO
+        }
+
         this.sendMessage(new VoteReply(voteResult, requestId));
     }
 
@@ -174,8 +180,14 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries,
                                   int leaderCommit, int requestId) throws IOException {
-        AppendEntryResult appendEntryResult = this.consensusModule.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
-                logEntries, leaderCommit);
+        AppendEntryResult appendEntryResult = null;
+        try {
+            this.consensusModule.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
+                    logEntries, leaderCommit);
+        } catch (IOException e) {
+            // TODO
+        }
+
         this.sendMessage(new AppendEntryReply(appendEntryResult, requestId));
     }
 
