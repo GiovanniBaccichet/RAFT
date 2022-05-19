@@ -31,7 +31,7 @@ public class Log {
     }
 
     // Check if log file has an entry for a particular index
-    public boolean containsEntry(int index, int term) {
+    public boolean containsEntry(int index, int term) throws IOException {
         this.validateIndex(index);
         return (this.size() >= index && this.getEntry(index).getTerm() == term);
     }

@@ -9,6 +9,7 @@ import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -36,7 +37,7 @@ class Follower extends ConsensusModuleImpl {
                                                         int prevLogIndex,
                                                         int prevLogTerm,
                                                         LogEntry[] logEntries,
-                                                        int leaderCommit) {
+                                                        int leaderCommit) throws IOException {
         this.stopElectionTimer();
 
         // Read currentTerm (1 time access)
