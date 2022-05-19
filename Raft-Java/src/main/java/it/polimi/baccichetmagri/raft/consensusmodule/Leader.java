@@ -11,9 +11,7 @@ import it.polimi.baccichetmagri.raft.network.Configuration;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,7 +27,7 @@ class Leader extends ConsensusModuleImpl {
         this.nextIndex = new ConcurrentHashMap<>();
         this.matchIndex = new ConcurrentHashMap<>();
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
-        int lastLogIndex = this.log.getLastIndex();
+        int lastLogIndex = this.log.getLastLogIndex();
         while (proxies.hasNext()) {
             int proxyId = proxies.next().getId();
             this.nextIndex.put(proxyId, lastLogIndex + 1);
@@ -41,7 +39,7 @@ class Leader extends ConsensusModuleImpl {
     synchronized void initialize() {
         this.configuration.discardRequestVoteReplies(false);
         this.configuration.discardAppendEntryReplies(false);
-        int lastLogIndex = this.log.getLastIndex();
+        int lastLogIndex = this.log.getLastLogIndex();
         // send initial empty AppendEntriesRPC (heartbeat)
         this.callAppendEntriesOnAllServers(this.consensusPersistentState.getCurrentTerm(), this.id,
                 lastLogIndex, this.log.getEntryTerm(lastLogIndex), new LogEntry[0], this.commitIndex);
@@ -61,11 +59,11 @@ class Leader extends ConsensusModuleImpl {
     @Override
     public synchronized ExecuteCommandResult executeCommand(Command command) {
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
-        int lastLogIndex = this.log.getLastIndex();
+        int lastLogIndex = this.log.getLastLogIndex();
         // append command to local log as new entry
         LogEntry logEntry = new LogEntry(currentTerm, command);
         LogEntry[] logEntries = {logEntry};
-        this.log.appendEntry(log.getLastIndex()+1, new LogEntry(currentTerm, command)); // TODO check se ha senso
+        this.log.appendEntry(log.getLastLogIndex()+1, new LogEntry(currentTerm, command)); // TODO check se ha senso
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
         this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getEntryTerm(lastLogIndex),

@@ -2,8 +2,6 @@ package it.polimi.baccichetmagri.raft;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.log.Log;
-import it.polimi.baccichetmagri.raft.log.storage.LogStorage;
-import it.polimi.baccichetmagri.raft.log.storage.PersistentLogStorage;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineImplementation;
 import it.polimi.baccichetmagri.raft.network.Configuration;
@@ -21,7 +19,7 @@ public class Server {
         logger.setLevel(Level.FINE);
         try {
             int id = Integer.parseInt(args[0]);
-            Log log = new Log(new PersistentLogStorage(Path.of(System.getProperty("user.dir")))); // Log saved to the current user's home folder
+            Log log = new Log(Path.of(System.getProperty("user.dir"))); // Log saved to the current user's home folder
             StateMachine stateMachine = new StateMachineImplementation();
             Configuration configuration = new Configuration();
             ConsensusModule consensusModule = new ConsensusModule(id, configuration, log, stateMachine);

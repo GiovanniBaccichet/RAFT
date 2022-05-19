@@ -1,6 +1,5 @@
 package it.polimi.baccichetmagri.raft.log;
 
-import it.polimi.baccichetmagri.raft.log.storage.LogStorage;
 import it.polimi.baccichetmagri.raft.machine.Command;
 
 import java.io.IOException;
@@ -18,7 +17,6 @@ import static java.util.Collections.unmodifiableList;
 // log[]: log entries; each entry contains command for state machine, and term when entry was received by leader (first index is 1)
 public class Log {
 
-
     private final FileChannel fileChannel;
 
     private List<Long> entryEndIndex;
@@ -26,13 +24,6 @@ public class Log {
     public Log(Path logFilePath) throws IOException {
         this.fileChannel = FileChannel.open(logFilePath, READ, WRITE, CREATE, SYNC);
         this.reIndex();
-    }
-
-    // Check if illegal indexes are present in the log
-    private void validateIndex(int index) {
-        if (index < 1) {
-            throw new IllegalArgumentException("[ERROR] Indices start at 1");
-        }
     }
 
     public int size() {
@@ -45,34 +36,14 @@ public class Log {
         return (this.size() >= index && this.getEntry(index).getTerm() == term);
     }
 
-    private LogEntry readEntry(int index) {
-        try {
-            long offset = startPositionOfEntry(index);
-            int length = lengthOfEntry(index);
-            ByteBuffer buffer = ByteBuffer.allocate(length);
-            fileChannel.read(buffer, offset + 4);
-            return EntrySerializer.deserialize(buffer.array());
-        } catch (IOException ex) {
-            throw new RuntimeException("[ERROR] Could not read Log entry", ex);
-        }
-    }
-
-    private long startPositionOfEntry(int index) {
-        return entryEndIndex.get(index - 1);
-    }
-
-    private int lengthOfEntry(int index) {
-        return (int) (entryEndIndex.get(index) - startPositionOfEntry(index) - 4);
-    }
-
     // Retrieve LogEntry form log file, given the index
-    public LogEntry getEntry(int index) {
+    public LogEntry getEntry(int index) throws IOException {
         validateIndex(index);
         return this.readEntry(index);
     }
 
-    // Get the entries written in the log file
-    public List<LogEntry> getEntries() {
+    // Get the entries written in the log file (log file dump --> print)
+    public List<LogEntry> getEntries() throws IOException {
         List<LogEntry> entries = new ArrayList<>();
         for (int i = 0; i < size(); i++) {
             entries.add(readEntry(i + 1));
@@ -80,7 +51,8 @@ public class Log {
         return unmodifiableList(entries);
     }
 
-    public List<LogEntry> getEntries(int fromIndexInclusive, int toIndexExclusive) {
+    // Get the entries written in the log file (specified range)
+    public List<LogEntry> getEntries(int fromIndexInclusive, int toIndexExclusive) throws IOException {
         List<LogEntry> entries = new ArrayList<>();
         for (int i = fromIndexInclusive; i < toIndexExclusive; i++) {
             entries.add(readEntry(i));
@@ -88,7 +60,7 @@ public class Log {
         return unmodifiableList(entries);
     }
 
-    private void writeEntry(int appendIndex, LogEntry entry) throws IOException { // TODO implementare Index dentro qui
+    public void appendEntry(LogEntry entry) throws IOException {
         byte[] entryBytes = EntrySerializer.serialize(entry);
         ByteBuffer byteBuffer = ByteBuffer.allocate(entryBytes.length + 4);
         byteBuffer.putInt(entryBytes.length);
@@ -99,37 +71,36 @@ public class Log {
     }
 
     // AppendEntry method (as described in the paper)
-    public void appendEntry(int appendIndex, LogEntry logEntry) throws IOException {
-        this.writeEntry(logEntry);
-    }
-
-    public Command getEntryCommand(int index) {
+    public Command getEntryCommand(int index) throws IOException {
         validateIndex(index);
-        return storage.getEntry(index).getCommand();
+        return this.getEntry(index).getCommand();
     }
 
     // If there are no entry w/ the input index, it returns -1
-    public int getEntryTerm(int index) {
+    public int getEntryTerm(int index) throws IOException {
         validateIndex(index);
-        return storage.getEntry(index).getTerm();
+        return this.getEntry(index).getTerm();
     }
 
     // Deletes all Entries from a certain index, following
-    public void deleteEntriesFrom(int index) { // TODO finire
-
+    public void deleteEntriesFrom(int fromIndex) throws IOException {
+        fileChannel.truncate(entryEndIndex.get(fromIndex - 1));
+        entryEndIndex = entryEndIndex.subList(0, fromIndex);
     }
 
     // Get last entry's index from the log
-    public int getLastIndex() {
-        return storage.getLastIndex();
+    public int getLastLogIndex() {
+        return this.size();
     }
 
     public int getNextLogIndex() {
-        return storage.getNextLogIndex();
+        return this.size() + 1;
     }
 
-    public Optional<Integer> getLastLogTerm() {
-        return storage.getLastLogTerm();
+    public Optional<Integer> getLastLogTerm() throws IOException {
+        return isEmpty() ?
+                Optional.empty()
+                : Optional.of(getEntry(getLastLogIndex()).getTerm());
     }
 
     public void reIndex() throws IOException {
@@ -145,6 +116,36 @@ public class Log {
                 this.entryEndIndex.add(endIndex);
                 this.fileChannel.position(endIndex);
             }
+    }
+
+    // PRIVATE MATHODS
+
+    // Check if illegal indexes are present in the log
+    private void validateIndex(int index) {
+        if (index < 1) {
+            throw new IllegalArgumentException("[ERROR] Indices start at 1");
+        }
+    }
+
+    private long startPositionOfEntry(int index) {
+        return entryEndIndex.get(index - 1);
+    }
+
+    private int lengthOfEntry(int index) {
+        return (int) (entryEndIndex.get(index) - startPositionOfEntry(index) - 4);
+    }
+
+    private LogEntry readEntry(int index) throws IOException {
+            long offset = startPositionOfEntry(index);
+            int length = lengthOfEntry(index);
+            ByteBuffer buffer = ByteBuffer.allocate(length);
+            fileChannel.read(buffer, offset + 4);
+            return EntrySerializer.deserialize(buffer.array());
+    }
+
+
+    private boolean isEmpty() {
+        return size() == 0;
     }
 
 }

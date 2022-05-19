@@ -8,9 +8,7 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
-import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
-import java.util.Iterator;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -75,7 +73,7 @@ class Follower extends ConsensusModuleImpl {
         }
 
         // Append any new entries not already in the log
-        int lastLogIndex = this.log.getLastIndex();
+        int lastLogIndex = this.log.getLastLogIndex();
         for (int i = 0; i < logEntries.length; i++) {
             if (lastLogIndex < prevLogIndex + i + 1) {
                 this.log.appendEntry(prevLogIndex + i + 1, logEntries[i]);
@@ -117,7 +115,7 @@ class Follower extends ConsensusModuleImpl {
 
         //  If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
         Integer votedFor = this.consensusPersistentState.getVotedFor();
-        int lastIndex = this.log.getLastIndex();
+        int lastIndex = this.log.getLastLogIndex();
         if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
             this.consensusPersistentState.setVotedFor(candidateID);
             this.startElectionTimer();
