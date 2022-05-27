@@ -2,9 +2,7 @@ package it.polimi.baccichetmagri.raft.utils;
 
 import com.google.gson.Gson;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.stream.Collectors;
 
@@ -43,4 +41,11 @@ public class ResourcesLoader {
         String config = load (path);
         return new Gson().fromJson(config, classOfT);
     }
+
+    public static void write(String path, String content) throws IOException {
+        try (PrintWriter out = new PrintWriter(new FileWriter(path))) {
+            out.write(content);
+        }
+    }
+
 }
