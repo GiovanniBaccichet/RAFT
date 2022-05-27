@@ -15,6 +15,7 @@ public class Configuration {
 
     private final List<ConsensusModuleProxy> proxies = new ArrayList<>();
     private Integer leaderId;
+    private String ip; // ip of this machine
 
     /**
      * @param id the id of the ConsensusModuleImpl of the machine (to not create a connection with itself)
@@ -29,6 +30,8 @@ public class Configuration {
         for (Map.Entry<Integer, String> address : addresses.entrySet()) {
             if (address.getKey() != id) {
                 this.proxies.add(new ConsensusModuleProxy(address.getKey(), address.getValue(), consensusModule));
+            } else {
+                this.ip = address.getValue();
             }
         }
     }
@@ -71,5 +74,9 @@ public class Configuration {
         for (ConsensusModuleProxy proxy : this.proxies) {
             proxy.discardVoteReplies(discard);
         }
+    }
+
+    public String getIp() {
+        return ip;
     }
 }

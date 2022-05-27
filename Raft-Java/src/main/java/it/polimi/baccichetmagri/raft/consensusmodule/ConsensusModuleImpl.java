@@ -55,7 +55,7 @@ abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
                                                     int leaderCommit) throws IOException;
 
     @Override
-    public abstract ExecuteCommandResult executeCommand(Command command);
+    public abstract ExecuteCommandResult executeCommand(Command command) throws IOException;
 
     int getId() {
         return this.id;
