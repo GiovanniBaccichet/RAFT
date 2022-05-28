@@ -26,14 +26,14 @@ class Candidate extends ConsensusModuleImpl {
     }
 
     @Override
-    synchronized void initialize() {
+    synchronized void initialize() throws IOException {
         this.configuration.discardAppendEntryReplies(true);
         this.configuration.discardRequestVoteReplies(false);
         this.startElection();
     }
 
     @Override
-    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
+    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         if (term > currentTerm) { // there is an election occurring in a term > currentTerm, convert to follower
             this.stopElectionTimer();
@@ -43,7 +43,8 @@ class Candidate extends ConsensusModuleImpl {
     }
 
     @Override
-    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
+    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit)
+        throws IOException {
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         // reply false if term < currentTerm
@@ -64,7 +65,7 @@ class Candidate extends ConsensusModuleImpl {
         return new ExecuteCommandResult(null, false, null);
     }
 
-    private synchronized void startElection() {
+    private synchronized void startElection() throws IOException {
 
         // increment current term
         this.consensusPersistentState.setCurrentTerm(this.consensusPersistentState.getCurrentTerm() + 1);

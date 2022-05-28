@@ -41,7 +41,7 @@ class Leader extends ConsensusModuleImpl {
     }
 
     @Override
-    synchronized void initialize() {
+    synchronized void initialize() throws IOException {
         this.configuration.discardRequestVoteReplies(false);
         this.configuration.discardAppendEntryReplies(false);
         int lastLogIndex = this.log.getLastLogIndex();
@@ -118,7 +118,7 @@ class Leader extends ConsensusModuleImpl {
         }
     }
 
-    private synchronized void updateCommitIndex() {
+    private synchronized void updateCommitIndex() throws IOException {
         // if there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
         int newCommitIndex = this.commitIndex;
         for (int i = this.commitIndex + 1; i <= this.log.getLastLogIndex(); i++) {

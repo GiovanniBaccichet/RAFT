@@ -59,8 +59,12 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     }
 
     void changeConsensusModuleImpl(ConsensusModuleImpl consensusModuleImpl) {
-        this.consensusModuleImpl = consensusModuleImpl;
-        this.consensusModuleImpl.initialize();
+        try {
+            this.consensusModuleImpl = consensusModuleImpl;
+            this.consensusModuleImpl.initialize();
+        } catch (IOException e) {
+
+        }
     }
 
     private void handleIOException(IOException e) {

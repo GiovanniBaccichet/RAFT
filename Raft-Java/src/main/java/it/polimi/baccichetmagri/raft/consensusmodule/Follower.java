@@ -133,7 +133,7 @@ class Follower extends ConsensusModuleImpl {
 
 
     // If RPC request or response contains term T > currentTerm: set currentTerm = T (ALREADY follower)
-    private void updateTerm(int term) {
+    private void updateTerm(int term) throws IOException {
         if (term > this.consensusPersistentState.getCurrentTerm()) {
             this.consensusPersistentState.setCurrentTerm(term);
         }

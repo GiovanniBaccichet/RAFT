@@ -1,7 +1,9 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
 import com.google.gson.Gson;
-import it.polimi.baccichetmagri.raft.utils.ResourcesLoader;
+import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
+
+import java.io.IOException;
 
 class ConsensusPersistentState {
 
@@ -11,34 +13,34 @@ class ConsensusPersistentState {
 
     // votedFor: candidateId that received vote in current term (or null if none)
 
-    int getCurrentTerm() {
-        ConsensusPersistentStateForGson state = this.loadState();
+    int getCurrentTerm() throws IOException {
+        ConsensusPersistentStateForGson state = this.readState();
         return state.getCurrentTerm();
     }
 
-    void setCurrentTerm(int currentTerm) {
-        ConsensusPersistentStateForGson state = this.loadState();
+    void setCurrentTerm(int currentTerm) throws IOException {
+        ConsensusPersistentStateForGson state = this.readState();
         state.setCurrentTerm(currentTerm);
         this.writeState(state);
     }
 
-    Integer getVotedFor() {
-        ConsensusPersistentStateForGson state = this.loadState();
+    Integer getVotedFor() throws IOException {
+        ConsensusPersistentStateForGson state = this.readState();
         return state.getVotedFor();
     }
 
-    void setVotedFor(Integer votedFor) {
-        ConsensusPersistentStateForGson state = this.loadState();
+    void setVotedFor(Integer votedFor) throws IOException {
+        ConsensusPersistentStateForGson state = this.readState();
         state.setVotedFor(votedFor);
         this.writeState(state);
     }
 
-    private ConsensusPersistentStateForGson loadState() {
-        return ResourcesLoader.loadJson("consensus_persistent_state.json", ConsensusPersistentStateForGson.class);
+    private ConsensusPersistentStateForGson readState() throws IOException {
+        return JsonFilesHandler.read("consensus_persistent_state.json", ConsensusPersistentStateForGson.class);
     }
 
-    private void writeState(ConsensusPersistentStateForGson state) {
-        ResourcesLoader.write("consensus_persistent_state.json", new Gson().toJson(state));
+    private void writeState(ConsensusPersistentStateForGson state) throws IOException {
+        JsonFilesHandler.write("consensus_persistent_state.json", new Gson().toJson(state));
     }
 
 

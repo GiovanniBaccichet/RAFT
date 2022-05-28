@@ -4,7 +4,7 @@ import com.google.gson.reflect.TypeToken;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoKnownLeaderException;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
-import it.polimi.baccichetmagri.raft.utils.ResourcesLoader;
+import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
 
 import java.util.*;
 
@@ -23,8 +23,13 @@ public class Configuration {
     public void initialize(int id, ConsensusModule consensusModule) {
 
         // load configuration file with <id, ip> of other servers
-        Map<Integer, String> addresses = ResourcesLoader.loadJson("configuration.json",
-                new TypeToken<Map<Integer, String>>() {}.getType());
+        Map<Integer, String> addresses = null;
+        try {
+            addresses = JsonFilesHandler.read("configuration.json",
+                    new TypeToken<Map<Integer, String>>() {}.getType());
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // create list of proxies
         for (Map.Entry<Integer, String> address : addresses.entrySet()) {

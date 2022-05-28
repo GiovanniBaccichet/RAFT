@@ -38,7 +38,7 @@ abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
         this.container = container;
     }
 
-    abstract void initialize();
+    abstract void initialize() throws IOException;
 
     @Override
     public abstract VoteResult requestVote(int term,
