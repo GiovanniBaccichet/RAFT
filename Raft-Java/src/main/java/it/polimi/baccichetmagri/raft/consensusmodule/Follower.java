@@ -116,7 +116,7 @@ class Follower extends ConsensusModuleImpl {
             return new VoteResult(currentTerm, false);
         }
 
-        this.updateTerm(currentTerm);
+        this.updateTerm(term);
 
         //  If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
         Integer votedFor = this.consensusPersistentState.getVotedFor();
@@ -127,12 +127,13 @@ class Follower extends ConsensusModuleImpl {
             return new VoteResult(currentTerm, true);
         }
 
+        // Otherwise, reply false
         this.startElectionTimer();
         return new VoteResult(currentTerm, false);
     }
 
 
-    // If RPC request or response contains term T > currentTerm: set currentTerm = T (ALREADY follower)
+    // If RPC request or response contains term T > currentTerm: set currentTerm = T
     private void updateTerm(int term) throws IOException {
         if (term > this.consensusPersistentState.getCurrentTerm()) {
             this.consensusPersistentState.setCurrentTerm(term);
