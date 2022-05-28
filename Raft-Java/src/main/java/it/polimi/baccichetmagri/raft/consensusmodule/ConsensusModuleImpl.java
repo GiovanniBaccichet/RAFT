@@ -61,23 +61,6 @@ abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
         return this.id;
     }
 
-    /**
-     * If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
-     */
-    void checkCommitIndex() {
-        while (this.commitIndex > this.lastApplied) {
-            this.lastApplied++;
-            this.stateMachine.executeCommand(this.log.getEntryCommand(lastApplied));
-        }
-    }
-
-    // If RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower
-    void updateTerm(int term) {
-        if (term > this.consensusPersistentState.getCurrentTerm()) {
-            this.consensusPersistentState.setCurrentTerm(term);
-            // TODO Convert to follower
-        }
-    }
 
 
 }

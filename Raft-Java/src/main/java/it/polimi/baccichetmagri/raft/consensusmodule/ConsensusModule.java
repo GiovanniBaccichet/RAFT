@@ -31,7 +31,7 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     }
 
     @Override
-    public ExecuteCommandResult executeCommand(Command command) {
+    public ExecuteCommandResult executeCommand(Command command) throws IOException {
         return this.consensusModuleImpl.executeCommand(command);
     }
 

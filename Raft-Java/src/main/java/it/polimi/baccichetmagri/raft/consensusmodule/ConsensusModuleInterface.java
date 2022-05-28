@@ -34,5 +34,5 @@ public interface ConsensusModuleInterface {
     AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm,
                                     LogEntry[] logEntries, int leaderCommit) throws IOException;
 
-    ExecuteCommandResult executeCommand(Command command);
+    ExecuteCommandResult executeCommand(Command command) throws IOException;
 }

@@ -53,9 +53,8 @@ class Follower extends ConsensusModuleImpl {
         this.configuration.setLeader(leaderID);
 
         // If term T > currentTerm: set currentTerm = T
-        if (term > currentTerm) {
-            this.updateTerm(term);
-        }
+        this.updateTerm(term);
+
 
         //  Reply false  if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
         if (!this.log.containsEntry(prevLogIndex, prevLogTerm)) {
@@ -65,9 +64,9 @@ class Follower extends ConsensusModuleImpl {
 
         // If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it
         boolean conflict = false;
-        for (int i = prevLogIndex + 1; i < logEntries.length && !conflict; i++) {
-            int entryTerm = this.log.getEntryTerm(i);
-            if (entryTerm != term) {
+        for (int i = 0; i < logEntries.length && !conflict; i++) {
+            int entryTerm = this.log.getEntryTerm(prevLogIndex + i + 1);
+            if (entryTerm != logEntries[i].getTerm()) {
                 this.log.deleteEntriesFrom(i);
                 conflict = true;
             }
@@ -85,7 +84,11 @@ class Follower extends ConsensusModuleImpl {
         // If leaderCommit > commitIndex, set commitIndex = min(leaderCommit, index of last new entry)
         if (leaderCommit > this.commitIndex) {
             this.commitIndex = Math.min(leaderCommit, lastLogIndex);
-            this.checkCommitIndex(); // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
+            // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
+            while (this.commitIndex > this.lastApplied) {
+                this.lastApplied++;
+                this.stateMachine.executeCommand(this.log.getEntryCommand(lastApplied));
+            }
         }
 
         this.startElectionTimer();
@@ -129,8 +132,7 @@ class Follower extends ConsensusModuleImpl {
 
 
     // If RPC request or response contains term T > currentTerm: set currentTerm = T (ALREADY follower)
-    @Override
-    protected void updateTerm(int term) {
+    private void updateTerm(int term) {
         if (term > this.consensusPersistentState.getCurrentTerm()) {
             this.consensusPersistentState.setCurrentTerm(term);
         }
