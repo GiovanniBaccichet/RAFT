@@ -16,7 +16,7 @@ import java.util.TimerTask;
 
 class Follower extends ConsensusModuleImpl {
 
-    private Timer timer;
+    private final Timer timer;
 
     Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
              ConsensusModule container) {
@@ -38,6 +38,7 @@ class Follower extends ConsensusModuleImpl {
                                                         int prevLogTerm,
                                                         LogEntry[] logEntries,
                                                         int leaderCommit) throws IOException {
+
         this.stopElectionTimer();
 
         // Read currentTerm (1 time access)

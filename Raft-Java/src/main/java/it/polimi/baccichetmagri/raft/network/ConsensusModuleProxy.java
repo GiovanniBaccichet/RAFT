@@ -185,7 +185,8 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
             this.consensusModule.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
                     logEntries, leaderCommit);
         } catch (IOException e) {
-            // TODO
+            // If an exception has occurred during the execution of the method, send appendEntryResult to notify this event
+
         }
 
         this.sendMessage(new AppendEntryReply(appendEntryResult, requestId));
