@@ -15,9 +15,15 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class Leader extends ConsensusModuleImpl {
+
+    private static final int HEARTBEAT_TIMEOUT = 100; // the timeout for sending a heartbeat is lower than the minimum election
+                                                      // timeout possible, so that elections don't start when the leader is still alive
 
     private final Map<Integer, Integer> nextIndex; // for each server, index of the next log entry to send to that server
                                              // (initialized to leader last log index + 1)
@@ -25,6 +31,8 @@ class Leader extends ConsensusModuleImpl {
                                               // (initialized to 0, increases monotonically)
 
     private final Timer timer; // timer for sending heartbeats
+
+    private final Logger logger;
 
     Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModule consensusModule) {
         super(id, configuration, log, stateMachine, consensusModule);
@@ -38,16 +46,20 @@ class Leader extends ConsensusModuleImpl {
             this.matchIndex.put(proxyId, 0);
         }
         this.timer = new Timer();
+        this.logger = Logger.getLogger(Leader.class.getName());
     }
 
     @Override
     synchronized void initialize() throws IOException {
         this.configuration.discardRequestVoteReplies(false);
         this.configuration.discardAppendEntryReplies(false);
-        int lastLogIndex = this.log.getLastLogIndex();
+
         // send initial empty AppendEntriesRPC (heartbeat)
+        int lastLogIndex = this.log.getLastLogIndex();
         this.callAppendEntriesOnAllServers(this.consensusPersistentState.getCurrentTerm(), this.id,
                 lastLogIndex, this.log.getEntryTerm(lastLogIndex), new LogEntry[0], this.commitIndex);
+
+        this.startHeartbeatTimer();
     }
 
     @Override
@@ -63,6 +75,9 @@ class Leader extends ConsensusModuleImpl {
 
     @Override
     public synchronized ExecuteCommandResult executeCommand(Command command) throws IOException {
+
+        this.stopHeartbeatTimer();
+
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         int lastLogIndex = this.log.getLastLogIndex();
         // append command to local log as new entry
@@ -88,6 +103,8 @@ class Leader extends ConsensusModuleImpl {
 
             }
         }
+
+        this.startHeartbeatTimer();
         return new ExecuteCommandResult(stateMachineResult, true, this.configuration.getIp());
     }
 
@@ -133,6 +150,27 @@ class Leader extends ConsensusModuleImpl {
 
             }
         }
+    }
+
+    private void startHeartbeatTimer() {
+        this.timer.schedule(new TimerTask() {
+            @Override
+            public void run() { // send heartbeat to all servers
+                int lastLogIndex = log.getLastLogIndex();
+                try {
+                    callAppendEntriesOnAllServers(consensusPersistentState.getCurrentTerm(), id,
+                            lastLogIndex, log.getEntryTerm(lastLogIndex), new LogEntry[0], commitIndex);
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "An error has occurred while accessing to persistent state. The program is being terminated.");
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }
+        }, HEARTBEAT_TIMEOUT);
+    }
+
+    private void stopHeartbeatTimer() {
+        this.timer.cancel();
     }
 
 }
