@@ -40,7 +40,7 @@ class ConsensusPersistentState {
     }
 
     private void writeState(ConsensusPersistentStateForGson state) throws IOException {
-        JsonFilesHandler.write("consensus_persistent_state.json", new Gson().toJson(state));
+        JsonFilesHandler.write("consensus_persistent_state.json", state);
     }
 
 

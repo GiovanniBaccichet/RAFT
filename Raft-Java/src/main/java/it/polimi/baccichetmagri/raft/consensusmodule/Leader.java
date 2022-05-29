@@ -1,5 +1,6 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
+import it.polimi.baccichetmagri.raft.Server;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
@@ -20,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class Leader extends ConsensusModuleImpl {
+class Leader extends ConsensusModuleAbstract {
 
     private static final int HEARTBEAT_TIMEOUT = 100; // the timeout for sending a heartbeat is lower than the minimum election
                                                       // timeout possible, so that elections don't start when the leader is still alive
@@ -108,6 +109,11 @@ class Leader extends ConsensusModuleImpl {
         return new ExecuteCommandResult(stateMachineResult, true, this.configuration.getIp());
     }
 
+    @Override
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
+        return 0; // TODO implementare
+    }
+
     private void callAppendEntriesOnAllServers(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         while (proxies.hasNext()) {
@@ -163,7 +169,7 @@ class Leader extends ConsensusModuleImpl {
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "An error has occurred while accessing to persistent state. The program is being terminated.");
                     e.printStackTrace();
-                    System.exit(1);
+                    Server.shutDown();
                 }
             }
         }, HEARTBEAT_TIMEOUT);

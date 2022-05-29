@@ -47,30 +47,25 @@
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
+  
+  - [About The Project 🧬](#about-the-project-)
+  * [Built With 🏗](#built-with-)
+- [About The Project 🧬](#about-the-project-)
+  - [Built With 🏗](#built-with-)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage 🔌](#usage-)
+- [Roadmap 🛣](#roadmap-)
+- [Testing 🧪](#testing-)
+  - [Network Partitioning 🔪](#network-partitioning-)
+  - [Failure Simulation ⚡️](#failure-simulation-️)
+- [Contributing ❤️](#contributing-️)
+- [License 📑](#license-)
+- [Contact 📬](#contact-)
+- [Acknowledgments 🥸](#acknowledgments-)
+
 </details>
-
-
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project 🧬
@@ -116,7 +111,7 @@ To get a local copy up and running follow these simple example steps.
 
 
 <!-- USAGE EXAMPLES -->
-## Usage
+## Usage 🔌
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
@@ -135,17 +130,17 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 - [ ] Consensus Module
   - [ ] Persistent State Management
   - [ ] Candidate
-  - [ ] Leader
+  - [X] Leader
   - [ ] Follower
 - [ ] Vote Handling
 - [ ] Client
 - [ ] Server
   - [ ] State Machine
-- [ ] Thread Management
+- [X] Thread Management
 - [ ] Log Management
   - [X] Entities
   - [X] Persistence
-  - [ ] Truncation
+  - [X] Truncation
   - [ ] Snapshots
 
 </details>
@@ -167,24 +162,7 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 
 </details>
 
-<details>
-  <summary>Final touches:</summary>
-
-- [ ] UML Diagram
-- [ ] Class descriptions
-
-</details>
-
 See the [open issues](https://github.com/GiovanniBaccichet/RAFT/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- DESIGN -->
-## Design 🎠
-
-The UML diagram below displays all the classes used in out implementation of the Raft algorithm. It follows a description of the most important ones.
-
-[![UML Class Diagram of our Java implementation of the Raft Algorithm][uml-class-diagram]](https://github.com/GiovanniBaccichet/RAFT)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

@@ -7,12 +7,11 @@ import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.io.IOException;
 
-abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
+abstract class ConsensusModuleAbstract implements ConsensusModuleInterface {
 
     protected final static int ELECTION_TIMEOUT_MIN = 150; // milliseconds
     protected final static int ELECTION_TIMEOUT_MAX = 300; // milliseconds
@@ -26,8 +25,8 @@ abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
     protected StateMachine stateMachine;
     protected ConsensusModule container;
 
-    ConsensusModuleImpl(int id, Configuration configuration, Log log, StateMachine stateMachine,
-                        ConsensusModule container) {
+    ConsensusModuleAbstract(int id, Configuration configuration, Log log, StateMachine stateMachine,
+                            ConsensusModule container) {
         this.id = id;
         this.consensusPersistentState = new ConsensusPersistentState();
         this.commitIndex = 0;
@@ -57,10 +56,11 @@ abstract class ConsensusModuleImpl implements ConsensusModuleInterface {
     @Override
     public abstract ExecuteCommandResult executeCommand(Command command) throws IOException;
 
+    @Override
+    public abstract int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done);
+
     int getId() {
         return this.id;
     }
-
-
 
 }

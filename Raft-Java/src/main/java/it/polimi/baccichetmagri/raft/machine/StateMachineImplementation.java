@@ -5,4 +5,9 @@ public class StateMachineImplementation extends StateMachine {
     public StateMachineResult executeCommand(Command command) {
         return null;
     }
+
+    @Override
+    public State getState() {
+        return null;
+    }
 }

@@ -13,7 +13,7 @@ import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 import java.io.IOException;
 import java.util.*;
 
-class Candidate extends ConsensusModuleImpl {
+class Candidate extends ConsensusModuleAbstract {
 
     private final Timer timer;
     private Election election; // represents the current election
@@ -63,6 +63,11 @@ class Candidate extends ConsensusModuleImpl {
     @Override
     public synchronized ExecuteCommandResult executeCommand(Command command) {
         return new ExecuteCommandResult(null, false, null);
+    }
+
+    @Override
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
+        return 0; // TODO implementare
     }
 
     private synchronized void startElection() throws IOException {
@@ -119,8 +124,8 @@ class Candidate extends ConsensusModuleImpl {
     }
 
     private void startElectionTimer() {
-        int delay = (new Random()).nextInt(ConsensusModuleImpl.ELECTION_TIMEOUT_MAX -
-                ConsensusModuleImpl.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleImpl.ELECTION_TIMEOUT_MIN;
+        int delay = (new Random()).nextInt(ConsensusModuleAbstract.ELECTION_TIMEOUT_MAX -
+                ConsensusModuleAbstract.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleAbstract.ELECTION_TIMEOUT_MIN;
         // when the timer expires, interrupt all threads where RequestVoteRPC was sent
         this.timer.schedule(new TimerTask() {
             @Override
@@ -143,6 +148,5 @@ class Candidate extends ConsensusModuleImpl {
         this.container.changeConsensusModuleImpl(new Leader(this.id, this.configuration, this.log,
                 this.stateMachine, this.container));
     }
-
 
 }

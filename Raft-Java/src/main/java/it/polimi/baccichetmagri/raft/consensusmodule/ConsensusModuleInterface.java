@@ -35,4 +35,18 @@ public interface ConsensusModuleInterface {
                                     LogEntry[] logEntries, int leaderCommit) throws IOException;
 
     ExecuteCommandResult executeCommand(Command command) throws IOException;
+
+    /**
+     * Invoked by the leader to send chunks of a snapshot to a follower. Leaders always send chunks in order
+     * @param term leader's term
+     * @param leaderID needed by followers to redirect clients
+     * @param lastIncludedIndex the snapshot replaces all entities up through and including this Index
+     * @param lastIncludedTerm term of the last included Index of the Log
+     * @param offset byte offset where chunk, starting at offset
+     * @param data raw bytes where snapshot chunk, starting at offset
+     * @param done TRUE if this is the last chunk
+     * @return currentTerm, for leader to update itself
+     */
+    int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done);
+
 }

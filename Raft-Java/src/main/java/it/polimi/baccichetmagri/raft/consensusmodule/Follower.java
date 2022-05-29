@@ -14,7 +14,7 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-class Follower extends ConsensusModuleImpl {
+class Follower extends ConsensusModuleAbstract {
 
     private final Timer timer;
 
@@ -132,6 +132,10 @@ class Follower extends ConsensusModuleImpl {
         return new VoteResult(currentTerm, false);
     }
 
+    @Override
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
+        return 0; // TODO implementare
+    }
 
     // If RPC request or response contains term T > currentTerm: set currentTerm = T
     private void updateTerm(int term) throws IOException {
@@ -146,8 +150,8 @@ class Follower extends ConsensusModuleImpl {
     }
 
     private void startElectionTimer() {
-        int delay = (new Random()).nextInt(ConsensusModuleImpl.ELECTION_TIMEOUT_MAX -
-                ConsensusModuleImpl.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleImpl.ELECTION_TIMEOUT_MIN;
+        int delay = (new Random()).nextInt(ConsensusModuleAbstract.ELECTION_TIMEOUT_MAX -
+                ConsensusModuleAbstract.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleAbstract.ELECTION_TIMEOUT_MIN;
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {
