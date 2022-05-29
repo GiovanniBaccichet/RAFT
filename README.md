@@ -135,11 +135,11 @@ _For more examples, please refer to the [Documentation](https://raft.github.io/)
 - [ ] Server
   - [ ] State Machine
 - [X] Thread Management
-- [ ] Log Management
+- [X] Log Management
   - [X] Entities
   - [X] Persistence
   - [X] Truncation
-  - [ ] Snapshots
+  - [X] Snapshots
 
 </details>
 
