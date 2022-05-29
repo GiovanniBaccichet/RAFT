@@ -48,8 +48,6 @@
 <details>
   <summary>Table of Contents</summary>
   
-  - [About The Project 🧬](#about-the-project-)
-  * [Built With 🏗](#built-with-)
 - [About The Project 🧬](#about-the-project-)
   - [Built With 🏗](#built-with-)
 - [Getting Started](#getting-started)
