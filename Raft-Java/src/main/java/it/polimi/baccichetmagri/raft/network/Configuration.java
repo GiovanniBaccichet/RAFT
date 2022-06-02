@@ -2,7 +2,6 @@ package it.polimi.baccichetmagri.raft.network;
 
 import com.google.gson.reflect.TypeToken;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
-import it.polimi.baccichetmagri.raft.network.exceptions.NoKnownLeaderException;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
 import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
 
@@ -58,14 +57,14 @@ public class Configuration {
 
     }
 
-    public String getLeaderIP() throws NoKnownLeaderException {
+    public String getLeaderIP() {
         if (this.leaderId == null) {
-            throw new NoKnownLeaderException();
+            return null;
         }
         return this.getConsensusModuleProxy(this.leaderId).getIp();
     }
 
-    public void setLeader(int leaderId) {
+    public void setLeader(Integer leaderId) {
         this.leaderId = leaderId;
     }
 

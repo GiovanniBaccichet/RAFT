@@ -54,7 +54,6 @@ class Candidate extends ConsensusModuleAbstract {
             // a new leader has been established, convert to follower and process the request as follower
             this.stopElectionTimer();
             this.election.loseElection();
-            this.configuration.setLeader(leaderID);
             Follower follower = new Follower(this.id, this.configuration, this.log, this.stateMachine, this.container);
             return follower.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
         }

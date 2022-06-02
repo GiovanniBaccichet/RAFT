@@ -63,14 +63,26 @@ class Leader extends ConsensusModuleAbstract {
     }
 
     @Override
-    public synchronized VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
-        return null;
+    public synchronized VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        if (term > currentTerm) { // convert to follower
+            Follower follower = this.toFollower(null);
+            return follower.requestVote(term,candidateID, lastLogIndex, lastLogTerm);
+        } else { // reply false, to notify other server that this one is the leader
+            return new VoteResult(currentTerm, false);
+        }
     }
 
     @Override
-    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
-
-        return null; // TODO cambiare
+    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit)
+            throws IOException {
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        if (term > currentTerm) { // convert to follower
+            Follower follower = this.toFollower(leaderID);
+            return follower.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
+        } else { // reply false, to notify other server that this one is the leader
+            return new AppendEntryResult(currentTerm, false);
+        }
     }
 
     @Override
@@ -95,28 +107,30 @@ class Leader extends ConsensusModuleAbstract {
         StateMachineResult stateMachineResult = null;
         while (this.lastApplied < indexToCommit) {
             try {
-
                 // wait until one of the followers reply to the RPC
-                this.executeCommandQueue.waitForEntryCommitted(indexToCommit);
+                ExecuteCommandDirective directive = this.executeCommandQueue.waitForFollowerReplies(indexToCommit);
 
-                // UPDATE COMMIT INDEX
-                // if there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
-                int newCommitIndex = this.commitIndex;
-                for (int i = this.commitIndex + 1; i <= this.log.getLastLogIndex(); i++) {
-                    int finalI = i;
-                    if (this.matchIndex.values().stream().filter(index -> index >= finalI).count() >= this.matchIndex.size()/2 + 1
-                            && this.log.getEntryTerm(i) == this.consensusPersistentState.getCurrentTerm()) {
-                        newCommitIndex = i;
+                if (directive.equals(ExecuteCommandDirective.PROCEED)) {
+                    // UPDATE COMMIT INDEX
+                    // if there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
+                    int newCommitIndex = this.commitIndex;
+                    for (int i = this.commitIndex + 1; i <= this.log.getLastLogIndex(); i++) {
+                        int finalI = i;
+                        if (this.matchIndex.values().stream().filter(index -> index >= finalI).count() >= this.matchIndex.size()/2 + 1
+                                && this.log.getEntryTerm(i) == this.consensusPersistentState.getCurrentTerm()) {
+                            newCommitIndex = i;
+                        }
                     }
-                }
 
-                // APPLY ENTRIES COMMITTED
-                // if commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
-                while (this.lastApplied < this.commitIndex) {
-                    this.lastApplied++;
-                    stateMachineResult = this.stateMachine.executeCommand(this.log.getEntryCommand(this.lastApplied));
+                    // APPLY ENTRIES COMMITTED
+                    // if commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
+                    while (this.lastApplied < this.commitIndex) {
+                        this.lastApplied++;
+                        stateMachineResult = this.stateMachine.executeCommand(this.log.getEntryCommand(this.lastApplied));
+                    }
+                } else { // directive == INTERRUPT: the server has converted to follower, redirect client to current leader
+                    return new ExecuteCommandResult(null, false, this.configuration.getLeaderIP());
                 }
-
             } catch (InterruptedException e) {
 
             }
@@ -144,7 +158,7 @@ class Leader extends ConsensusModuleAbstract {
                             // update nextIndex and matchIndex
                             this.nextIndex.put(proxy.getId(), prevLogIndex + logEntries.length + 1);
                             this.matchIndex.put(proxy.getId(), prevLogIndex + logEntries.length);
-                            this.executeCommandQueue.notifyCommittedEntry();
+                            this.executeCommandQueue.notifyFollowerReply();
                             done = true;
                         } else {
                             // decrement next index
@@ -176,6 +190,14 @@ class Leader extends ConsensusModuleAbstract {
 
     private void stopHeartbeatTimer() {
         this.timer.cancel();
+    }
+
+    private Follower toFollower(Integer leaderId) {
+        Follower follower = new Follower(this.id, this.configuration, this.log, this.stateMachine, this.container);
+        this.container.changeConsensusModuleImpl(follower);
+        this.configuration.setLeader(leaderId);
+        this.executeCommandQueue.notifyAllToInterrupt();
+        return follower;
     }
 
 }

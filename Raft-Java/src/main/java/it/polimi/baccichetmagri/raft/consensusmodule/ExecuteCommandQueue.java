@@ -6,20 +6,35 @@ import java.util.List;
 class ExecuteCommandQueue {
 
     private final List<Integer> indexesQueue = new LinkedList<>();
+    private ExecuteCommandDirective directive = ExecuteCommandDirective.PROCEED;
 
-    synchronized void waitForEntryCommitted(int index) throws InterruptedException {
+
+    synchronized ExecuteCommandDirective waitForFollowerReplies(int indexToCommit) throws InterruptedException {
         int i = 0;
         while (i < this.indexesQueue.size()) {
-            if (index > this.indexesQueue.get(i)) {
+            if (indexToCommit > this.indexesQueue.get(i)) {
                 break;
             }
             i++;
         }
-        this.indexesQueue.add(i, index);
+        this.indexesQueue.add(i, indexToCommit);
         this.indexesQueue.get(i).wait();
+        return this.directive;
     }
 
-    synchronized void notifyCommittedEntry() {
+    synchronized void notifyFollowerReply() {
         this.indexesQueue.get(0).notify();
     }
+
+    synchronized void notifyAllToInterrupt() {
+        this.directive = ExecuteCommandDirective.INTERRUPT;
+        for (Integer index : this.indexesQueue) {
+            index.notify();
+        }
+    }
+}
+
+enum ExecuteCommandDirective {
+    PROCEED,
+    INTERRUPT
 }
