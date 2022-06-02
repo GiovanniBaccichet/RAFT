@@ -13,10 +13,7 @@ import it.polimi.baccichetmagri.raft.network.Configuration;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,6 +27,8 @@ class Leader extends ConsensusModuleAbstract {
                                              // (initialized to leader last log index + 1)
     private final Map<Integer, Integer> matchIndex; // for each server, index of the highest log entry known to be replicated on server
                                               // (initialized to 0, increases monotonically)
+
+    private final ExecuteCommandQueue executeCommandQueue;
 
     private final Timer timer; // timer for sending heartbeats
 
@@ -48,6 +47,7 @@ class Leader extends ConsensusModuleAbstract {
         }
         this.timer = new Timer();
         this.logger = Logger.getLogger(Leader.class.getName());
+        this.executeCommandQueue = new ExecuteCommandQueue();
     }
 
     @Override
@@ -80,10 +80,11 @@ class Leader extends ConsensusModuleAbstract {
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         int lastLogIndex = this.log.getLastLogIndex();
+
         // append command to local log as new entry
         LogEntry logEntry = new LogEntry(currentTerm, command);
         LogEntry[] logEntries = {logEntry};
-        this.log.appendEntry(new LogEntry(currentTerm, command)); // TODO check se ha senso
+        this.log.appendEntry(new LogEntry(currentTerm, command));
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
         this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getLastLogTerm(),
@@ -92,13 +93,30 @@ class Leader extends ConsensusModuleAbstract {
         // when at least half of the servers have appended the entry into the log, execute command in the state machine
         int indexToCommit = lastLogIndex + 1;
         StateMachineResult stateMachineResult = null;
-        while (this.commitIndex < indexToCommit) {
+        while (this.lastApplied < indexToCommit) {
             try {
-                this.wait();
-                if (this.commitIndex == indexToCommit) {
-                    this.lastApplied = indexToCommit;
-                    stateMachineResult = this.stateMachine.executeCommand(this.log.getEntryCommand(indexToCommit));
+
+                // wait until one of the followers reply to the RPC
+                this.executeCommandQueue.waitForEntryCommitted(indexToCommit);
+
+                // UPDATE COMMIT INDEX
+                // if there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
+                int newCommitIndex = this.commitIndex;
+                for (int i = this.commitIndex + 1; i <= this.log.getLastLogIndex(); i++) {
+                    int finalI = i;
+                    if (this.matchIndex.values().stream().filter(index -> index >= finalI).count() >= this.matchIndex.size()/2 + 1
+                            && this.log.getEntryTerm(i) == this.consensusPersistentState.getCurrentTerm()) {
+                        newCommitIndex = i;
+                    }
                 }
+
+                // APPLY ENTRIES COMMITTED
+                // if commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
+                while (this.lastApplied < this.commitIndex) {
+                    this.lastApplied++;
+                    stateMachineResult = this.stateMachine.executeCommand(this.log.getEntryCommand(this.lastApplied));
+                }
+
             } catch (InterruptedException e) {
 
             }
@@ -126,7 +144,7 @@ class Leader extends ConsensusModuleAbstract {
                             // update nextIndex and matchIndex
                             this.nextIndex.put(proxy.getId(), prevLogIndex + logEntries.length + 1);
                             this.matchIndex.put(proxy.getId(), prevLogIndex + logEntries.length);
-                            this.updateCommitIndex();
+                            this.executeCommandQueue.notifyCommittedEntry();
                             done = true;
                         } else {
                             // decrement next index
@@ -137,23 +155,6 @@ class Leader extends ConsensusModuleAbstract {
                         // error in network communication, redo call
                     }
                 }}).start();
-        }
-    }
-
-    private synchronized void updateCommitIndex() throws IOException {
-        // if there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
-        int newCommitIndex = this.commitIndex;
-        for (int i = this.commitIndex + 1; i <= this.log.getLastLogIndex(); i++) {
-            int finalI = i;
-            if (this.matchIndex.values().stream().filter(index -> index >= finalI).count() >= this.matchIndex.size()/2 + 1
-                && this.log.getEntryTerm(i) == this.consensusPersistentState.getCurrentTerm()) {
-                newCommitIndex = i;
-            }
-        }
-        if (newCommitIndex > this.commitIndex) {
-            for (int i = this.commitIndex + 1; i <= newCommitIndex; i++) {
-
-            }
         }
     }
 
