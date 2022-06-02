@@ -121,7 +121,7 @@ class Follower extends ConsensusModuleAbstract {
         //  If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
         Integer votedFor = this.consensusPersistentState.getVotedFor();
         int lastIndex = this.log.getLastLogIndex();
-        if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getEntryTerm(lastIndex) <= lastLogTerm)) {
+        if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getLastLogTerm() <= lastLogTerm)) {
             this.consensusPersistentState.setVotedFor(candidateID);
             this.startElectionTimer();
             return new VoteResult(currentTerm, true);

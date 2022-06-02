@@ -56,9 +56,8 @@ class Leader extends ConsensusModuleAbstract {
         this.configuration.discardAppendEntryReplies(false);
 
         // send initial empty AppendEntriesRPC (heartbeat)
-        int lastLogIndex = this.log.getLastLogIndex();
         this.callAppendEntriesOnAllServers(this.consensusPersistentState.getCurrentTerm(), this.id,
-                lastLogIndex, this.log.getEntryTerm(lastLogIndex), new LogEntry[0], this.commitIndex);
+                this.log.getLastLogIndex(), this.log.getLastLogTerm(), new LogEntry[0], this.commitIndex);
 
         this.startHeartbeatTimer();
     }
@@ -87,7 +86,7 @@ class Leader extends ConsensusModuleAbstract {
         this.log.appendEntry(new LogEntry(currentTerm, command)); // TODO check se ha senso
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
-        this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getEntryTerm(lastLogIndex),
+        this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getLastLogTerm(),
                 logEntries, this.commitIndex);
 
         // when at least half of the servers have appended the entry into the log, execute command in the state machine
@@ -162,10 +161,9 @@ class Leader extends ConsensusModuleAbstract {
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() { // send heartbeat to all servers
-                int lastLogIndex = log.getLastLogIndex();
                 try {
                     callAppendEntriesOnAllServers(consensusPersistentState.getCurrentTerm(), id,
-                            lastLogIndex, log.getEntryTerm(lastLogIndex), new LogEntry[0], commitIndex);
+                            log.getLastLogIndex(), log.getLastLogTerm(), new LogEntry[0], commitIndex);
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "An error has occurred while accessing to persistent state. The program is being terminated.");
                     e.printStackTrace();
