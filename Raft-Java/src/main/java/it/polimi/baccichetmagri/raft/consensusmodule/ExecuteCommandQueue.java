@@ -34,7 +34,4 @@ class ExecuteCommandQueue {
     }
 }
 
-enum ExecuteCommandDirective {
-    PROCEED,
-    INTERRUPT
-}
+

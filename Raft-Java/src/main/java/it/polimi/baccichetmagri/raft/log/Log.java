@@ -31,9 +31,12 @@ public class Log {
 
     private final StateMachine stateMachine;
 
+    private int snapshotOffset;
+
     public Log(Path logFilePath, StateMachine stateMachine) throws IOException {
         this.fileChannel = FileChannel.open(logFilePath, READ, WRITE, CREATE, SYNC);
         this.stateMachine = stateMachine;
+        this.snapshotOffset = 0;
         this.reIndex();
     }
 
@@ -154,6 +157,10 @@ public class Log {
                 : getEntry(getLastLogIndex()).getTerm();
     }
 
+    /**
+     * Initializes entryEndIndex from the (persistent) Log content
+     * @throws IOException
+     */
     public synchronized void reIndex() throws IOException {
             this.entryEndIndex = new ArrayList<>();
             this.entryEndIndex.add(0L);
@@ -178,6 +185,7 @@ public class Log {
         try {
             LogSnapshot logSnapshot = new LogSnapshot(this.getLastLogIndex(), this.getLastLogTerm(), this.stateMachine.getState());
             logSnapshot.writeSnapshot();
+            this.snapshotOffset = getLastLogIndex();
             deleteEntriesFrom(1);
         } catch (IOException e) {
             Logger logger = Logger.getLogger(Log.class.getName());
