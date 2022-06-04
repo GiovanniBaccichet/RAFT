@@ -11,53 +11,32 @@ import java.util.Comparator;
 import static java.nio.file.StandardOpenOption.*;
 import static java.nio.file.StandardOpenOption.SYNC;
 
-public class LogSnapshot implements Comparable<LogSnapshot> {
+public class LogSnapshot {
 
-    private final static String SNAPSHOT_PATH = "snapshot";
+    private final static String SNAPSHOT_PATH = "snapshot.json";
 
-    private final int lastIncludedIndex;
-
-    private final int lastIncludedTerm;
-
-    private final State state;
-
-    public LogSnapshot(int lastIncludedIndex, int lastIncludedTerm, State state) throws IOException {
-        this.lastIncludedIndex = lastIncludedIndex;
-        this.lastIncludedTerm = lastIncludedTerm;
-        this.state = state;
+    public State getMachineState() throws IOException {
+        return readSnapshot().getState();
     }
 
-    // GETTERS
-
-    public int lastIncludedIndex() {
-        return lastIncludedIndex;
+    public int getLastIncludedIndex() throws IOException {
+        return readSnapshot().getLastIncludedIndex();
     }
 
-    public int lastIncludedTerm() {
-        return lastIncludedTerm;
+    public int getLastIncludedTerm() throws IOException {
+        return readSnapshot().getLastIncludedTerm();
     }
-
-    // PUBLIC METHODS
 
     /**
-     * Write snapshot in a JSON fashion to a file
+     * Write snapshot.json in a JSON fashion to a file
      * @throws IOException
      */
-    public void writeSnapshot() throws IOException {
-        JsonFilesHandler.write(SNAPSHOT_PATH, new JSONSnapshot(this.state, this.lastIncludedIndex, this.lastIncludedTerm));
+    public void writeSnapshot(State state, int lastIncludedIndex, int lastIncludedTerm) throws IOException {
+        JsonFilesHandler.write(SNAPSHOT_PATH, new JSONSnapshot(state, lastIncludedIndex, lastIncludedTerm));
     }
 
-    // OVERRIDE
-
-    /**
-     * Used to compare 2 NON-empty LogSnapshots
-     * @param otherLogSnapshot the Log Snapshot to be compared.
-     * @return +1 if the compared Log is more up to date wrt the comparing one, -1 in the other case and 0 if the Logs are identical
-     */
-    @Override
-    public int compareTo(LogSnapshot otherLogSnapshot) {
-        return Comparator.comparing(ls -> ((LogSnapshot) ls).lastIncludedTerm).thenComparing(ls -> ((LogSnapshot
-        ) ls).lastIncludedIndex).compare(this, otherLogSnapshot);
+    private JSONSnapshot readSnapshot() throws IOException {
+        return JsonFilesHandler.read(SNAPSHOT_PATH, JSONSnapshot.class);
     }
 
 }

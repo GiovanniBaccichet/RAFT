@@ -31,12 +31,12 @@ public class Log {
 
     private final StateMachine stateMachine;
 
-    private int snapshotOffset;
+    private final LogSnapshot snapshot;
 
     public Log(Path logFilePath, StateMachine stateMachine) throws IOException {
         this.fileChannel = FileChannel.open(logFilePath, READ, WRITE, CREATE, SYNC);
         this.stateMachine = stateMachine;
-        this.snapshotOffset = 0;
+        this.snapshot = new LogSnapshot();
         this.reIndex();
     }
 
@@ -53,7 +53,7 @@ public class Log {
     }
 
     /**
-     * Checks if an entry exists and where it is (log or snapshot)
+     * Checks if an entry exists and where it is (log or snapshot.json)
      * @param index index of the entry to check in the Log
      * @param term term of the entry to check in the Log
      * @return an ENUM, depending on the position of the Log Entry (if it exists)
@@ -61,7 +61,7 @@ public class Log {
      */
     public synchronized LogEntryStatus containsEntry(int index, int term) throws IOException {
         this.validateIndex(index);
-        if (index <= this.snapshotOffset) {
+        if (index <= snapshot.getLastIncludedIndex() && term <= snapshot.getLastIncludedTerm()) {
             return LogEntryStatus.SNAPSHOTTED;
         } else if (index <= getLastLogIndex() && term == getLastLogTerm()) {
             return LogEntryStatus.NOT_SNAPSHOTTED;
@@ -118,7 +118,7 @@ public class Log {
      */
     public synchronized LogEntry getEntry(int index) throws IOException {
         validateIndex(index);
-        return this.readEntry(index-snapshotOffset);
+        return this.readEntry(index-snapshot.getLastIncludedIndex());
     }
 
     /**
@@ -196,13 +196,11 @@ public class Log {
      */
     public synchronized void createSnapshot() {
         try {
-            LogSnapshot logSnapshot = new LogSnapshot(this.getLastLogIndex(), this.getLastLogTerm(), this.stateMachine.getState());
-            logSnapshot.writeSnapshot();
-            this.snapshotOffset = getLastLogIndex();
+            snapshot.writeSnapshot(this.stateMachine.getState(), this.getLastLogIndex(), this.getLastLogTerm());
             deleteEntriesFrom(1);
         } catch (IOException e) {
             Logger logger = Logger.getLogger(Log.class.getName());
-            logger.log(Level.WARNING, "Impossible to create snapshot");
+            logger.log(Level.WARNING, "Impossible to create snapshot.json");
             e.printStackTrace();
         }
     }

@@ -24,7 +24,7 @@ public class Server {
         try {
             int id = Integer.parseInt(args[0]);
             StateMachine stateMachine = new StateMachineImplementation();
-            log = new Log(Path.of(System.getProperty("user.dir")), stateMachine); // Log saved to the current user's home folder (user.dir)
+            log = new Log(Path.of("log"), stateMachine); // Log saved to the current user's home folder (user.dir)
             Configuration configuration = new Configuration();
             ConsensusModule consensusModule = new ConsensusModule(id, configuration, log, stateMachine);
             configuration.initialize(id, consensusModule);
