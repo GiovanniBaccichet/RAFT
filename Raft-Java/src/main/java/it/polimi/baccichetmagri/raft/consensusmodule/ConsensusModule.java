@@ -11,6 +11,7 @@ import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +36,7 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     }
 
     @Override
-    public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
+    public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) {
         try {
             return this.consensusModuleAbstract.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
         } catch (IOException e) {

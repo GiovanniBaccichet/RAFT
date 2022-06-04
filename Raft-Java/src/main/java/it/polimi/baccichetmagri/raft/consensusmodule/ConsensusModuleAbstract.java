@@ -10,6 +10,7 @@ import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.io.IOException;
+import java.util.List;
 
 abstract class ConsensusModuleAbstract implements ConsensusModuleInterface {
 
@@ -50,7 +51,7 @@ abstract class ConsensusModuleAbstract implements ConsensusModuleInterface {
                                                     int leaderID,
                                                     int prevLogIndex,
                                                     int prevLogTerm,
-                                                    LogEntry[] logEntries,
+                                                    List<LogEntry> logEntries,
                                                     int leaderCommit) throws IOException;
 
     @Override

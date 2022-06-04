@@ -43,7 +43,7 @@ class Candidate extends ConsensusModuleAbstract {
     }
 
     @Override
-    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit)
+    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit)
         throws IOException {
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();

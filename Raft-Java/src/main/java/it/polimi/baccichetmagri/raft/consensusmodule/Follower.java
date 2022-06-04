@@ -11,6 +11,7 @@ import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -37,7 +38,7 @@ class Follower extends ConsensusModuleAbstract {
                                                         int leaderID,
                                                         int prevLogIndex,
                                                         int prevLogTerm,
-                                                        LogEntry[] logEntries,
+                                                        List<LogEntry> logEntries,
                                                         int leaderCommit) throws IOException {
 
         this.stopElectionTimer();
@@ -66,9 +67,9 @@ class Follower extends ConsensusModuleAbstract {
 
         // If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it
         boolean conflict = false;
-        for (int i = 0; i < logEntries.length && !conflict; i++) {
+        for (int i = 0; i < logEntries.size() && !conflict; i++) {
             int entryTerm = this.log.getEntryTerm(prevLogIndex + i + 1);
-            if (entryTerm != logEntries[i].getTerm()) {
+            if (entryTerm != logEntries.get(i).getTerm()) {
                 this.log.deleteEntriesFrom(i);
                 conflict = true;
             }
@@ -76,9 +77,9 @@ class Follower extends ConsensusModuleAbstract {
 
         // Append any new entries not already in the log
         int lastLogIndex = this.log.getLastLogIndex();
-        for (int i = 0; i < logEntries.length; i++) {
+        for (int i = 0; i < logEntries.size(); i++) {
             if (lastLogIndex < prevLogIndex + i + 1) {
-                this.log.appendEntry(logEntries[i]);
+                this.log.appendEntry(logEntries.get(i));
                 lastLogIndex++;
             }
         }

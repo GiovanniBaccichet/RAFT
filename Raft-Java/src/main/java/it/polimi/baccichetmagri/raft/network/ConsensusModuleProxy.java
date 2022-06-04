@@ -13,6 +13,7 @@ import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -123,7 +124,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @return
      */
     @Override
-    public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) throws IOException {
+    public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) throws IOException {
         AppendEntryReply appendEntryResult = null;
         try {
             int appendEntryRequestId = this.nextAppendEntryRequestId;
@@ -149,6 +150,11 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         return null;
     }
 
+    @Override
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
+        return 0; // TODO
+    }
+
     /**
      * Calls ConsensusModuleImpl::requestVote and sends the result to the peer.
      * @param term
@@ -172,7 +178,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @param leaderCommit
      * @throws IOException
      */
-    public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries,
+    public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries,
                                   int leaderCommit, int requestId) throws IOException {
         AppendEntryResult appendEntryResult = this.consensusModule.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
                 logEntries, leaderCommit);

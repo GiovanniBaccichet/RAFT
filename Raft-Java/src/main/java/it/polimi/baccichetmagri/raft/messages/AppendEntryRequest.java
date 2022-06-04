@@ -4,6 +4,7 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
 import java.io.IOException;
+import java.util.List;
 
 public class AppendEntryRequest extends Message{
 
@@ -11,11 +12,11 @@ public class AppendEntryRequest extends Message{
     private final int leaderId;
     private final int prevLogIndex;
     private final int prevLogTerm;
-    private final LogEntry[] logEntries;
+    private final List<LogEntry> logEntries;
     private final int leaderCommit;
 
     public AppendEntryRequest(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                              LogEntry[] logEntries, int leaderCommit, int messageId) {
+                              List<LogEntry> logEntries, int leaderCommit, int messageId) {
         super(MessageType.AppendEntryRequest, messageId);
         this.term = term;
         this.leaderId = leaderId;

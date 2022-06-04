@@ -57,7 +57,7 @@ class Leader extends ConsensusModuleAbstract {
 
         // send initial empty AppendEntriesRPC (heartbeat)
         this.callAppendEntriesOnAllServers(this.consensusPersistentState.getCurrentTerm(), this.id,
-                this.log.getLastLogIndex(), this.log.getLastLogTerm(), new LogEntry[0], this.commitIndex);
+                this.log.getLastLogIndex(), this.log.getLastLogTerm(), this.commitIndex);
 
         this.startHeartbeatTimer();
     }
@@ -74,7 +74,7 @@ class Leader extends ConsensusModuleAbstract {
     }
 
     @Override
-    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit)
+    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit)
             throws IOException {
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         if (term > currentTerm) { // convert to follower
@@ -95,12 +95,12 @@ class Leader extends ConsensusModuleAbstract {
 
         // append command to local log as new entry
         LogEntry logEntry = new LogEntry(currentTerm, command);
-        LogEntry[] logEntries = {logEntry};
+        List<LogEntry> logEntries = new ArrayList<>();
+        logEntries.add(logEntry);
         this.log.appendEntry(new LogEntry(currentTerm, command));
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
-        this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getLastLogTerm(),
-                logEntries, this.commitIndex);
+        this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getLastLogTerm(), this.commitIndex);
 
         // when at least half of the servers have appended the entry into the log, execute command in the state machine
         int indexToCommit = lastLogIndex + 1;
@@ -145,7 +145,7 @@ class Leader extends ConsensusModuleAbstract {
         return 0; // TODO implementare
     }
 
-    private void callAppendEntriesOnAllServers(int term, int leaderID, int prevLogIndex, int prevLogTerm, LogEntry[] logEntries, int leaderCommit) {
+    private void callAppendEntriesOnAllServers(int term, int leaderID, int prevLogIndex, int prevLogTerm, int leaderCommit) {
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         while (proxies.hasNext()) {
             ConsensusModuleProxy proxy = proxies.next();
@@ -153,11 +153,12 @@ class Leader extends ConsensusModuleAbstract {
                 boolean done = false;
                 while (!done) {
                     try {
+                        List<LogEntry> logEntries = this.log.getEntries(this.nextIndex.get(proxy.getId()), this.log.getLastLogIndex() + 1);
                         AppendEntryResult appendEntryResult = proxy.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
                         if (appendEntryResult.isSuccess()) {
                             // update nextIndex and matchIndex
-                            this.nextIndex.put(proxy.getId(), prevLogIndex + logEntries.length + 1);
-                            this.matchIndex.put(proxy.getId(), prevLogIndex + logEntries.length);
+                            this.nextIndex.put(proxy.getId(), prevLogIndex + logEntries.size() + 1);
+                            this.matchIndex.put(proxy.getId(), prevLogIndex + logEntries.size());
                             this.executeCommandQueue.notifyFollowerReply();
                             done = true;
                         } else {
@@ -178,7 +179,7 @@ class Leader extends ConsensusModuleAbstract {
             public void run() { // send heartbeat to all servers
                 try {
                     callAppendEntriesOnAllServers(consensusPersistentState.getCurrentTerm(), id,
-                            log.getLastLogIndex(), log.getLastLogTerm(), new LogEntry[0], commitIndex);
+                            log.getLastLogIndex(), log.getLastLogTerm(), commitIndex);
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "An error has occurred while accessing to persistent state. The program is being terminated.");
                     e.printStackTrace();

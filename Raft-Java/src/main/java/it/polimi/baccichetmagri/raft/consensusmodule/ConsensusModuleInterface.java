@@ -8,6 +8,7 @@ import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface ConsensusModuleInterface {
 
@@ -32,7 +33,7 @@ public interface ConsensusModuleInterface {
      * @return an AppendEntryReply containing the current term and a boolean, true if follower contained entry matching prevLogIndex and prevLogTerm
      */
     AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm,
-                                    LogEntry[] logEntries, int leaderCommit) throws IOException;
+                                    List<LogEntry> logEntries, int leaderCommit) throws IOException;
 
     ExecuteCommandResult executeCommand(Command command) throws IOException;
 
