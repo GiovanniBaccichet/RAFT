@@ -52,11 +52,24 @@ public class Log {
         return entryEndIndex.size() - 1;
     }
 
-    // Check if log file has an entry for a particular index
-    public synchronized boolean containsEntry(int index, int term) throws IOException {
+    /**
+     * Checks if an entry exists and where it is (log or snapshot)
+     * @param index index of the entry to check in the Log
+     * @param term term of the entry to check in the Log
+     * @return an ENUM, depending on the position of the Log Entry (if it exists)
+     * @throws IOException
+     */
+    public synchronized LogEntryStatus containsEntry(int index, int term) throws IOException {
         this.validateIndex(index);
-        return (this.size() >= index && this.getEntry(index).getTerm() == term);
+        if (index <= this.snapshotOffset) {
+            return LogEntryStatus.SNAPSHOTTED;
+        } else if (index <= getLastLogIndex() && term == getLastLogTerm()) {
+            return LogEntryStatus.NOT_SNAPSHOTTED;
+        } else {
+            return LogEntryStatus.NOT_EXISTENT;
+        }
     }
+    
 
     public synchronized void appendEntry(LogEntry entry) throws IOException {
         byte[] entryBytes = EntrySerializer.serialize(entry);
@@ -105,7 +118,7 @@ public class Log {
      */
     public synchronized LogEntry getEntry(int index) throws IOException {
         validateIndex(index);
-        return this.readEntry(index);
+        return this.readEntry(index-snapshotOffset);
     }
 
     /**
