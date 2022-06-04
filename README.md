@@ -288,7 +288,7 @@ Distributed under the GPLv3 License. See `LICENSE` for more information.
 
 Giovanni Baccichet - [@Giovanni_Bacci](https://twitter.com/Giovanni_Bacci) - `giovanni.baccichet[at].polimi.it`
 
-Chiara Magri - `chiara.magri[at]mail.polimi.it`
+Chiara Magri - `chiara1.magri[at]mail.polimi.it`
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
