@@ -5,6 +5,7 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandR
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.log.LogEntryStatus;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
@@ -58,7 +59,7 @@ class Follower extends ConsensusModuleAbstract {
 
 
         //  Reply false  if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
-        if (!this.log.containsEntry(prevLogIndex, prevLogTerm)) {
+        if (this.log.containsEntry(prevLogIndex, prevLogTerm) == LogEntryStatus.NOT_EXISTENT) {
             this.startElectionTimer();
             return new AppendEntryResult(currentTerm, false);
         }
