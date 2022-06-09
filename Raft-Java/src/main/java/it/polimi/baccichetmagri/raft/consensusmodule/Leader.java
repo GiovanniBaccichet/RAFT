@@ -163,6 +163,7 @@ class Leader extends ConsensusModuleAbstract {
                         try {
                             logEntries = this.log.getEntries(this.nextIndex.get(proxy.getId()), this.log.getLastLogIndex() + 1);
                         } catch (SnapshottedEntryException e) {
+
                             // Retrieve JSONSnapshot and convert it into a Byte[]
                             JSONSnapshot snapshotToSend = this.log.getJSONSnapshot();
                             ByteArrayOutputStream snapshotBytesStream = new ByteArrayOutputStream();
@@ -170,7 +171,13 @@ class Leader extends ConsensusModuleAbstract {
                             snapshotObjectStream.writeObject(snapshotToSend);
                             snapshotObjectStream.flush();
                             byte[] snapshotBytes = snapshotBytesStream.toByteArray();
-                            proxy.installSnapshot(term, leaderID, );
+
+                            for (int i = 0; i < snapshotBytes.length / SNAPSHOT_CHUNK_SIZE + 1; i++) {
+                                proxy.installSnapshot(term, leaderID, snapshotToSend.getLastIncludedIndex(), snapshotToSend.getLastIncludedTerm(),
+                                        i*SNAPSHOT_CHUNK_SIZE, Arrays.copyOfRange(snapshotBytes,i*SNAPSHOT_CHUNK_SIZE, i*(SNAPSHOT_CHUNK_SIZE+1)),
+                                        i*(SNAPSHOT_CHUNK_SIZE+1) >= snapshotBytes.length);
+                            }
+
                         }
                     } catch (IOException e) {
                         this.logger.log(Level.SEVERE, "An error has occurred while accessing to persistent state. The program is being terminated.");
