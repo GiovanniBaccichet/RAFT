@@ -6,13 +6,17 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandR
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.log.snapshot.JSONSnapshot;
+import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -22,6 +26,8 @@ class Leader extends ConsensusModuleAbstract {
 
     private static final int HEARTBEAT_TIMEOUT = 100; // the timeout for sending a heartbeat is lower than the minimum election
                                                       // timeout possible, so that elections don't start when the leader is still alive
+
+    private static final int SNAPSHOT_CHUNK_SIZE = 5*1024; // Send chunks of 5 KB at a time, this parameter needs to be tuned wrt network and storage
 
     private final Map<Integer, Integer> nextIndex; // for each server, index of the next log entry to send to that server
                                              // (initialized to leader last log index + 1)
@@ -140,17 +146,6 @@ class Leader extends ConsensusModuleAbstract {
         return new ExecuteCommandResult(stateMachineResult, true, this.configuration.getIp());
     }
 
-    /**
-     *
-     * @param term              leader's term
-     * @param leaderID          needed by followers to redirect clients
-     * @param lastIncludedIndex the snapshot.json replaces all entities up through and including this Index
-     * @param lastIncludedTerm  term of the last included Index of the Log
-     * @param offset            byte offset where chunk, starting at offset
-     * @param data              raw bytes where snapshot.json chunk, starting at offset
-     * @param done              TRUE if this is the last chunk
-     * @return
-     */
     @Override
     public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
         return 0; // TODO implementare
@@ -163,8 +158,26 @@ class Leader extends ConsensusModuleAbstract {
             new Thread(() -> {
                 boolean done = false;
                 while (!done) {
+                    List<LogEntry> logEntries = null;
                     try {
-                        List<LogEntry> logEntries = this.log.getEntries(this.nextIndex.get(proxy.getId()), this.log.getLastLogIndex() + 1);
+                        try {
+                            logEntries = this.log.getEntries(this.nextIndex.get(proxy.getId()), this.log.getLastLogIndex() + 1);
+                        } catch (SnapshottedEntryException e) {
+                            // Retrieve JSONSnapshot and convert it into a Byte[]
+                            JSONSnapshot snapshotToSend = this.log.getJSONSnapshot();
+                            ByteArrayOutputStream snapshotBytesStream = new ByteArrayOutputStream();
+                            ObjectOutputStream snapshotObjectStream = new ObjectOutputStream(snapshotBytesStream);
+                            snapshotObjectStream.writeObject(snapshotToSend);
+                            snapshotObjectStream.flush();
+                            byte[] snapshotBytes = snapshotBytesStream.toByteArray();
+                            proxy.installSnapshot(term, leaderID, );
+                        }
+                    } catch (IOException e) {
+                        this.logger.log(Level.SEVERE, "An error has occurred while accessing to persistent state. The program is being terminated.");
+                        e.printStackTrace();
+                        Server.shutDown();
+                    }
+                    try {
                         AppendEntryResult appendEntryResult = proxy.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
                         if (appendEntryResult.isSuccess()) {
                             // update nextIndex and matchIndex
@@ -192,7 +205,7 @@ class Leader extends ConsensusModuleAbstract {
                     callAppendEntriesOnAllServers(consensusPersistentState.getCurrentTerm(), id,
                             log.getLastLogIndex(), log.getLastLogTerm(), commitIndex);
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "An error has occurred while accessing to persistent state. The program is being terminated.");
+                    logger.log(Level.SEVERE, "An error has occurred while accessing persistent state. The program is being terminated.");
                     e.printStackTrace();
                     Server.shutDown();
                 }

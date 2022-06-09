@@ -1,5 +1,6 @@
 package it.polimi.baccichetmagri.raft.log;
 
+import it.polimi.baccichetmagri.raft.log.snapshot.JSONSnapshot;
 import it.polimi.baccichetmagri.raft.log.snapshot.LogSnapshot;
 import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
 import it.polimi.baccichetmagri.raft.machine.Command;
@@ -64,10 +65,17 @@ public class Log {
         this.validateIndex(index);
         if (index <= snapshot.getLastIncludedIndex() && term <= snapshot.getLastIncludedTerm()) {
             return LogEntryStatus.SNAPSHOTTED;
-        } else if (index <= getLastLogIndex() && term == getLastLogTerm()) {
-            return LogEntryStatus.NOT_SNAPSHOTTED;
         } else {
-            return LogEntryStatus.NOT_EXISTENT;
+            try {
+                if (index <= getLastLogIndex() && term == getLastLogTerm()) {
+                    return LogEntryStatus.NOT_SNAPSHOTTED;
+                } else {
+                    return LogEntryStatus.NOT_EXISTENT;
+                }
+            } catch (SnapshottedEntryException e) {
+                // Should never happen (check done previously)
+                return null;
+            }
         }
     }
 
@@ -197,6 +205,10 @@ public class Log {
         } else {
             return this.snapshot.getLastIncludedTerm();
         }
+    }
+
+    public synchronized JSONSnapshot getJSONSnapshot() throws IOException {
+        return new JSONSnapshot(this.snapshot.getMachineState(), this.snapshot.getLastIncludedIndex(), this.snapshot.getLastIncludedTerm());
     }
 
     /**
