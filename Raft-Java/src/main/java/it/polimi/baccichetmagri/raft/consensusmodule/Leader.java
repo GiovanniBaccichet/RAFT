@@ -97,7 +97,7 @@ class Leader extends ConsensusModuleAbstract {
         LogEntry logEntry = new LogEntry(currentTerm, command);
         List<LogEntry> logEntries = new ArrayList<>();
         logEntries.add(logEntry);
-        this.log.appendEntry(new LogEntry(currentTerm, command));
+        this.log.appendEntry(new LogEntry(currentTerm, command), this.commitIndex);
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
         this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getLastLogTerm(), this.commitIndex);
@@ -140,6 +140,17 @@ class Leader extends ConsensusModuleAbstract {
         return new ExecuteCommandResult(stateMachineResult, true, this.configuration.getIp());
     }
 
+    /**
+     *
+     * @param term              leader's term
+     * @param leaderID          needed by followers to redirect clients
+     * @param lastIncludedIndex the snapshot.json replaces all entities up through and including this Index
+     * @param lastIncludedTerm  term of the last included Index of the Log
+     * @param offset            byte offset where chunk, starting at offset
+     * @param data              raw bytes where snapshot.json chunk, starting at offset
+     * @param done              TRUE if this is the last chunk
+     * @return
+     */
     @Override
     public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
         return 0; // TODO implementare

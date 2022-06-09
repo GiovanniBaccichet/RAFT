@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.log;
 
 import it.polimi.baccichetmagri.raft.log.snapshot.LogSnapshot;
+import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 
@@ -48,8 +49,8 @@ public class Log {
         this.fileChannel.close();
     }
 
-    public synchronized int size() {
-        return entryEndIndex.size() - 1;
+    public synchronized int size() throws IOException {
+        return entryEndIndex.size() + this.snapshot.getLastIncludedIndex() - 1;
     }
 
     /**
@@ -69,9 +70,15 @@ public class Log {
             return LogEntryStatus.NOT_EXISTENT;
         }
     }
-    
 
-    public synchronized void appendEntry(LogEntry entry) throws IOException {
+
+    /**
+     * Appends a LogEntry to the Log
+     * @param entry LogEntry to append
+     * @param commitIndex parameter needed to avoid snapshotting uncommitted entries
+     * @throws IOException
+     */
+    public synchronized void appendEntry(LogEntry entry, int commitIndex) throws IOException {
         byte[] entryBytes = EntrySerializer.serialize(entry);
         ByteBuffer byteBuffer = ByteBuffer.allocate(entryBytes.length + 4);
         byteBuffer.putInt(entryBytes.length);
@@ -80,8 +87,8 @@ public class Log {
         fileChannel.write(byteBuffer);
         entryEndIndex.add(fileChannel.position());
 
-        if (this.size() > SNAPSHOT_LIMIT) {
-            new Thread(this::createSnapshot);
+        if (this.size() > SNAPSHOT_LIMIT && commitIndex > this.snapshot.getLastIncludedIndex()) {
+            new Thread(() -> this.createSnapshot(commitIndex));
         }
 
     }
@@ -92,14 +99,23 @@ public class Log {
      * @throws IOException
      */
     public synchronized void deleteEntriesFrom(int fromIndex) throws IOException {
-        fileChannel.truncate(entryEndIndex.get(fromIndex - 1));
+        if (fromIndex <= snapshot.getLastIncludedIndex()) {
+            /*
+             * If fromIndex is related to an Entry included in a snapshot,
+             * the deletion starts from the end of that snapshot.
+             * This situation should never happen in the real implementation of the algorithm,
+             * since only uncommitted entries can be deleted.
+             */
+            fromIndex = snapshot.getLastIncludedIndex() + 1;
+        }
+        fileChannel.truncate(entryEndIndex.get(fromIndex - snapshot.getLastIncludedIndex() - 1));
         entryEndIndex = entryEndIndex.subList(0, fromIndex);
     }
 
     // GETTERS
 
     /**
-     * Used to get the entries written in the log file (useful to print to terminal)
+     * Used to get the entries written in the log file and NOT snapshotted (useful to print to terminal)
      * @return a List of LogEntries
      * @throws IOException
      */
@@ -112,12 +128,15 @@ public class Log {
     }
 
     /**
-     * Retrieve LogEntry form log file, given the index
+     * Retrieve LogEntry form log file (given that it has not been snapshotted), given the index
      * @param index requested index
      * @return LogEntry, having requested index
      */
-    public synchronized LogEntry getEntry(int index) throws IOException {
+    public synchronized LogEntry getEntry(int index) throws IOException, SnapshottedEntryException {
         validateIndex(index);
+        if (index <= this.snapshot.getLastIncludedIndex()) {
+            throw new SnapshottedEntryException();
+        }
         return this.readEntry(index-snapshot.getLastIncludedIndex());
     }
 
@@ -127,8 +146,16 @@ public class Log {
      * @param toIndexExclusive upper bound (NOT included) index
      * @return a list of LogEntries, having index in the requested range
      */
-    public synchronized List<LogEntry> getEntries(int fromIndexInclusive, int toIndexExclusive) throws IOException {
+    public synchronized List<LogEntry> getEntries(int fromIndexInclusive, int toIndexExclusive) throws IOException, SnapshottedEntryException {
         List<LogEntry> entries = new ArrayList<>();
+        if (fromIndexInclusive > toIndexExclusive) {
+            throw new IllegalArgumentException();
+        }
+        if (fromIndexInclusive <= this.snapshot.getLastIncludedIndex()) {
+            throw new SnapshottedEntryException();
+        }
+        fromIndexInclusive -= this.snapshot.getLastIncludedIndex();
+        toIndexExclusive -= this.snapshot.getLastIncludedIndex();
         for (int i = fromIndexInclusive; i < toIndexExclusive; i++) {
             entries.add(readEntry(i));
         }
@@ -140,7 +167,7 @@ public class Log {
      * @param index requested index
      * @return LogEntry's Command, having the requested index
      */
-    public synchronized Command getEntryCommand(int index) throws IOException {
+    public synchronized Command getEntryCommand(int index) throws IOException, SnapshottedEntryException {
         validateIndex(index);
         return this.getEntry(index).getCommand();
     }
@@ -150,24 +177,26 @@ public class Log {
      * @param index requested index
      * @return term related to the requested index
      */
-    public synchronized int getEntryTerm(int index) throws IOException {
+    public synchronized int getEntryTerm(int index) throws IOException, SnapshottedEntryException {
         validateIndex(index);
         return this.getEntry(index).getTerm();
     }
 
     // Get last entry's index from the log
-    public synchronized int getLastLogIndex() {
+    public synchronized int getLastLogIndex() throws IOException {
         return this.size();
     }
 
-    public synchronized int getNextLogIndex() {
+    public synchronized int getNextLogIndex() throws IOException {
         return this.size() + 1;
     }
 
-    public synchronized int getLastLogTerm() throws IOException {
-        return isEmpty() ?
-                0
-                : getEntry(getLastLogIndex()).getTerm();
+    public synchronized int getLastLogTerm() throws IOException, SnapshottedEntryException {
+        if (this.getLastLogIndex() > this.snapshot.getLastIncludedIndex()) {
+            return this.getEntry(getLastLogIndex()).getTerm();
+        } else {
+            return this.snapshot.getLastIncludedTerm();
+        }
     }
 
     /**
@@ -193,19 +222,24 @@ public class Log {
 
     /**
      * Used to create the Log Snapshot
+     * @param commitIndex commit index needed to not snapshot uncommitted entries
      */
-    public synchronized void createSnapshot() {
+    private synchronized void createSnapshot(int commitIndex) {
         try {
-            snapshot.writeSnapshot(this.stateMachine.getState(), this.getLastLogIndex(), this.getLastLogTerm());
+            snapshot.writeSnapshot(this.stateMachine.getState(), commitIndex, this.getLastLogTerm());
+            List<LogEntry> uncommittedEntries = this.getEntries(commitIndex+1, this.getLastLogIndex()+1);
             deleteEntriesFrom(1);
+            for (LogEntry entry : uncommittedEntries) {
+                this.appendEntry(entry, commitIndex);
+            }
         } catch (IOException e) {
             Logger logger = Logger.getLogger(Log.class.getName());
             logger.log(Level.WARNING, "Impossible to create snapshot.json");
             e.printStackTrace();
+        } catch (SnapshottedEntryException e) {
+            // Should never happen (check done previously)
         }
     }
-
-    // PRIVATE METHODS
 
     /**
      * Check if illegal indexes are present in the log
@@ -231,11 +265,6 @@ public class Log {
             ByteBuffer buffer = ByteBuffer.allocate(length);
             fileChannel.read(buffer, offset + 4);
             return EntrySerializer.deserialize(buffer.array());
-    }
-
-
-    private boolean isEmpty() {
-        return size() == 0;
     }
 
 }
