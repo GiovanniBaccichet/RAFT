@@ -172,7 +172,7 @@ Since the algorithm is <mark>robust against any non-byzantine failure, links can
 
 [![Network topology - testing the implementation][net-topology]](https://github.com/GiovanniBaccichet/RAFT)
 
-In order to work with a controlled environment, to properly asses the correctness of the implementation, we decided to virtualize the 5 hosts, plus a router and a switch to network them together. The challenge was to test the above mentioned failures:
+In order to work with a controlled environment, to properly assess the correctness of the implementation, we decided to virtualize the 5 hosts, plus a router and a switch to network them together. The challenge was to test the above-mentioned failures:
 
 - **Links** can have **omissions**;
 - **Links** can have **delays**;
