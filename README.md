@@ -181,20 +181,20 @@ In order to work with a controlled environment, to properly asses the correctnes
 The software of choice for creating a suitable lab for testing purposes was **Vagrant** (and **VirtualBox**): both software are open source and offer the required capabilities for handling link failure, as well as process failure. This will be explained more in depth in the following.
 
 ```
-RAFT
-└── Testing\ Environment/
-    ├── vagrant/
-    │   ├── nodes/
-    │   │   ├── node1.sh
-    │   │   ├── node2.sh
-    │   │   ├── node3.sh
-    │   │   ├── node4.sh
-    │   │   └── node5.sh
-    │   ├── client.sh
-    │   ├── raft-node.sh
-    │   ├── router.sh
-    │   └── switch.sh
-    └── Vagrantfile
+📁 RAFT
+└── 📁 Testing\ Environment/
+    ├── 📁 vagrant/
+    │   ├── 📁 nodes/
+    │   │   ├── 📄 node1.sh
+    │   │   ├── 📄 node2.sh
+    │   │   ├── 📄 node3.sh
+    │   │   ├── 📄 node4.sh
+    │   │   └── 📄 node5.sh
+    │   ├── 📄 client.sh
+    │   ├── 📄 raft-node.sh
+    │   ├── 📄 router.sh
+    │   └── 📄 switch.sh
+    └── 📄 Vagrantfile
 ```
 
 As shown in the box above, the VMs are creating following what's inside the `Vagrantfile` and configured based on the respective bash scripts contained in `vagrant/`.

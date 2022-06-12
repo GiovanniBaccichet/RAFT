@@ -1,0 +1,10 @@
+it.polimi.baccichetmagri.raft
+it.polimi.baccichetmagri.raft.consensusmodule
+it.polimi.baccichetmagri.raft.consensusmodule.returntypes
+it.polimi.baccichetmagri.raft.log
+it.polimi.baccichetmagri.raft.log.snapshot
+it.polimi.baccichetmagri.raft.machine
+it.polimi.baccichetmagri.raft.messages
+it.polimi.baccichetmagri.raft.network
+it.polimi.baccichetmagri.raft.network.exceptions
+it.polimi.baccichetmagri.raft.utils
