@@ -37,7 +37,7 @@ public class Leader extends ConsensusModuleAbstract {
     private final Map<Integer, Integer> matchIndex; // for each server, index of the highest log entry known to be replicated on server
                                               // (initialized to 0, increases monotonically)
 
-    private final ExecuteCommandQueue executeCommandQueue;
+    private final IndexesToCommit indexesToCommit;
 
     private final Timer timer; // timer for sending heartbeats
 
@@ -56,7 +56,7 @@ public class Leader extends ConsensusModuleAbstract {
         }
         this.timer = new Timer();
         this.logger = Logger.getLogger(Leader.class.getName());
-        this.executeCommandQueue = new ExecuteCommandQueue();
+        this.indexesToCommit = new IndexesToCommit();
     }
 
     @Override
@@ -117,7 +117,7 @@ public class Leader extends ConsensusModuleAbstract {
         while (this.lastApplied < indexToCommit) {
             try {
                 // wait until one of the followers reply to the RPC
-                ExecuteCommandDirective directive = this.executeCommandQueue.waitForFollowerReplies(indexToCommit);
+                ExecuteCommandDirective directive = this.indexesToCommit.waitForFollowerReplies(indexToCommit);
 
                 if (directive.equals(ExecuteCommandDirective.PROCEED)) {
                     // UPDATE COMMIT INDEX
@@ -205,7 +205,7 @@ public class Leader extends ConsensusModuleAbstract {
                             // update nextIndex and matchIndex
                             this.nextIndex.put(proxy.getId(), prevLogIndex + logEntries.size() + 1);
                             this.matchIndex.put(proxy.getId(), prevLogIndex + logEntries.size());
-                            this.executeCommandQueue.notifyFollowerReply();
+                            this.indexesToCommit.notifyFollowerReply();
                             done = true;
                         } else {
                             // decrement next index
@@ -243,7 +243,7 @@ public class Leader extends ConsensusModuleAbstract {
         Follower follower = new Follower(this.id, this.configuration, this.log, this.stateMachine, this.container);
         this.container.changeConsensusModuleImpl(follower);
         this.configuration.setLeader(leaderId);
-        this.executeCommandQueue.notifyAllToInterrupt();
+        this.indexesToCommit.notifyAllToInterrupt();
         return follower;
     }
 
