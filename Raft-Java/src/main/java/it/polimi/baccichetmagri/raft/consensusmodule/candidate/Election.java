@@ -1,4 +1,6 @@
-package it.polimi.baccichetmagri.raft.consensusmodule;
+package it.polimi.baccichetmagri.raft.consensusmodule.candidate;
+
+import it.polimi.baccichetmagri.raft.consensusmodule.ElectionOutcome;
 
 class Election {
     private ElectionOutcome electionOutcome;

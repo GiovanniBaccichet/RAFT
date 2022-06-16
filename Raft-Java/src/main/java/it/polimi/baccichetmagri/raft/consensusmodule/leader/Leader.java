@@ -1,6 +1,9 @@
-package it.polimi.baccichetmagri.raft.consensusmodule;
+package it.polimi.baccichetmagri.raft.consensusmodule.leader;
 
 import it.polimi.baccichetmagri.raft.Server;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleAbstract;
+import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
@@ -22,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class Leader extends ConsensusModuleAbstract {
+public class Leader extends ConsensusModuleAbstract {
 
     private static final int HEARTBEAT_TIMEOUT = 100; // the timeout for sending a heartbeat is lower than the minimum election
                                                       // timeout possible, so that elections don't start when the leader is still alive
@@ -40,7 +43,7 @@ class Leader extends ConsensusModuleAbstract {
 
     private final Logger logger;
 
-    Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModule consensusModule) {
+    public Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModule consensusModule) {
         super(id, configuration, log, stateMachine, consensusModule);
         this.nextIndex = new ConcurrentHashMap<>();
         this.matchIndex = new ConcurrentHashMap<>();
@@ -57,13 +60,13 @@ class Leader extends ConsensusModuleAbstract {
     }
 
     @Override
-    synchronized void initialize() throws IOException {
+    public synchronized void initialize() throws IOException {
         this.configuration.discardRequestVoteReplies(false);
         this.configuration.discardAppendEntryReplies(false);
 
         // send initial empty AppendEntriesRPC (heartbeat)
         this.callAppendEntriesOnAllServers(this.consensusPersistentState.getCurrentTerm(), this.id,
-                this.log.getLastLogIndex(), this.log.getLastLogTerm(), this.commitIndex);
+                this.log.getLastLogIndex(), this.log.getLastLogTerm(), new ArrayList<>(),  this.commitIndex);
 
         this.startHeartbeatTimer();
     }
@@ -101,12 +104,12 @@ class Leader extends ConsensusModuleAbstract {
 
         // append command to local log as new entry
         LogEntry logEntry = new LogEntry(currentTerm, command);
-        List<LogEntry> logEntries = new ArrayList<>();
-        logEntries.add(logEntry);
-        this.log.appendEntry(new LogEntry(currentTerm, command), this.commitIndex);
+        this.log.appendEntry(logEntry, this.commitIndex);
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
-        this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getLastLogTerm(), this.commitIndex);
+        List<LogEntry> logEntries = new LinkedList<>();
+        logEntries.add(logEntry);
+        this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getLastLogTerm(), logEntries,  this.commitIndex);
 
         // when at least half of the servers have appended the entry into the log, execute command in the state machine
         int indexToCommit = lastLogIndex + 1;
@@ -151,7 +154,7 @@ class Leader extends ConsensusModuleAbstract {
         return 0; // TODO implementare
     }
 
-    private void callAppendEntriesOnAllServers(int term, int leaderID, int prevLogIndex, int prevLogTerm, int leaderCommit) {
+    private void callAppendEntriesOnAllServers(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) {
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         while (proxies.hasNext()) {
             ConsensusModuleProxy proxy = proxies.next();
@@ -162,7 +165,7 @@ class Leader extends ConsensusModuleAbstract {
                     try {
                         try {
                             logEntries = this.log.getEntries(this.nextIndex.get(proxy.getId()), this.log.getLastLogIndex() + 1);
-                        } catch (SnapshottedEntryException e) {
+                        } catch (SnapshottedEntryException e) { // send snapshot instead of snapshotted entries
 
                             // Retrieve JSONSnapshot and convert it into a Byte[]
                             JSONSnapshot snapshotToSend = this.log.getJSONSnapshot();
@@ -172,10 +175,19 @@ class Leader extends ConsensusModuleAbstract {
                             snapshotObjectStream.flush();
                             byte[] snapshotBytes = snapshotBytesStream.toByteArray();
 
+                            // call installSnapshot on the follower
                             for (int i = 0; i < snapshotBytes.length / SNAPSHOT_CHUNK_SIZE + 1; i++) {
                                 proxy.installSnapshot(term, leaderID, snapshotToSend.getLastIncludedIndex(), snapshotToSend.getLastIncludedTerm(),
                                         i*SNAPSHOT_CHUNK_SIZE, Arrays.copyOfRange(snapshotBytes,i*SNAPSHOT_CHUNK_SIZE, i*(SNAPSHOT_CHUNK_SIZE+1)),
                                         i*(SNAPSHOT_CHUNK_SIZE+1) >= snapshotBytes.length);
+                            }
+
+                            try {
+                                // entries still to be sent to the follower
+                                logEntries = this.log.getEntries(snapshotToSend.getLastIncludedIndex() + 1, this.log.getLastLogIndex() + 1);
+                            } catch (SnapshottedEntryException ex) {
+                                // should never happen
+                                ex.printStackTrace();
                             }
 
                         }
@@ -184,6 +196,9 @@ class Leader extends ConsensusModuleAbstract {
                         e.printStackTrace();
                         Server.shutDown();
                     }
+
+
+
                     try {
                         AppendEntryResult appendEntryResult = proxy.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
                         if (appendEntryResult.isSuccess()) {

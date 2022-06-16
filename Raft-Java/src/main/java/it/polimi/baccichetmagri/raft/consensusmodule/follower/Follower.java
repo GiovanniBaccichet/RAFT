@@ -1,5 +1,8 @@
-package it.polimi.baccichetmagri.raft.consensusmodule;
+package it.polimi.baccichetmagri.raft.consensusmodule.follower;
 
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleAbstract;
+import it.polimi.baccichetmagri.raft.consensusmodule.candidate.Candidate;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
@@ -16,18 +19,18 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-class Follower extends ConsensusModuleAbstract {
+public class Follower extends ConsensusModuleAbstract {
 
     private final Timer timer;
 
-    Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
+    public Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
              ConsensusModule container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
     }
 
     @Override
-    synchronized void initialize() {
+    public synchronized void initialize() {
         this.configuration.discardAppendEntryReplies(true);
         this.configuration.discardRequestVoteReplies(true);
         this.startElectionTimer();

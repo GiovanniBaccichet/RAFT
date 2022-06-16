@@ -12,7 +12,7 @@ import it.polimi.baccichetmagri.raft.network.Configuration;
 import java.io.IOException;
 import java.util.List;
 
-abstract class ConsensusModuleAbstract implements ConsensusModuleInterface {
+public abstract class ConsensusModuleAbstract implements ConsensusModuleInterface {
 
     protected final static int ELECTION_TIMEOUT_MIN = 150; // milliseconds
     protected final static int ELECTION_TIMEOUT_MAX = 300; // milliseconds
@@ -26,7 +26,7 @@ abstract class ConsensusModuleAbstract implements ConsensusModuleInterface {
     protected StateMachine stateMachine;
     protected ConsensusModule container;
 
-    ConsensusModuleAbstract(int id, Configuration configuration, Log log, StateMachine stateMachine,
+    public ConsensusModuleAbstract(int id, Configuration configuration, Log log, StateMachine stateMachine,
                             ConsensusModule container) {
         this.id = id;
         this.consensusPersistentState = new ConsensusPersistentState();
@@ -38,7 +38,7 @@ abstract class ConsensusModuleAbstract implements ConsensusModuleInterface {
         this.container = container;
     }
 
-    abstract void initialize() throws IOException;
+    public abstract void initialize() throws IOException;
 
     @Override
     public abstract VoteResult requestVote(int term,
@@ -60,7 +60,7 @@ abstract class ConsensusModuleAbstract implements ConsensusModuleInterface {
     @Override
     public abstract int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done);
 
-    int getId() {
+    public int getId() {
         return this.id;
     }
 

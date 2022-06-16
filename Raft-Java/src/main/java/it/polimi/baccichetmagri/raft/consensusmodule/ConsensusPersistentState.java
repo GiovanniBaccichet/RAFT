@@ -5,7 +5,7 @@ import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
 
 import java.io.IOException;
 
-class ConsensusPersistentState {
+public class ConsensusPersistentState {
 
 
 
@@ -13,23 +13,23 @@ class ConsensusPersistentState {
 
     // votedFor: candidateId that received vote in current term (or null if none)
 
-    int getCurrentTerm() throws IOException {
+    public int getCurrentTerm() throws IOException {
         ConsensusPersistentStateForGson state = this.readState();
         return state.getCurrentTerm();
     }
 
-    void setCurrentTerm(int currentTerm) throws IOException {
+    public void setCurrentTerm(int currentTerm) throws IOException {
         ConsensusPersistentStateForGson state = this.readState();
         state.setCurrentTerm(currentTerm);
         this.writeState(state);
     }
 
-    Integer getVotedFor() throws IOException {
+    public Integer getVotedFor() throws IOException {
         ConsensusPersistentStateForGson state = this.readState();
         return state.getVotedFor();
     }
 
-    void setVotedFor(Integer votedFor) throws IOException {
+    public void setVotedFor(Integer votedFor) throws IOException {
         ConsensusPersistentStateForGson state = this.readState();
         state.setVotedFor(votedFor);
         this.writeState(state);

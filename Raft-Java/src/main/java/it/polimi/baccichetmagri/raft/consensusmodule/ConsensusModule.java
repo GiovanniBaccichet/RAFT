@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
 import it.polimi.baccichetmagri.raft.Server;
+import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
@@ -64,7 +65,7 @@ public class ConsensusModule  implements ConsensusModuleInterface {
         return this.consensusModuleAbstract.getId();
     }
 
-    void changeConsensusModuleImpl(ConsensusModuleAbstract consensusModuleAbstract) {
+    public void changeConsensusModuleImpl(ConsensusModuleAbstract consensusModuleAbstract) {
         try {
             this.consensusModuleAbstract = consensusModuleAbstract;
             this.consensusModuleAbstract.initialize();

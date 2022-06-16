@@ -1,5 +1,8 @@
-package it.polimi.baccichetmagri.raft.consensusmodule;
+package it.polimi.baccichetmagri.raft.consensusmodule.candidate;
 
+import it.polimi.baccichetmagri.raft.consensusmodule.*;
+import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
+import it.polimi.baccichetmagri.raft.consensusmodule.leader.Leader;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
@@ -13,12 +16,12 @@ import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 import java.io.IOException;
 import java.util.*;
 
-class Candidate extends ConsensusModuleAbstract {
+public class Candidate extends ConsensusModuleAbstract {
 
     private final Timer timer;
     private Election election; // represents the current election
 
-    Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine,
+    public Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine,
               ConsensusModule container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
@@ -26,7 +29,7 @@ class Candidate extends ConsensusModuleAbstract {
     }
 
     @Override
-    synchronized void initialize() throws IOException {
+    public synchronized void initialize() throws IOException {
         this.configuration.discardAppendEntryReplies(true);
         this.configuration.discardRequestVoteReplies(false);
         this.startElection();

@@ -1,4 +1,6 @@
-package it.polimi.baccichetmagri.raft.consensusmodule;
+package it.polimi.baccichetmagri.raft.consensusmodule.leader;
+
+import it.polimi.baccichetmagri.raft.consensusmodule.leader.ExecuteCommandDirective;
 
 import java.util.LinkedList;
 import java.util.List;
