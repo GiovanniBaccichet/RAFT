@@ -30,7 +30,7 @@ public class Leader extends ConsensusModuleAbstract {
     private static final int HEARTBEAT_TIMEOUT = 100; // the timeout for sending a heartbeat is lower than the minimum election
                                                       // timeout possible, so that elections don't start when the leader is still alive
 
-    private static final int SNAPSHOT_CHUNK_SIZE = 5*1024; // Send chunks of 5 KB at a time, this parameter needs to be tuned wrt network and storage
+
 
     private final Map<Integer, Integer> nextIndex; // for each server, index of the next log entry to send to that server
                                              // (initialized to leader last log index + 1)
