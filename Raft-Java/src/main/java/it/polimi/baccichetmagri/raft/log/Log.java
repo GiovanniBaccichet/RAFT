@@ -199,10 +199,10 @@ public class Log {
         return this.size() + 1;
     }
 
-    public synchronized int getLastLogTerm() throws IOException, SnapshottedEntryException {
-        if (this.getLastLogIndex() > this.snapshot.getLastIncludedIndex()) {
+    public synchronized int getLastLogTerm() throws IOException {
+        try {
             return this.getEntry(getLastLogIndex()).getTerm();
-        } else {
+        } catch (SnapshottedEntryException e) {
             return this.snapshot.getLastIncludedTerm();
         }
     }

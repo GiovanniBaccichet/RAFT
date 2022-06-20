@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.leader;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 class IndexesToCommit {
@@ -29,6 +30,15 @@ class IndexesToCommit {
         this.directive = ExecuteCommandDirective.INTERRUPT;
         for (Integer index : this.indexes) {
             index.notify();
+        }
+    }
+
+    synchronized void notifySmallerIndexesToCommit(int indexToCommit) {
+        this.directive = ExecuteCommandDirective.COMMIT;
+        for (Integer index : this.indexes) {
+            if (index < indexToCommit) {
+                index.notify();
+            }
         }
     }
 }

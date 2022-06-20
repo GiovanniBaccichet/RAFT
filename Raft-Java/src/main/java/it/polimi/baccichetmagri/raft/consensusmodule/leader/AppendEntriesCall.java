@@ -1,6 +1,5 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.leader;
 
-import it.polimi.baccichetmagri.raft.Server;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
@@ -13,14 +12,13 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 
 class AppendEntriesCall {
 
     private static final int SNAPSHOT_CHUNK_SIZE = 5*1024; // Send chunks of 5 KB at a time, this parameter needs to be tuned wrt network and storage
-    private int nextIndex;
-    private int matchIndex;
-    private ConsensusModuleProxy proxy;
+    private int nextIndex; // index of the next log entry to send to that server (initialized to leader last log index + 1)
+    private int matchIndex; // index of the highest log entry known to be replicated on server (initialized to 0, increases monotonically)
+    private final ConsensusModuleProxy proxy;
     private Thread thread;
     private boolean isRunning;
 
@@ -75,6 +73,7 @@ class AppendEntriesCall {
                 } catch (IOException e) {
 
                 }
+                this.isRunning = false;
             });
             this.thread.start();
         }
@@ -84,6 +83,10 @@ class AppendEntriesCall {
         if (this.isRunning && this.thread != null) {
             this.thread.interrupt();
         }
+    }
+
+    synchronized int getMatchIndex() {
+        return this.matchIndex;
     }
 
     private void callInstallSnapshot(int term, int leaderID, int prevLogIndex, JSONSnapshot snapshot, IndexesToCommit indexesToCommit) throws IOException, ConvertToFollowerException {

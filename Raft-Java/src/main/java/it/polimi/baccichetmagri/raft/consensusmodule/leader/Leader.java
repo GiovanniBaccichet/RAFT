@@ -30,12 +30,7 @@ public class Leader extends ConsensusModuleAbstract {
     private static final int HEARTBEAT_TIMEOUT = 100; // the timeout for sending a heartbeat is lower than the minimum election
                                                       // timeout possible, so that elections don't start when the leader is still alive
 
-
-
-    private final Map<Integer, Integer> nextIndex; // for each server, index of the next log entry to send to that server
-                                             // (initialized to leader last log index + 1)
-    private final Map<Integer, Integer> matchIndex; // for each server, index of the highest log entry known to be replicated on server
-                                              // (initialized to 0, increases monotonically)
+    private final List<AppendEntriesCall> appendEntriesCalls;
 
     private final IndexesToCommit indexesToCommit;
 
@@ -43,16 +38,13 @@ public class Leader extends ConsensusModuleAbstract {
 
     private final Logger logger;
 
-    public Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModule consensusModule) {
+    public Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModule consensusModule) throws IOException {
         super(id, configuration, log, stateMachine, consensusModule);
-        this.nextIndex = new ConcurrentHashMap<>();
-        this.matchIndex = new ConcurrentHashMap<>();
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         int lastLogIndex = this.log.getLastLogIndex();
+        this.appendEntriesCalls = new ArrayList<>();
         while (proxies.hasNext()) {
-            int proxyId = proxies.next().getId();
-            this.nextIndex.put(proxyId, lastLogIndex + 1);
-            this.matchIndex.put(proxyId, 0);
+            this.appendEntriesCalls.add(new AppendEntriesCall(lastLogIndex + 1, 0, proxies.next()));
         }
         this.timer = new Timer();
         this.logger = Logger.getLogger(Leader.class.getName());
@@ -65,8 +57,7 @@ public class Leader extends ConsensusModuleAbstract {
         this.configuration.discardAppendEntryReplies(false);
 
         // send initial empty AppendEntriesRPC (heartbeat)
-        this.callAppendEntriesOnAllServers(this.consensusPersistentState.getCurrentTerm(), this.id,
-                this.log.getLastLogIndex(), this.log.getLastLogTerm(), new ArrayList<>(),  this.commitIndex);
+        this.sendHeartbeat();
 
         this.startHeartbeatTimer();
     }
@@ -101,42 +92,37 @@ public class Leader extends ConsensusModuleAbstract {
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         int lastLogIndex = this.log.getLastLogIndex();
+        int lastLogTerm = this.log.getLastLogTerm();
 
         // append command to local log as new entry
         LogEntry logEntry = new LogEntry(currentTerm, command);
         this.log.appendEntry(logEntry, this.commitIndex);
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
-        List<LogEntry> logEntries = new LinkedList<>();
-        logEntries.add(logEntry);
-        this.callAppendEntriesOnAllServers(currentTerm, this.id, lastLogIndex, this.log.getLastLogTerm(), logEntries,  this.commitIndex);
+        for(AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {
+            appendEntriesCall.callAppendEntries(this.consensusPersistentState.getCurrentTerm(), this.id, lastLogIndex,
+                    lastLogTerm, this.log, this.commitIndex, this.indexesToCommit);
+        }
 
         // when at least half of the servers have appended the entry into the log, execute command in the state machine
         int indexToCommit = lastLogIndex + 1;
-        StateMachineResult stateMachineResult = null;
+
         while (this.lastApplied < indexToCommit) {
             try {
                 // wait until one of the followers reply to the RPC
                 ExecuteCommandDirective directive = this.indexesToCommit.waitForFollowerReplies(indexToCommit);
-
+                // TODO: CONTINUA
                 if (directive.equals(ExecuteCommandDirective.PROCEED)) {
                     // UPDATE COMMIT INDEX
-                    // if there exists an N such that N > commitIndex, a majority of matchIndex[i] ≥ N, and log[N].term == currentTerm: set commitIndex = N
-                    int newCommitIndex = this.commitIndex;
-                    for (int i = this.commitIndex + 1; i <= this.log.getLastLogIndex(); i++) {
-                        int finalI = i;
-                        if (this.matchIndex.values().stream().filter(index -> index >= finalI).count() >= this.matchIndex.size()/2 + 1
-                                && this.log.getEntryTerm(i) == this.consensusPersistentState.getCurrentTerm()) {
-                            newCommitIndex = i;
-                        }
-                    }
+                    if (this.appendEntriesCalls.stream().map(AppendEntriesCall::getMatchIndex).filter(index -> index >= indexToCommit).count()
+                            >= this.appendEntriesCalls.size()/2 + 1) {
 
-                    // APPLY ENTRIES COMMITTED
-                    // if commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
-                    while (this.lastApplied < this.commitIndex) {
-                        this.lastApplied++;
-                        stateMachineResult = this.stateMachine.executeCommand(this.log.getEntryCommand(this.lastApplied));
                     }
+                    // APPLY ENTRIES COMMITTED
+                    this.applyCommittedEntries();
+
+                } else if (directive.equals(ExecuteCommandDirective.COMMIT)) {
+                    this.applyCommittedEntries();
                 } else { // directive == INTERRUPT: the server has converted to follower, redirect client to current leader
                     return new ExecuteCommandResult(null, false, this.configuration.getLeaderIP());
                 }
@@ -154,78 +140,12 @@ public class Leader extends ConsensusModuleAbstract {
         return 0; // TODO implementare
     }
 
-    private void callAppendEntriesOnAllServers(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) {
-        Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
-        while (proxies.hasNext()) {
-            ConsensusModuleProxy proxy = proxies.next();
-            new Thread(() -> {
-                boolean done = false;
-                while (!done) {
-                    List<LogEntry> logEntries = null;
-                    try {
-                        try {
-                            logEntries = this.log.getEntries(this.nextIndex.get(proxy.getId()), this.log.getLastLogIndex() + 1);
-                        } catch (SnapshottedEntryException e) { // send snapshot instead of snapshotted entries
-
-                            // Retrieve JSONSnapshot and convert it into a Byte[]
-                            JSONSnapshot snapshotToSend = this.log.getJSONSnapshot();
-                            ByteArrayOutputStream snapshotBytesStream = new ByteArrayOutputStream();
-                            ObjectOutputStream snapshotObjectStream = new ObjectOutputStream(snapshotBytesStream);
-                            snapshotObjectStream.writeObject(snapshotToSend);
-                            snapshotObjectStream.flush();
-                            byte[] snapshotBytes = snapshotBytesStream.toByteArray();
-
-                            // call installSnapshot on the follower
-                            for (int i = 0; i < snapshotBytes.length / SNAPSHOT_CHUNK_SIZE + 1; i++) {
-                                proxy.installSnapshot(term, leaderID, snapshotToSend.getLastIncludedIndex(), snapshotToSend.getLastIncludedTerm(),
-                                        i*SNAPSHOT_CHUNK_SIZE, Arrays.copyOfRange(snapshotBytes,i*SNAPSHOT_CHUNK_SIZE, i*(SNAPSHOT_CHUNK_SIZE+1)),
-                                        i*(SNAPSHOT_CHUNK_SIZE+1) >= snapshotBytes.length);
-                            }
-
-                            try {
-                                // entries still to be sent to the follower
-                                logEntries = this.log.getEntries(snapshotToSend.getLastIncludedIndex() + 1, this.log.getLastLogIndex() + 1);
-                            } catch (SnapshottedEntryException ex) {
-                                // should never happen
-                                ex.printStackTrace();
-                            }
-
-                        }
-                    } catch (IOException e) {
-                        this.logger.log(Level.SEVERE, "An error has occurred while accessing to persistent state. The program is being terminated.");
-                        e.printStackTrace();
-                        Server.shutDown();
-                    }
-
-
-
-                    try {
-                        AppendEntryResult appendEntryResult = proxy.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
-                        if (appendEntryResult.isSuccess()) {
-                            // update nextIndex and matchIndex
-                            this.nextIndex.put(proxy.getId(), prevLogIndex + logEntries.size() + 1);
-                            this.matchIndex.put(proxy.getId(), prevLogIndex + logEntries.size());
-                            this.indexesToCommit.notifyFollowerReply();
-                            done = true;
-                        } else {
-                            // decrement next index
-                            this.nextIndex.put(proxy.getId(), this.nextIndex.get(proxy.getId()) - 1);
-                        }
-
-                    } catch (IOException e) {
-                        // error in network communication, redo call
-                    }
-                }}).start();
-        }
-    }
-
     private void startHeartbeatTimer() {
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() { // send heartbeat to all servers
                 try {
-                    callAppendEntriesOnAllServers(consensusPersistentState.getCurrentTerm(), id,
-                            log.getLastLogIndex(), log.getLastLogTerm(), commitIndex);
+                    sendHeartbeat();
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "An error has occurred while accessing persistent state. The program is being terminated.");
                     e.printStackTrace();
@@ -237,6 +157,31 @@ public class Leader extends ConsensusModuleAbstract {
 
     private void stopHeartbeatTimer() {
         this.timer.cancel();
+    }
+
+    private void sendHeartbeat() throws IOException {
+        for(AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {
+            appendEntriesCall.callAppendEntries(this.consensusPersistentState.getCurrentTerm(), this.id, this.log.getLastLogIndex(),
+                    this.log.getLastLogTerm(), this.log, this.commitIndex, this.indexesToCommit);
+        }
+    }
+
+    private StateMachineResult applyCommittedEntries() throws IOException {
+        try {
+            // if commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
+            StateMachineResult stateMachineResult = null;
+            while (this.lastApplied < this.commitIndex) {
+                this.lastApplied++;
+                stateMachineResult = this.stateMachine.executeCommand(this.log.getEntryCommand(this.lastApplied));
+            }
+            return stateMachineResult;
+        } catch(SnapshottedEntryException e) {
+            // should never happen, because uncommitted entries cannot be snapshotted
+            this.logger.log(Level.SEVERE, "Uncommitted entry is snapshotted");
+            e.printStackTrace();
+            Server.shutDown();
+        }
+
     }
 
     private Follower toFollower(Integer leaderId) {
