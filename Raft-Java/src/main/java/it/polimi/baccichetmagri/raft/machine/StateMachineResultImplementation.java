@@ -2,7 +2,7 @@ package it.polimi.baccichetmagri.raft.machine;
 
 public class StateMachineResultImplementation extends StateMachineResult {
 
-    private int number;
+    private final int number;
 
     public StateMachineResultImplementation(int number) {
         this.number = number;
@@ -10,5 +10,10 @@ public class StateMachineResultImplementation extends StateMachineResult {
 
     public int getNumber() {
         return number;
+    }
+
+    @Override
+    public String toString() {
+        return "" + this.number;
     }
 }

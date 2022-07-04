@@ -21,15 +21,15 @@ public class MessageSerializer {
         switch (message.getMessageType()) {
             case AppendEntryRequest:
                 return this.gson.fromJson(jsonMessage, AppendEntryRequest.class);
-            case AppendEntryResult:
+            case AppendEntryReply:
                 return this.gson.fromJson(jsonMessage, AppendEntryReply.class);
             case ExecuteCommandRequest:
                 return this.gson.fromJson(jsonMessage, ExecuteCommandRequest.class);
-            case ExecuteCommandResult:
+            case ExecuteCommandReply:
                 return this.gson.fromJson(jsonMessage, ExecuteCommandReply.class);
             case VoteRequest:
                 return this.gson.fromJson(jsonMessage, VoteRequest.class);
-            case VoteResult:
+            case VoteReply:
                 return this.gson.fromJson(jsonMessage, VoteReply.class);
             default:
                 throw new BadMessageException("invalid message: " + jsonMessage);

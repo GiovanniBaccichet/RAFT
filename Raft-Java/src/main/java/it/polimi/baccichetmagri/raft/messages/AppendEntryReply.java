@@ -8,7 +8,7 @@ public class AppendEntryReply extends Message{
     private final AppendEntryResult appendEntryResult;
 
     public AppendEntryReply(AppendEntryResult appendEntryResult, int messageId) {
-        super(MessageType.AppendEntryResult, messageId);
+        super(MessageType.AppendEntryReply, messageId);
         this.appendEntryResult = appendEntryResult;
     }
 

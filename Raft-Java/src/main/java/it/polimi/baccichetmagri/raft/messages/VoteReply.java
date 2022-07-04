@@ -8,7 +8,7 @@ public class VoteReply extends Message{
     private final VoteResult voteResult;
 
     public VoteReply(VoteResult voteResult, int messageId) {
-        super(MessageType.VoteResult, messageId);
+        super(MessageType.VoteReply, messageId);
         this.voteResult = voteResult;
     }
 

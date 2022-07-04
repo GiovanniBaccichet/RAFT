@@ -9,14 +9,14 @@ import java.util.Scanner;
 
 public class ServerSocketManager implements Runnable{
 
-    public static final int PORT = 43827;
+    public static final int RAFT_PORT = 43827;
 
     private final ServerSocket serverSocket;
     private final Configuration configuration;
     private final ConsensusModule consensusModule;
 
     public ServerSocketManager(Configuration configuration, ConsensusModule consensusModule) throws IOException {
-        this.serverSocket = new ServerSocket(PORT);
+        this.serverSocket = new ServerSocket(RAFT_PORT);
         this.configuration = configuration;
         this.consensusModule = consensusModule;
     }

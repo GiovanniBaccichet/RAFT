@@ -221,7 +221,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     private void checkSocket() throws IOException {
         PrintWriter out = new PrintWriter(this.socket.getOutputStream());
         if (!this.isRunning) {
-            this.setSocket(new Socket(this.ip, ServerSocketManager.PORT));
+            this.setSocket(new Socket(this.ip, ServerSocketManager.RAFT_PORT));
             out.println("SERVER " + this.consensusModule.getId());
         }
     }
