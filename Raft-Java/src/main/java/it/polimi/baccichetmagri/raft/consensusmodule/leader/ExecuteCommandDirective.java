@@ -4,5 +4,4 @@ enum ExecuteCommandDirective {
     PROCEED,
     INTERRUPT,
 
-    COMMIT
 }
