@@ -2,8 +2,18 @@ package it.polimi.baccichetmagri.raft.machine;
 
 public abstract class StateMachine {
 
-    public abstract StateMachineResult executeCommand(Command command);
+    State state;
 
-    public abstract State getState();
+    StateMachine(State state) {
+        this.state = state;
+    }
+
+    public StateMachineResult executeCommand(Command command) {
+        return this.state.applyCommand(command);
+    }
+
+    public State getState() {
+        return this.state;
+    }
     
 }

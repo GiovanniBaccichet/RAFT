@@ -2,13 +2,13 @@ package it.polimi.baccichetmagri.raft.machine;
 
 public class StateImplementation extends State {
 
-    private int number;
+    private int number = 0;
 
-    public StateMachineResultImplementation getNumber() {
+
+    @Override
+    public StateMachineResult applyCommand(Command command) {
+        CommandImplementation commandImplementation = (CommandImplementation) command;
+        this.number += commandImplementation.getNumberToAdd();
         return new StateMachineResultImplementation(this.number);
-    }
-
-    public void addNumber(int numberToAdd) {
-        this.number += numberToAdd;
     }
 }
