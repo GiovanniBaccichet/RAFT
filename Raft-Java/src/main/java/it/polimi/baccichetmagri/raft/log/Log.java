@@ -66,15 +66,10 @@ public class Log {
         if (index <= snapshot.getLastIncludedIndex() && term <= snapshot.getLastIncludedTerm()) {
             return LogEntryStatus.SNAPSHOTTED;
         } else {
-            try {
-                if (index <= getLastLogIndex() && term == getLastLogTerm()) {
-                    return LogEntryStatus.NOT_SNAPSHOTTED;
-                } else {
-                    return LogEntryStatus.NOT_EXISTENT;
-                }
-            } catch (SnapshottedEntryException e) {
-                // Should never happen (check done previously)
-                return null;
+            if (index <= getLastLogIndex() && term == getLastLogTerm()) {
+                return LogEntryStatus.NOT_SNAPSHOTTED;
+            } else {
+                return LogEntryStatus.NOT_EXISTENT;
             }
         }
     }
@@ -278,5 +273,6 @@ public class Log {
             fileChannel.read(buffer, offset + 4);
             return EntrySerializer.deserialize(buffer.array());
     }
+
 
 }

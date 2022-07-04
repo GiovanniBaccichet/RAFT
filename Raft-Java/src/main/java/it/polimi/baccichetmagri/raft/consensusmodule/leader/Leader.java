@@ -43,12 +43,12 @@ public class Leader extends ConsensusModuleAbstract {
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         int lastLogIndex = this.log.getLastLogIndex();
         this.appendEntriesCalls = new ArrayList<>();
+        this.indexesToCommit = new IndexesToCommit();
         while (proxies.hasNext()) {
-            this.appendEntriesCalls.add(new AppendEntriesCall(lastLogIndex + 1, 0, proxies.next()));
+            this.appendEntriesCalls.add(new AppendEntriesCall(lastLogIndex + 1, 0, proxies.next(), this.indexesToCommit, this.log, this.id));
         }
         this.timer = new Timer();
         this.logger = Logger.getLogger(Leader.class.getName());
-        this.indexesToCommit = new IndexesToCommit();
     }
 
     @Override
@@ -92,7 +92,6 @@ public class Leader extends ConsensusModuleAbstract {
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         int lastLogIndex = this.log.getLastLogIndex();
-        int lastLogTerm = this.log.getLastLogTerm();
 
         // append command to local log as new entry
         LogEntry logEntry = new LogEntry(currentTerm, command);
@@ -100,12 +99,12 @@ public class Leader extends ConsensusModuleAbstract {
 
         // send AppendEntriesRPC in parallel to all other servers to replicate the entry
         for(AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {
-            appendEntriesCall.callAppendEntries(this.consensusPersistentState.getCurrentTerm(), this.id, lastLogIndex,
-                    lastLogTerm, this.log, this.commitIndex, this.indexesToCommit);
+            appendEntriesCall.callAppendEntries(this.consensusPersistentState.getCurrentTerm(), this.commitIndex);
         }
 
         // when at least half of the servers have appended the entry into the log, execute command in the state machine
         int indexToCommit = lastLogIndex + 1;
+        StateMachineResult stateMachineResult = null;
 
         while (this.lastApplied < indexToCommit) {
             try {
@@ -116,13 +115,11 @@ public class Leader extends ConsensusModuleAbstract {
                     // UPDATE COMMIT INDEX
                     if (this.appendEntriesCalls.stream().map(AppendEntriesCall::getMatchIndex).filter(index -> index >= indexToCommit).count()
                             >= this.appendEntriesCalls.size()/2 + 1) {
-
+                        this.commitIndex = indexToCommit;
                     }
                     // APPLY ENTRIES COMMITTED
-                    this.applyCommittedEntries();
+                    stateMachineResult = this.applyCommittedEntries();
 
-                } else if (directive.equals(ExecuteCommandDirective.COMMIT)) {
-                    this.applyCommittedEntries();
                 } else { // directive == INTERRUPT: the server has converted to follower, redirect client to current leader
                     return new ExecuteCommandResult(null, false, this.configuration.getLeaderIP());
                 }
@@ -161,8 +158,7 @@ public class Leader extends ConsensusModuleAbstract {
 
     private void sendHeartbeat() throws IOException {
         for(AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {
-            appendEntriesCall.callAppendEntries(this.consensusPersistentState.getCurrentTerm(), this.id, this.log.getLastLogIndex(),
-                    this.log.getLastLogTerm(), this.log, this.commitIndex, this.indexesToCommit);
+            appendEntriesCall.callAppendEntries(this.consensusPersistentState.getCurrentTerm(), this.commitIndex);
         }
     }
 
@@ -181,7 +177,7 @@ public class Leader extends ConsensusModuleAbstract {
             e.printStackTrace();
             Server.shutDown();
         }
-
+        return null;
     }
 
     private Follower toFollower(Integer leaderId) {

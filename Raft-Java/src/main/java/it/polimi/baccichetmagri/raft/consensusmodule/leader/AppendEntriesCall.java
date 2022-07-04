@@ -22,13 +22,27 @@ class AppendEntriesCall {
     private Thread thread;
     private boolean isRunning;
 
-    AppendEntriesCall(int nextIndex, int matchIndex, ConsensusModuleProxy proxy) {
+    private final IndexesToCommit indexesToCommit;
+
+    private final Log log;
+
+    private final int leaderId;
+
+    private int leaderCommit;
+    private int term;
+
+    AppendEntriesCall(int nextIndex, int matchIndex, ConsensusModuleProxy proxy, IndexesToCommit indexesToCommit, Log log, int leaderId) {
         this.nextIndex = nextIndex;
         this.matchIndex = matchIndex;
         this.proxy = proxy;
+        this.indexesToCommit = indexesToCommit;
+        this.log = log;
+        this.leaderId = leaderId;
     }
 
-    synchronized void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, Log log, int leaderCommit, IndexesToCommit indexesToCommit) {
+    synchronized void callAppendEntries(int term, int leaderCommit) {
+        this.leaderCommit = leaderCommit;
+        this.term = term;
         if (!isRunning) {
             isRunning = true;
             this.thread = new Thread(() -> {
@@ -39,6 +53,7 @@ class AppendEntriesCall {
                         List<LogEntry> logEntries = null;
                         boolean allEntriesToSendNotSnapshotted = false;
                         int firstIndexToSend = this.nextIndex;
+
                         while(!allEntriesToSendNotSnapshotted) {
                             try {
                                 // the entries to send are the ones from nextIndex to the last one
@@ -47,7 +62,7 @@ class AppendEntriesCall {
                             } catch (SnapshottedEntryException e) { // send snapshot instead of snapshotted entries
                                 JSONSnapshot snapshotToSend = log.getJSONSnapshot();
                                 try {
-                                    this.callInstallSnapshot(term, leaderID, prevLogIndex, snapshotToSend, indexesToCommit);
+                                    this.callInstallSnapshot(snapshotToSend);
                                     firstIndexToSend = snapshotToSend.getLastIncludedIndex() + 1;
                                 } catch (ConvertToFollowerException ex) {
                                     // TODO: CONVERT LEADER TO FOLLOWER -> NEED SYNCHRONIZATION MECHANISM
@@ -56,14 +71,24 @@ class AppendEntriesCall {
                         }
 
                         // CALL APPEND_ENTRIES_RPC ON THE FOLLOWER
-                        AppendEntryResult appendEntryResult = proxy.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
+                        int prevLogIndex = firstIndexToSend - 1;
+                        int prevLogTerm;
+                        try {
+                            prevLogTerm = this.log.getEntryTerm(prevLogIndex);
+                        } catch (SnapshottedEntryException e) {
+                            prevLogTerm = this.log.getJSONSnapshot().getLastIncludedTerm();
+                        }
+
+                        AppendEntryResult appendEntryResult = proxy.appendEntries(this.term, this.leaderId, prevLogIndex,
+                                prevLogTerm, logEntries, this.leaderCommit);
+
                         if (appendEntryResult.isSuccess()) {
                             // update nextIndex and matchIndex
                             this.nextIndex=  prevLogIndex + logEntries.size() + 1;
                             this.matchIndex =  prevLogIndex + logEntries.size();
-                            for (int i = prevLogIndex + 1; i < prevLogIndex + logEntries.size() + 1; i++) {
-                                // TODO: NOTIFY LEADER OF SUCCESS
-                            }
+
+                            // notify leader of success
+                            this.indexesToCommit.notifyIndexesToCommitUpTo(prevLogIndex + logEntries.size());
                             done = true;
                         } else {
                             // decrement next index
@@ -89,7 +114,7 @@ class AppendEntriesCall {
         return this.matchIndex;
     }
 
-    private void callInstallSnapshot(int term, int leaderID, int prevLogIndex, JSONSnapshot snapshot, IndexesToCommit indexesToCommit) throws IOException, ConvertToFollowerException {
+    private void callInstallSnapshot(JSONSnapshot snapshot) throws IOException, ConvertToFollowerException {
         // convert the snapshot object into a byte array
         ByteArrayOutputStream snapshotBytesStream = new ByteArrayOutputStream();
         ObjectOutputStream snapshotObjectStream = new ObjectOutputStream(snapshotBytesStream);
@@ -99,7 +124,7 @@ class AppendEntriesCall {
 
         // call installSnapshot on the follower
         for (int i = 0; i < snapshotBytes.length / SNAPSHOT_CHUNK_SIZE + 1; i++) {
-            int followerTerm = proxy.installSnapshot(term, leaderID, snapshot.getLastIncludedIndex(), snapshot.getLastIncludedTerm(),
+            int followerTerm = proxy.installSnapshot(this.term, this.leaderId, snapshot.getLastIncludedIndex(), snapshot.getLastIncludedTerm(),
                     i * SNAPSHOT_CHUNK_SIZE, Arrays.copyOfRange(snapshotBytes, i * SNAPSHOT_CHUNK_SIZE, i * (SNAPSHOT_CHUNK_SIZE + 1)),
                     i * (SNAPSHOT_CHUNK_SIZE + 1) >= snapshotBytes.length);
             if (followerTerm > term) {
@@ -108,7 +133,7 @@ class AppendEntriesCall {
         }
 
         // notify leader of success of installed snapshot
-        // TODO
+        this.indexesToCommit.notifyIndexesToCommitUpTo(snapshot.getLastIncludedIndex());
     }
 
 }
