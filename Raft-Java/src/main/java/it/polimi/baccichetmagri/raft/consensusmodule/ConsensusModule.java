@@ -27,7 +27,7 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     }
 
     @Override
-    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
+    public synchronized VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
         try {
             return this.consensusModuleAbstract.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
         } catch (IOException e) {
@@ -37,7 +37,7 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     }
 
     @Override
-    public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) {
+    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) {
         try {
             return this.consensusModuleAbstract.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
         } catch (IOException e) {
@@ -47,7 +47,7 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     }
 
     @Override
-    public ExecuteCommandResult executeCommand(Command command) {
+    public synchronized ExecuteCommandResult executeCommand(Command command) {
         try {
             return this.consensusModuleAbstract.executeCommand(command);
         } catch (IOException e) {
@@ -57,15 +57,15 @@ public class ConsensusModule  implements ConsensusModuleInterface {
     }
 
     @Override
-    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
+    public synchronized int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
         return this.consensusModuleAbstract.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
     }
 
-    public int getId() {
+    public synchronized int getId() {
         return this.consensusModuleAbstract.getId();
     }
 
-    public void changeConsensusModuleImpl(ConsensusModuleAbstract consensusModuleAbstract) {
+    public synchronized void changeConsensusModuleImpl(ConsensusModuleAbstract consensusModuleAbstract) {
         try {
             this.consensusModuleAbstract = consensusModuleAbstract;
             this.consensusModuleAbstract.initialize();
