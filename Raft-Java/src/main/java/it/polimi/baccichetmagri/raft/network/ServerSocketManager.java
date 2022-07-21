@@ -11,7 +11,8 @@ import java.util.logging.Logger;
 
 /**
  * A class that encapsulates the TCP server socket.
- * It receives the first message from a new connection and creates the corresponding proxy object.
+ * It receives the first message from a new connection and creates (in the case of a client) or initializes
+ * (in the case of a server) the corresponding proxy object.
  * If the message is "SERVER x", where x is an integer number, the new connection is received from the server with id x;
  * if the message is client the new connection is with a client; otherwise, the new connection is rejected.
  */
@@ -32,7 +33,7 @@ public class ServerSocketManager implements Runnable{
     }
 
     /**
-     * Receives messages from the network and creates the proxies corresponding to the new connections.
+     * Receives messages from the network and creates or initializes the proxies corresponding to the new connections.
      */
     public void run() {
         while (true) {
