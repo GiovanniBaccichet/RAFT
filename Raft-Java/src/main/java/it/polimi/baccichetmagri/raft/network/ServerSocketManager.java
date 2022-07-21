@@ -52,9 +52,8 @@ public class ServerSocketManager implements Runnable{
                     this.configuration.getConsensusModuleProxy(id).setSocket(socket);
                 } else if (connectMessage.equals("CLIENT")){
                     //if the message is "CLIENT", the connection is requested from a client
-                    ClientProxy clientProxy = new ClientProxy(socket, this.consensusModule);
+                    new ClientProxy(socket, this.consensusModule);
                     this.logger.log(Level.FINE, "Received connection with client");
-                    clientProxy.run();
                 } else {
                     socket.close();
                     this.logger.log(Level.WARNING, "Connection refused. Invalid message: " + connectMessage);
