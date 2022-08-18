@@ -125,6 +125,12 @@ public class Configuration {
         }
     }
 
+    public void discardInstallSnapshotReplies(boolean discard) {
+        for (ConsensusModuleProxy proxy : this.proxies) {
+            proxy.discardInstallSnapshotReplies(discard);
+        }
+    }
+
     /**
      * Returns the IP address of the machine running this instance of the RAFT algorithm.
      * @return the IP address of the machine running this instance of the RAFT algorithm

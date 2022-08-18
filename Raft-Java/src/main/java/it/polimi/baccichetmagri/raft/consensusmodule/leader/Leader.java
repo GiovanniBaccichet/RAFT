@@ -55,6 +55,7 @@ public class Leader extends ConsensusModuleAbstract {
     public synchronized void initialize() throws IOException {
         this.configuration.discardRequestVoteReplies(false);
         this.configuration.discardAppendEntryReplies(false);
+        this.configuration.discardInstallSnapshotReplies(false);
 
         // send initial empty AppendEntriesRPC (heartbeat)
         this.sendHeartbeat();

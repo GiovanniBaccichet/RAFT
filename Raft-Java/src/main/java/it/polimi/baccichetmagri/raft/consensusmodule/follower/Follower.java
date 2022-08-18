@@ -33,6 +33,7 @@ public class Follower extends ConsensusModuleAbstract {
     public synchronized void initialize() {
         this.configuration.discardAppendEntryReplies(true);
         this.configuration.discardRequestVoteReplies(true);
+        this.configuration.discardInstallSnapshotReplies(true);
         this.startElectionTimer();
     }
 

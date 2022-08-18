@@ -32,6 +32,7 @@ public class Candidate extends ConsensusModuleAbstract {
     public synchronized void initialize() throws IOException {
         this.configuration.discardAppendEntryReplies(true);
         this.configuration.discardRequestVoteReplies(false);
+        this.configuration.discardInstallSnapshotReplies(true);
         this.startElection();
     }
 
