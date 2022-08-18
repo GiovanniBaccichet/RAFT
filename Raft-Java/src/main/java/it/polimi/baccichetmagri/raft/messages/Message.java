@@ -14,6 +14,11 @@ public abstract class Message {
         this.messageType = messageType;
     }
 
+    public Message(MessageType messageType, int messageId) {
+        this(messageType);
+        this.messageId = messageId;
+    }
+
     public MessageType getMessageType() {
         return this.messageType;
     }
