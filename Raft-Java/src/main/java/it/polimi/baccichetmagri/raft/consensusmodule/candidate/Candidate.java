@@ -16,17 +16,21 @@ import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Candidate extends ConsensusModule {
 
     private final Timer timer;
     private Election election; // represents the current election
+    private final Logger logger;
 
     public Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine,
               ConsensusModuleContainer container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
-
+        this.logger = Logger.getLogger(Candidate.class.getName());
+        this.logger.setLevel(Level.FINE);
     }
 
     @Override
@@ -81,6 +85,8 @@ public class Candidate extends ConsensusModule {
 
     private synchronized void startElection() throws IOException {
 
+        this.logger.log(Level.FINE, "Starting election");
+
         // increment current term
         this.consensusPersistentState.setCurrentTerm(this.consensusPersistentState.getCurrentTerm() + 1);
 
@@ -123,6 +129,9 @@ public class Candidate extends ConsensusModule {
         for(Thread rpcThread : requestVoteRPCThreads) {
             rpcThread.interrupt();
         }
+
+        this.logger.log(Level.FINE, "Election outcome: " + electionOutcome);
+
         switch (electionOutcome) {
             case WON: this.toLeader();
             case LOST: this.toFollower();

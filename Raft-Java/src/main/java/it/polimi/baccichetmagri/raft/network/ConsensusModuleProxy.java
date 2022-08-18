@@ -61,8 +61,6 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
             while(true) {
                 try {
                     Message message = this.readMessage();
-                    this.logger.log(Level.FINE, "Received message from server " + this.id + ": \n" +
-                            this.messageSerializer.serialize(message));
                     message.execute(this);
                 } catch (BadMessageException e) {
                     this.logger.log(Level.WARNING, e.getMessage());
@@ -226,20 +224,24 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     private void sendMessage(Message message) throws IOException {
         this.checkSocket();
         PrintWriter out = new PrintWriter(this.socket.getOutputStream());
-        out.println(this.messageSerializer.serialize(message));
+        String jsonMessage = this.messageSerializer.serialize(message);
+        out.println(jsonMessage);
+        this.logger.log(Level.FINE, "Sent message to server + " + this.id + ":\n" + jsonMessage);
     }
 
     private Message readMessage() throws IOException, BadMessageException {
         this.checkSocket();
         Scanner in = new Scanner(this.socket.getInputStream());
         String jsonMessage = in.nextLine();
+        this.logger.log(Level.FINE, "Received message from server " + this.id + ":\n" + jsonMessage);
         return this.messageSerializer.deserialiaze(jsonMessage);
     }
 
     private void checkSocket() throws IOException {
-        PrintWriter out = new PrintWriter(this.socket.getOutputStream());
         if (!this.isRunning) {
+            this.logger.log(Level.FINE, "Reconnection with server " + this.id);
             this.setSocket(new Socket(this.ip, ServerSocketManager.RAFT_PORT));
+            PrintWriter out = new PrintWriter(this.socket.getOutputStream());
             out.println("SERVER " + this.consensusModuleContainer.getId());
         }
     }

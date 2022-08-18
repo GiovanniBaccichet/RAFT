@@ -35,10 +35,14 @@ public class Log {
 
     private final LogSnapshot snapshot;
 
+    private final Logger logger;
+
     public Log(Path logFilePath, StateMachine stateMachine) throws IOException {
         this.fileChannel = FileChannel.open(logFilePath, READ, WRITE, CREATE, SYNC);
         this.stateMachine = stateMachine;
         this.snapshot = new LogSnapshot();
+        this.logger = Logger.getLogger(Log.class.getName());
+        this.logger.setLevel(Level.FINE);
         this.reIndex();
     }
 
@@ -90,6 +94,8 @@ public class Log {
         fileChannel.write(byteBuffer);
         entryEndIndex.add(fileChannel.position());
 
+        this.logger.log(Level.FINE, "Appended entry at index " + this.getLastLogIndex() + ": " + entry);
+
         if (this.size() > SNAPSHOT_LIMIT && commitIndex > this.snapshot.getLastIncludedIndex()) {
             new Thread(() -> this.createSnapshot(commitIndex));
         }
@@ -113,6 +119,8 @@ public class Log {
         }
         fileChannel.truncate(entryEndIndex.get(fromIndex - snapshot.getLastIncludedIndex() - 1));
         entryEndIndex = entryEndIndex.subList(0, fromIndex);
+
+        this.logger.log(Level.FINE, "Deleted entries from index" + fromIndex);
     }
 
     // GETTERS
