@@ -37,6 +37,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
 
     private final RPCCallHandler<AppendEntryRequest, AppendEntryReply> appendEntryRPCHandler;
     private final RPCCallHandler<VoteRequest, VoteReply> voteRequestRPCHandler;
+    private final RPCCallHandler<InstallSnapshotRequest, InstallSnapshotReply> installSnapshotRPCHandler;
 
     public ConsensusModuleProxy(int id, String ip, ConsensusModule consensusModule) {
         this.id = id;
@@ -49,6 +50,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         this.consensusModule = consensusModule;
         this.appendEntryRPCHandler = new RPCCallHandler<>();
         this.voteRequestRPCHandler = new RPCCallHandler<>();
+        this.installSnapshotRPCHandler = new RPCCallHandler<>();
     }
 
     /**
@@ -151,8 +153,14 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     @Override
-    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
-        return 0; // TODO
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) throws IOException{
+        try {
+            InstallSnapshotReply installSnapshotReply = this.installSnapshotRPCHandler.makeCall(new InstallSnapshotRequest(term, leaderID, lastIncludedIndex,
+                    lastIncludedTerm, offset, data, done), this::sendMessage);
+            return installSnapshotReply.getTerm();
+        } catch (InterruptedException e) {
+            return 0;
+        }
     }
 
     /**
@@ -185,6 +193,12 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         this.sendMessage(new AppendEntryReply(appendEntryResult, requestId));
     }
 
+    public void callInstallSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data,
+                                    boolean done, int requestId) throws IOException {
+        int currentTerm = this.consensusModule.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
+        this.sendMessage(new InstallSnapshotReply(requestId, currentTerm));
+    }
+
     public void receiveVoteReply(VoteReply voteReply) {
         this.voteRequestRPCHandler.receiveReply(voteReply);
     }
@@ -193,12 +207,20 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         this.appendEntryRPCHandler.receiveReply(appendEntryReply);
     }
 
+    public void receiveInstallSnapshotReply(InstallSnapshotReply installSnapshotReply) {
+        this.installSnapshotRPCHandler.receiveReply(installSnapshotReply);
+    }
+
     public void discardAppendEntryReplies(boolean discard) {
         this.appendEntryRPCHandler.setDiscardReplies(discard);
     }
 
     public void discardVoteReplies(boolean discard) {
         this.voteRequestRPCHandler.setDiscardReplies(discard);
+    }
+
+    public void discardInstallSnapshotReplies(boolean discard) {
+        this.installSnapshotRPCHandler.setDiscardReplies(discard);
     }
 
     private void sendMessage(Message message) throws IOException {

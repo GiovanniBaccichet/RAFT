@@ -48,6 +48,6 @@ public interface ConsensusModuleInterface {
      * @param done TRUE if this is the last chunk
      * @return currentTerm, for leader to update itself
      */
-    int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done);
+    int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) throws IOException;
 
 }

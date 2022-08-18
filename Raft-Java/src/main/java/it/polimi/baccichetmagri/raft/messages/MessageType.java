@@ -6,5 +6,7 @@ public enum MessageType {
     ExecuteCommandRequest,
     ExecuteCommandReply,
     VoteRequest,
-    VoteReply
+    VoteReply,
+    InstallSnapshotRequest,
+    InstallSnapshotReply
 }
