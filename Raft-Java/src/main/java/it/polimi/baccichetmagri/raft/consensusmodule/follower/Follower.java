@@ -1,8 +1,8 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.follower;
 
 import it.polimi.baccichetmagri.raft.Server;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleAbstract;
 import it.polimi.baccichetmagri.raft.consensusmodule.candidate.Candidate;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
@@ -21,12 +21,12 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Follower extends ConsensusModuleAbstract {
+public class Follower extends ConsensusModule {
 
     private final Timer timer;
 
     public Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
-             ConsensusModule container) {
+             ConsensusModuleContainer container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
     }
@@ -169,8 +169,8 @@ public class Follower extends ConsensusModuleAbstract {
     }
 
     private void startElectionTimer() {
-        int delay = (new Random()).nextInt(ConsensusModuleAbstract.ELECTION_TIMEOUT_MAX -
-                ConsensusModuleAbstract.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleAbstract.ELECTION_TIMEOUT_MIN;
+        int delay = (new Random()).nextInt(ConsensusModule.ELECTION_TIMEOUT_MAX -
+                ConsensusModule.ELECTION_TIMEOUT_MIN + 1) + ConsensusModule.ELECTION_TIMEOUT_MIN;
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {

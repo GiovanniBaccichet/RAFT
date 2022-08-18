@@ -1,7 +1,5 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
-import it.polimi.baccichetmagri.raft.Server;
-import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
@@ -13,76 +11,57 @@ import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class ConsensusModule  implements ConsensusModuleInterface {
+public abstract class ConsensusModule implements ConsensusModuleInterface {
 
-    private ConsensusModuleAbstract consensusModuleAbstract;
-    private Logger logger;
+    protected final static int ELECTION_TIMEOUT_MIN = 150; // milliseconds
+    protected final static int ELECTION_TIMEOUT_MAX = 300; // milliseconds
 
-    public ConsensusModule(int id, Configuration configuration, Log log, StateMachine stateMachine) {
-        try {
-            this.consensusModuleAbstract = new Follower(id, configuration, log, stateMachine, this);
-            this.consensusModuleAbstract.initialize();
-            this.logger = Logger.getLogger(ConsensusModule.class.getName());
-        } catch (IOException e) {
-            this.handleIOException(e);
-        }
+    protected int id;
+    protected ConsensusPersistentState consensusPersistentState; // currentTerm, votedFor
+    protected int commitIndex; // index of highest log entry known to be committed (initialized to 0, increases monotonically)
+    protected int lastApplied; // index of highest log entry applied to state machine (initialized to 0, increases monotonically)
+    protected Configuration configuration;
+    protected Log log;
+    protected StateMachine stateMachine;
+    protected ConsensusModuleContainer container;
+
+    public ConsensusModule(int id, Configuration configuration, Log log, StateMachine stateMachine,
+                           ConsensusModuleContainer container) {
+        this.id = id;
+        this.consensusPersistentState = new ConsensusPersistentState();
+        this.commitIndex = 0;
+        this.lastApplied = 0;
+        this.configuration = configuration;
+        this.log = log;
+        this.stateMachine = stateMachine;
+        this.container = container;
     }
+
+    public abstract void initialize() throws IOException;
 
     @Override
-    public synchronized VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
-        try {
-            return this.consensusModuleAbstract.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
-        } catch (IOException e) {
-            this.handleIOException(e);
-        }
-        return null;
-    }
+    public abstract VoteResult requestVote(int term,
+                                               int candidateID,
+                                               int lastLogIndex,
+                                               int lastLogTerm) throws IOException;
 
     @Override
-    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) {
-        try {
-            return this.consensusModuleAbstract.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
-        } catch (IOException e) {
-            this.handleIOException(e);
-        }
-        return null;
-    }
+    public abstract AppendEntryResult appendEntries(int term,
+                                                    int leaderID,
+                                                    int prevLogIndex,
+                                                    int prevLogTerm,
+                                                    List<LogEntry> logEntries,
+                                                    int leaderCommit) throws IOException;
 
     @Override
-    public synchronized ExecuteCommandResult executeCommand(Command command) {
-        try {
-            return this.consensusModuleAbstract.executeCommand(command);
-        } catch (IOException e) {
-            this.handleIOException(e);
-        }
-        return null;
-    }
+    public abstract ExecuteCommandResult executeCommand(Command command) throws IOException;
 
     @Override
-    public synchronized int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
-        return this.consensusModuleAbstract.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
+    public abstract int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done);
+
+    public int getId() {
+        return this.id;
     }
 
-    public synchronized int getId() {
-        return this.consensusModuleAbstract.getId();
-    }
-
-    public synchronized void changeConsensusModuleImpl(ConsensusModuleAbstract consensusModuleAbstract) {
-        try {
-            this.consensusModuleAbstract = consensusModuleAbstract;
-            this.consensusModuleAbstract.initialize();
-        } catch (IOException e) {
-
-        }
-    }
-
-    private void handleIOException(IOException e) {
-        this.logger.log(Level.SEVERE, "An IO error has occurred in the access to persistent storage. The program is " +
-                "going to be terminated.");
-        e.printStackTrace();
-        Server.shutDown();
-    }
 }

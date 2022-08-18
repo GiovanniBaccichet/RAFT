@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineImplementation;
@@ -26,9 +26,9 @@ public class Server {
             StateMachine stateMachine = new StateMachineImplementation();
             log = new Log(Path.of("log"), stateMachine);
             Configuration configuration = new Configuration();
-            ConsensusModule consensusModule = new ConsensusModule(id, configuration, log, stateMachine);
-            configuration.initialize(id, consensusModule);
-            ServerSocketManager serverSocketManager = new ServerSocketManager(configuration, consensusModule);
+            ConsensusModuleContainer consensusModuleContainer = new ConsensusModuleContainer(id, configuration, log, stateMachine);
+            configuration.initialize(id, consensusModuleContainer);
+            ServerSocketManager serverSocketManager = new ServerSocketManager(configuration, consensusModuleContainer);
             serverSocketManager.run();
         } catch (NumberFormatException e) {
             logger.log(Level.SEVERE, "Invalid ID argument, please insert an integer number.");

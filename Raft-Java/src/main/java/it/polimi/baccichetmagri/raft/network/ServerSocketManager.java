@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft.network;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -22,13 +22,13 @@ public class ServerSocketManager implements Runnable{
 
     private final ServerSocket serverSocket;
     private final Configuration configuration;
-    private final ConsensusModule consensusModule;
+    private final ConsensusModuleContainer consensusModuleContainer;
     private final Logger logger;
 
-    public ServerSocketManager(Configuration configuration, ConsensusModule consensusModule) throws IOException {
+    public ServerSocketManager(Configuration configuration, ConsensusModuleContainer consensusModuleContainer) throws IOException {
         this.serverSocket = new ServerSocket(RAFT_PORT);
         this.configuration = configuration;
-        this.consensusModule = consensusModule;
+        this.consensusModuleContainer = consensusModuleContainer;
         this.logger = Logger.getLogger(ServerSocketManager.class.getName());
     }
 
@@ -52,7 +52,7 @@ public class ServerSocketManager implements Runnable{
                     this.configuration.getConsensusModuleProxy(id).setSocket(socket);
                 } else if (connectMessage.equals("CLIENT")){
                     //if the message is "CLIENT", the connection is requested from a client
-                    new ClientProxy(socket, this.consensusModule);
+                    new ClientProxy(socket, this.consensusModuleContainer);
                     this.logger.log(Level.FINE, "Received connection with client");
                 } else {
                     socket.close();

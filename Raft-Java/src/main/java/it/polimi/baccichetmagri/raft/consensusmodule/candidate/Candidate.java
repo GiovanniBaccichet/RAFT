@@ -16,13 +16,13 @@ import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 import java.io.IOException;
 import java.util.*;
 
-public class Candidate extends ConsensusModuleAbstract {
+public class Candidate extends ConsensusModule {
 
     private final Timer timer;
     private Election election; // represents the current election
 
     public Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine,
-              ConsensusModule container) {
+              ConsensusModuleContainer container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
 
@@ -127,8 +127,8 @@ public class Candidate extends ConsensusModuleAbstract {
     }
 
     private void startElectionTimer() {
-        int delay = (new Random()).nextInt(ConsensusModuleAbstract.ELECTION_TIMEOUT_MAX -
-                ConsensusModuleAbstract.ELECTION_TIMEOUT_MIN + 1) + ConsensusModuleAbstract.ELECTION_TIMEOUT_MIN;
+        int delay = (new Random()).nextInt(ConsensusModule.ELECTION_TIMEOUT_MAX -
+                ConsensusModule.ELECTION_TIMEOUT_MIN + 1) + ConsensusModule.ELECTION_TIMEOUT_MIN;
         // when the timer expires, interrupt all threads where RequestVoteRPC was sent
         this.timer.schedule(new TimerTask() {
             @Override

@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft.network;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.messages.ExecuteCommandRequest;
 import it.polimi.baccichetmagri.raft.messages.ExecuteCommandReply;
@@ -17,11 +17,11 @@ import java.util.logging.Logger;
 public class ClientProxy implements Runnable{
 
     private final Socket socket;
-    private final ConsensusModule consensusModule;
+    private final ConsensusModuleContainer consensusModuleContainer;
 
-    public ClientProxy(Socket socket, ConsensusModule consensusModule) {
+    public ClientProxy(Socket socket, ConsensusModuleContainer consensusModuleContainer) {
         this.socket = socket;
-        this.consensusModule = consensusModule;
+        this.consensusModuleContainer = consensusModuleContainer;
         (new Thread(this)).start();
     }
 
@@ -50,7 +50,7 @@ public class ClientProxy implements Runnable{
 
         if (message.getMessageType() == MessageType.ExecuteCommandRequest) {
 
-            ExecuteCommandResult executeCommandResult = this.consensusModule.executeCommand(
+            ExecuteCommandResult executeCommandResult = this.consensusModuleContainer.executeCommand(
                     ((ExecuteCommandRequest) message).getCommand());
 
             try {

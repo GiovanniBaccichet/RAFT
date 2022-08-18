@@ -1,6 +1,6 @@
 package it.polimi.baccichetmagri.raft.network;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
@@ -33,13 +33,13 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
 
     private boolean isRunning; // true if a socket is open and communicating with the remote server
 
-    private final ConsensusModule consensusModule; // the local consensus module
+    private final ConsensusModuleContainer consensusModuleContainer; // the local consensus module
 
     private final RPCCallHandler<AppendEntryRequest, AppendEntryReply> appendEntryRPCHandler;
     private final RPCCallHandler<VoteRequest, VoteReply> voteRequestRPCHandler;
     private final RPCCallHandler<InstallSnapshotRequest, InstallSnapshotReply> installSnapshotRPCHandler;
 
-    public ConsensusModuleProxy(int id, String ip, ConsensusModule consensusModule) {
+    public ConsensusModuleProxy(int id, String ip, ConsensusModuleContainer consensusModuleContainer) {
         this.id = id;
         this.ip = ip;
         this.socket = null;
@@ -47,7 +47,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         this.logger = Logger.getLogger(ConsensusModuleProxy.class.getName());
         this.logger.setLevel(Level.FINE);
         this.isRunning = false;
-        this.consensusModule = consensusModule;
+        this.consensusModuleContainer = consensusModuleContainer;
         this.appendEntryRPCHandler = new RPCCallHandler<>();
         this.voteRequestRPCHandler = new RPCCallHandler<>();
         this.installSnapshotRPCHandler = new RPCCallHandler<>();
@@ -172,7 +172,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @throws IOException
      */
     public void callRequestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm, int requestId) throws IOException {
-        VoteResult voteResult =  this.consensusModule.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
+        VoteResult voteResult =  this.consensusModuleContainer.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
         this.sendMessage(new VoteReply(voteResult, requestId));
     }
 
@@ -188,14 +188,14 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries,
                                   int leaderCommit, int requestId) throws IOException {
-        AppendEntryResult appendEntryResult = this.consensusModule.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
+        AppendEntryResult appendEntryResult = this.consensusModuleContainer.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
                 logEntries, leaderCommit);
         this.sendMessage(new AppendEntryReply(appendEntryResult, requestId));
     }
 
     public void callInstallSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data,
                                     boolean done, int requestId) throws IOException {
-        int currentTerm = this.consensusModule.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
+        int currentTerm = this.consensusModuleContainer.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
         this.sendMessage(new InstallSnapshotReply(requestId, currentTerm));
     }
 
@@ -240,7 +240,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         PrintWriter out = new PrintWriter(this.socket.getOutputStream());
         if (!this.isRunning) {
             this.setSocket(new Socket(this.ip, ServerSocketManager.RAFT_PORT));
-            out.println("SERVER " + this.consensusModule.getId());
+            out.println("SERVER " + this.consensusModuleContainer.getId());
         }
     }
 }

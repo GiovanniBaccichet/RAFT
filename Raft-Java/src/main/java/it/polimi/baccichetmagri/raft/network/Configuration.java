@@ -2,7 +2,7 @@ package it.polimi.baccichetmagri.raft.network;
 
 import com.google.gson.reflect.TypeToken;
 import it.polimi.baccichetmagri.raft.Server;
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
 import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
 
@@ -20,15 +20,15 @@ public class Configuration {
     private String ip; // ip of this machine
     private Logger logger;
 
-    private ConsensusModule consensusModule;
+    private ConsensusModuleContainer consensusModuleContainer;
 
     /**
      * Creates the proxies of all other servers participating in the Raft algorithm.
      * @param id the id of the ConsensusModuleImpl of the machine (to not create a connection with itself)
      */
-    public void initialize(int id, ConsensusModule consensusModule) {
+    public void initialize(int id, ConsensusModuleContainer consensusModuleContainer) {
         this.logger = Logger.getLogger(Configuration.class.getName());
-        this.consensusModule = consensusModule;
+        this.consensusModuleContainer = consensusModuleContainer;
 
         Map<Integer, String> addresses;
         try {
@@ -37,7 +37,7 @@ public class Configuration {
             // create list of proxies
             for (Map.Entry<Integer, String> address : addresses.entrySet()) {
                 if (address.getKey() != id) {
-                    this.proxies.add(new ConsensusModuleProxy(address.getKey(), address.getValue(), consensusModule));
+                    this.proxies.add(new ConsensusModuleProxy(address.getKey(), address.getValue(), consensusModuleContainer));
                 } else {
                     this.ip = address.getValue();
                 }
@@ -88,7 +88,7 @@ public class Configuration {
     public String getLeaderIP() {
         if (this.leaderId == null) {
             return null;
-        } else if (this.leaderId == this.consensusModule.getId()) {
+        } else if (this.leaderId == this.consensusModuleContainer.getId()) {
             return this.ip;
         } else {
             return this.getConsensusModuleProxy(this.leaderId).getIp();
