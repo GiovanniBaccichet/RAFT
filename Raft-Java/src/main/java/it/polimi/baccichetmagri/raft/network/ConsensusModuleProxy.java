@@ -15,67 +15,83 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/**
+ * A proxy for consensus modules of other servers in the cluster.
+ */
 public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable {
+
 
     private final int id;
     private final String ip;
     private Socket socket;
 
     private final MessageSerializer messageSerializer;
+    private final Logger logger;
 
-    private boolean isRunning;
+    private boolean isRunning; // true if a socket is open and communicating with the remote server
 
-    private final ConsensusModule consensusModule;
+    private final ConsensusModule consensusModule; // the local consensus module
 
-    private final BlockingQueue<VoteReply> voteResultsQueueMsg;
-    private final BlockingQueue<AppendEntryReply> appendEntryResultsQueue;
-
-    private int nextVoteRequestId;
-    private int nextAppendEntryRequestId;
-
-    private boolean discardAppendEntryReplies;
-    private boolean discardVoteReplies;
+    private final RPCCallHandler<AppendEntryRequest, AppendEntryReply> appendEntryRPCHandler;
+    private final RPCCallHandler<VoteRequest, VoteReply> voteRequestRPCHandler;
 
     public ConsensusModuleProxy(int id, String ip, ConsensusModule consensusModule) {
         this.id = id;
         this.ip = ip;
         this.socket = null;
         this.messageSerializer = new MessageSerializer();
+        this.logger = Logger.getLogger(ConsensusModuleProxy.class.getName());
+        this.logger.setLevel(Level.FINE);
         this.isRunning = false;
         this.consensusModule = consensusModule;
-        this.voteResultsQueueMsg = new LinkedBlockingQueue<>();
-        this.appendEntryResultsQueue = new LinkedBlockingQueue<>();
-        this.nextVoteRequestId = 0;
-        this.nextAppendEntryRequestId = 0;
+        this.appendEntryRPCHandler = new RPCCallHandler<>();
+        this.voteRequestRPCHandler = new RPCCallHandler<>();
     }
 
+    /**
+     * Listens for messages on the socket and processes them.
+     */
     public void run() {
         try {
             while(true) {
-                Message message = this.readMessage();
-                message.execute(this);
+                try {
+                    Message message = this.readMessage();
+                    this.logger.log(Level.FINE, "Received message from server " + this.id + ": \n" +
+                            this.messageSerializer.serialize(message));
+                    message.execute(this);
+                } catch (BadMessageException e) {
+                    this.logger.log(Level.WARNING, e.getMessage());
+                    e.printStackTrace();
+                }
             }
         } catch (IOException e) {
+            this.logger.log(Level.WARNING, "Error in network communication. Socket will be closed.");
             e.printStackTrace();
             try {
                 this.socket.close();
             } catch (IOException ex) {
+                this.logger.log(Level.WARNING, "Impossible to close the socket.");
                 ex.printStackTrace();
             }
             this.isRunning = false;
-        } catch (BadMessageException e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
         }
     }
 
+    /**
+     * Returns the id of the server represented by the proxy.
+     * @return The id of the server represented by the proxy.
+     */
     public int getId() {
         return this.id;
     }
 
+    /**
+     * Returns the ip address of the server represented by the proxy.
+     * @return The ip address of the server represented by the proxy.
+     */
     public String getIp() {
         return this.ip;
     }
@@ -94,23 +110,17 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @param candidateID candidate requesting vote
      * @param lastLogIndex index of candidate’s last log entry
      * @param lastLogTerm term of candidate’s last log entry
-     * @return
+     * @return the result of the call
      */
     @Override
-    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException, InterruptedException {
-        VoteReply voteResultMsg = null;
-            int voteRequestId = this.nextVoteRequestId;
-            this.nextVoteRequestId++;
-            VoteRequest voteRequest = new VoteRequest(term, candidateID, lastLogIndex, lastLogTerm, voteRequestId);
-            this.sendMessage(voteRequest);
-
-            while(voteResultMsg == null) {
-                voteResultMsg = this.voteResultsQueueMsg.take();
-                if (voteResultMsg.getMessageId() != voteRequestId) {
-                    voteResultMsg = null;
-                }
-            }
-        return voteResultMsg.getVoteResult();
+    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
+        try {
+            VoteReply voteReply = this.voteRequestRPCHandler.makeCall(new VoteRequest(term, candidateID, lastLogIndex, lastLogTerm),
+                    this::sendMessage);
+            return voteReply.getVoteResult();
+        } catch (InterruptedException e) {
+            return null;
+        }
     }
 
     /**
@@ -121,28 +131,18 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @param prevLogTerm term of prevLogIndex entry
      * @param logEntries log entries to store (empty for heartbeat; may send more than one for efficiency)
      * @param leaderCommit leader’s commitIndex
-     * @return
+     * @return the result of the call
      */
     @Override
     public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) throws IOException {
-        AppendEntryReply appendEntryResult = null;
         try {
-            int appendEntryRequestId = this.nextAppendEntryRequestId;
-            this.nextAppendEntryRequestId++;
-            AppendEntryRequest appendEntryRequest = new AppendEntryRequest(term, leaderID, prevLogIndex, prevLogTerm,
-                    logEntries, leaderCommit, appendEntryRequestId);
-            this.sendMessage(appendEntryRequest);
-            while (appendEntryResult == null) {
-                appendEntryResult = this.appendEntryResultsQueue.take();
-                if (appendEntryResult.getMessageId() != appendEntryRequestId) {
-                    appendEntryResult = null;
-                }
-            }
-
+            AppendEntryReply appendEntryReply = this.appendEntryRPCHandler.makeCall(new AppendEntryRequest(term, leaderID, prevLogIndex, prevLogTerm,
+                    logEntries, leaderCommit), this::sendMessage);
+            return appendEntryReply.getAppendEntryResult();
         } catch (InterruptedException e) {
-            // TODO: if the thread has been interrupted while waiting
+            return null;
         }
-        return appendEntryResult.getAppendEntryResult();
+
     }
 
     @Override
@@ -186,23 +186,19 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     public void receiveVoteReply(VoteReply voteReply) {
-        if (!this.discardVoteReplies) {
-            this.voteResultsQueueMsg.add(voteReply);
-        }
+        this.voteRequestRPCHandler.receiveReply(voteReply);
     }
 
     public void receiveAppendEntriesReply(AppendEntryReply appendEntryReply) {
-        if (!this.discardAppendEntryReplies) {
-            this.appendEntryResultsQueue.add(appendEntryReply);
-        }
+        this.appendEntryRPCHandler.receiveReply(appendEntryReply);
     }
 
     public void discardAppendEntryReplies(boolean discard) {
-        this.discardAppendEntryReplies = discard;
+        this.appendEntryRPCHandler.setDiscardReplies(discard);
     }
 
     public void discardVoteReplies(boolean discard) {
-        this.discardVoteReplies = discard;
+        this.voteRequestRPCHandler.setDiscardReplies(discard);
     }
 
     private void sendMessage(Message message) throws IOException {

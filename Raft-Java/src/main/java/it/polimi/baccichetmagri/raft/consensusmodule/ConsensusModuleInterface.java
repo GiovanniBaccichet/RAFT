@@ -33,7 +33,7 @@ public interface ConsensusModuleInterface {
      * @return an AppendEntryReply containing the current term and a boolean, true if follower contained entry matching prevLogIndex and prevLogTerm
      */
     AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm,
-                                    List<LogEntry> logEntries, int leaderCommit) throws IOException;
+                                    List<LogEntry> logEntries, int leaderCommit) throws IOException, InterruptedException;
 
     ExecuteCommandResult executeCommand(Command command) throws IOException;
 

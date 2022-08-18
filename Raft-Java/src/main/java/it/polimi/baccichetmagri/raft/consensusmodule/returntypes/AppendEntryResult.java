@@ -17,4 +17,6 @@ public class AppendEntryResult {
     public boolean isSuccess() {
         return success;
     }
+
+
 }
