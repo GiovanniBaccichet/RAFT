@@ -1,5 +1,6 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.follower;
 
+import it.polimi.baccichetmagri.raft.Server;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleAbstract;
 import it.polimi.baccichetmagri.raft.consensusmodule.candidate.Candidate;
@@ -9,6 +10,7 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.log.LogEntryStatus;
+import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
@@ -70,14 +72,19 @@ public class Follower extends ConsensusModuleAbstract {
         }
 
         // If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it
-        boolean conflict = false;
-        for (int i = 0; i < logEntries.size() && !conflict; i++) {
-            int entryTerm = this.log.getEntryTerm(prevLogIndex + i + 1);
-            if (entryTerm != logEntries.get(i).getTerm()) {
-                this.log.deleteEntriesFrom(i);
-                conflict = true;
+        try {
+            boolean conflict = false;
+            for (int i = 0; i < logEntries.size() && !conflict; i++) {
+                int entryTerm = this.log.getEntryTerm(prevLogIndex + i + 1);
+                if (entryTerm != logEntries.get(i).getTerm()) {
+                    this.log.deleteEntriesFrom(i);
+                    conflict = true;
+                }
             }
+        } catch (SnapshottedEntryException e) {
+            // if the entry is snapshotted, then there is no need to perform this operation, as the entry is already committed
         }
+
 
         // Append any new entries not already in the log
         int lastLogIndex = this.log.getLastLogIndex();
@@ -94,7 +101,13 @@ public class Follower extends ConsensusModuleAbstract {
             // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
             while (this.commitIndex > this.lastApplied) {
                 this.lastApplied++;
-                this.stateMachine.executeCommand(this.log.getEntryCommand(lastApplied));
+                try {
+                    this.stateMachine.executeCommand(this.log.getEntryCommand(lastApplied));
+                } catch (SnapshottedEntryException e) {
+                    // can't happen, as the entry hasn't been committed yet
+                    e.printStackTrace();
+                    Server.shutDown();
+                }
             }
         }
 
