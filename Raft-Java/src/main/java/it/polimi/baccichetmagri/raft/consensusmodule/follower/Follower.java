@@ -156,6 +156,11 @@ public class Follower extends ConsensusModule {
         return 0; // TODO implementare
     }
 
+    @Override
+    public String toString() {
+        return "FOLLOWER";
+    }
+
     // If RPC request or response contains term T > currentTerm: set currentTerm = T
     private void updateTerm(int term) throws IOException {
         if (term > this.consensusPersistentState.getCurrentTerm()) {

@@ -73,6 +73,11 @@ public class Candidate extends ConsensusModule {
         return 0; // TODO implementare
     }
 
+    @Override
+    public String toString() {
+        return "CANDIDATE";
+    }
+
     private synchronized void startElection() throws IOException {
 
         // increment current term

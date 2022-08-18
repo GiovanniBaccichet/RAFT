@@ -11,4 +11,9 @@ public class CommandImplementation extends Command{
     public int getNumberToAdd() {
         return numberToAdd;
     }
+
+    @Override
+    public String toString() {
+        return "numberToAdd = " + numberToAdd;
+    }
 }

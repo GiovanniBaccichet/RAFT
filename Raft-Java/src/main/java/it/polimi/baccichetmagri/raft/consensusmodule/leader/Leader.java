@@ -134,6 +134,11 @@ public class Leader extends ConsensusModule {
         return 0; // TODO implementare
     }
 
+    @Override
+    public String toString() {
+        return "LEADER";
+    }
+
     private void startHeartbeatTimer() {
         this.timer.schedule(new TimerTask() {
             @Override
