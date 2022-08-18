@@ -19,11 +19,16 @@ import java.util.logging.Logger;
 public class ConsensusModule  implements ConsensusModuleInterface {
 
     private ConsensusModuleAbstract consensusModuleAbstract;
-    private final Logger logger;
+    private Logger logger;
 
     public ConsensusModule(int id, Configuration configuration, Log log, StateMachine stateMachine) {
-        this.consensusModuleAbstract = new Follower(id, configuration, log, stateMachine, this);
-        this.logger = Logger.getLogger(ConsensusModule.class.getName());
+        try {
+            this.consensusModuleAbstract = new Follower(id, configuration, log, stateMachine, this);
+            this.consensusModuleAbstract.initialize();
+            this.logger = Logger.getLogger(ConsensusModule.class.getName());
+        } catch (IOException e) {
+            this.handleIOException(e);
+        }
     }
 
     @Override
