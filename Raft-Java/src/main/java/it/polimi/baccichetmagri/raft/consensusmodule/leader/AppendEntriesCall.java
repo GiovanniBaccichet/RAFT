@@ -10,6 +10,7 @@ import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,9 +22,6 @@ class AppendEntriesCall {
     private final ConsensusModuleProxy proxy;
     private Thread thread;
     private boolean isRunning;
-
-    private final IndexesToCommit indexesToCommit;
-
     private final Log log;
 
     private final int leaderId;
@@ -31,18 +29,21 @@ class AppendEntriesCall {
     private int leaderCommit;
     private int term;
 
-    AppendEntriesCall(int nextIndex, int matchIndex, ConsensusModuleProxy proxy, IndexesToCommit indexesToCommit, Log log, int leaderId) {
+    private final List<EntryReplication> entryReplicationsToNotify;
+
+    AppendEntriesCall(int nextIndex, int matchIndex, ConsensusModuleProxy proxy, Log log, int leaderId) {
         this.nextIndex = nextIndex;
         this.matchIndex = matchIndex;
         this.proxy = proxy;
-        this.indexesToCommit = indexesToCommit;
         this.log = log;
         this.leaderId = leaderId;
+        this.entryReplicationsToNotify = new ArrayList<>();
     }
 
-    synchronized void callAppendEntries(int term, int leaderCommit) {
+    synchronized void callAppendEntries(int term, int leaderCommit, EntryReplication entryReplication) {
         this.leaderCommit = leaderCommit;
         this.term = term;
+        this.entryReplicationsToNotify.add(entryReplication);
         if (!isRunning) {
             isRunning = true;
             this.thread = new Thread(() -> {
@@ -59,15 +60,22 @@ class AppendEntriesCall {
                                 // the entries to send are the ones from nextIndex to the last one
                                 logEntries = log.getEntries(firstIndexToSend, log.getLastLogIndex() + 1);
                                 allEntriesToSendNotSnapshotted = true;
+
+
                             } catch (SnapshottedEntryException e) { // send snapshot instead of snapshotted entries
                                 JSONSnapshot snapshotToSend = log.getJSONSnapshot();
                                 try {
                                     this.callInstallSnapshot(snapshotToSend);
                                     firstIndexToSend = snapshotToSend.getLastIncludedIndex() + 1;
                                 } catch (ConvertToFollowerException ex) {
-                                    // TODO: CONVERT LEADER TO FOLLOWER -> NEED SYNCHRONIZATION MECHANISM
+                                    notifyFailure();
+                                    done = true;
                                 }
                             }
+                        }
+
+                        if (done) {
+                            break;
                         }
 
                         // CALL APPEND_ENTRIES_RPC ON THE FOLLOWER
@@ -88,11 +96,16 @@ class AppendEntriesCall {
                             this.matchIndex =  prevLogIndex + logEntries.size();
 
                             // notify leader of success
-                            this.indexesToCommit.notifyIndexesToCommitUpTo(prevLogIndex + logEntries.size());
+                            notifySuccess();
                             done = true;
                         } else {
-                            // decrement next index
-                            this.nextIndex -= 1;
+                            if (appendEntryResult.getTerm() > this.term) {
+                                notifyFailure();
+                                done = true;
+                            } else {
+                                // decrement next index
+                                this.nextIndex -= 1;
+                            }
                         }
                     }
                 } catch (IOException e) {
@@ -131,9 +144,20 @@ class AppendEntriesCall {
                 throw new ConvertToFollowerException(term);
             }
         }
+    }
 
-        // notify leader of success of installed snapshot
-        this.indexesToCommit.notifyIndexesToCommitUpTo(snapshot.getLastIncludedIndex());
+    private void notifySuccess() {
+        for (EntryReplication entryReplication : this.entryReplicationsToNotify) {
+            entryReplication.notifySuccessfulReply();
+        }
+        this.entryReplicationsToNotify.clear();
+    }
+
+    private void notifyFailure() {
+        for (EntryReplication entryReplication : this.entryReplicationsToNotify) {
+            entryReplication.convertToFollower();
+        }
+        this.entryReplicationsToNotify.clear();
     }
 
 }
