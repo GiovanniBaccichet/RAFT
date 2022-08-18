@@ -8,6 +8,7 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandR
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
+import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.Configuration;
@@ -96,7 +97,7 @@ public class Candidate extends ConsensusModule {
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         int lastLogIndex = this.log.getLastLogIndex();
-        int lastLogTerm = this.log.getEntryTerm(lastLogIndex);
+        int lastLogTerm = this.log.getLastLogTerm();
         List<Thread> requestVoteRPCThreads = new ArrayList<>();
 
         while(proxies.hasNext()) {
@@ -111,8 +112,6 @@ public class Candidate extends ConsensusModule {
                     }
                 } catch (IOException e) {
                     // error in network communication, assume vote not granted
-                } catch (InterruptedException e) {
-
                 }
             });
             requestVoteRPCThreads.add(rpcThread);
@@ -152,7 +151,7 @@ public class Candidate extends ConsensusModule {
                 this.stateMachine, this.container));
     }
 
-    private void toLeader() {
+    private void toLeader() throws IOException {
         this.container.changeConsensusModuleImpl(new Leader(this.id, this.configuration, this.log,
                 this.stateMachine, this.container));
     }
