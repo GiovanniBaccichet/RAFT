@@ -170,6 +170,8 @@ public class Follower extends ConsensusModule {
             return currentTerm;
         }
 
+        this.configuration.setLeader(leaderID);
+
         // Write data into snapshot file at given offset
         TemporarySnapshot temporarySnapshot = new TemporarySnapshot();
         temporarySnapshot.writeChunk(data, offset);
@@ -184,14 +186,10 @@ public class Follower extends ConsensusModule {
 
             //Reset state machine using snapshot contents (TODO and load snapshot’s cluster configuration)
             this.stateMachine.resetState(logSnapshot.getMachineState());
-
-            this.startElectionTimer();
-            return currentTerm;
-
-        } else { // Reply and wait for more data chunks if done is false
-            this.startElectionTimer();
-            return currentTerm;
         }
+
+        this.startElectionTimer();
+        return currentTerm;
     }
 
     @Override

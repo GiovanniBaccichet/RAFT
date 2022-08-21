@@ -74,8 +74,18 @@ public class Candidate extends ConsensusModule {
     }
 
     @Override
-    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
-        return 0; // TODO implementare
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done)
+        throws IOException {
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        if (term < currentTerm) {
+            return currentTerm;
+        } else {
+            // a new leader has been established, convert to follower and process the request as follower
+            this.stopElectionTimer();
+            this.election.loseElection();
+            Follower follower = new Follower(this.id, this.configuration, this.log, this.stateMachine, this.container);
+            return follower.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
+        }
     }
 
     @Override

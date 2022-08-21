@@ -134,8 +134,15 @@ public class Leader extends ConsensusModule {
     }
 
     @Override
-    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
-        return 0; // TODO implementare
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done)
+        throws IOException {
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        if (term > currentTerm) { // convert to follower
+            Follower follower = this.toFollower(leaderID);
+            return follower.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
+        } else { // reply currentTerm, to notify other server that this one is the leader
+            return currentTerm;
+        }
     }
 
     @Override
