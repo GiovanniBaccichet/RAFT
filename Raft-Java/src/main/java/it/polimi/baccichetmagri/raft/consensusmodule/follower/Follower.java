@@ -10,9 +10,12 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.log.LogEntryStatus;
+import it.polimi.baccichetmagri.raft.log.snapshot.LogSnapshot;
 import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
+import it.polimi.baccichetmagri.raft.log.snapshot.TemporarySnapshot;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
+import it.polimi.baccichetmagri.raft.machine.StateMachineImplementation;
 import it.polimi.baccichetmagri.raft.network.Configuration;
 
 import java.io.IOException;
@@ -20,15 +23,19 @@ import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Follower extends ConsensusModule {
 
     private final Timer timer;
+    private final Logger logger;
 
     public Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
              ConsensusModuleContainer container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
+        this.logger = Logger.getLogger(Follower.class.getName());
     }
 
     @Override
@@ -152,8 +159,39 @@ public class Follower extends ConsensusModule {
     }
 
     @Override
-    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
-        return 0; // TODO implementare
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) throws IOException {
+        this.stopElectionTimer();
+
+        int currentTerm = this.consensusPersistentState.getCurrentTerm();
+
+        // Reply immediately if term < currentTerm.
+        if (term < currentTerm) {
+            this.startElectionTimer();
+            return currentTerm;
+        }
+
+        // Write data into snapshot file at given offset
+        TemporarySnapshot temporarySnapshot = new TemporarySnapshot();
+        temporarySnapshot.writeChunk(data, offset);
+
+        if (done) {
+            // Save snapshot file
+            LogSnapshot logSnapshot = new LogSnapshot();
+            logSnapshot.saveTemporarySnapshot();
+
+            // Discard the entire log
+            this.log.deleteEntriesFrom(1);
+
+            //Reset state machine using snapshot contents (TODO and load snapshot’s cluster configuration)
+            this.stateMachine.resetState(logSnapshot.getMachineState());
+
+            this.startElectionTimer();
+            return currentTerm;
+
+        } else { // Reply and wait for more data chunks if done is false
+            this.startElectionTimer();
+            return currentTerm;
+        }
     }
 
     @Override
@@ -168,7 +206,8 @@ public class Follower extends ConsensusModule {
         }
     }
 
-    private synchronized void toCandidate() {
+    private synchronized void toCandidate() throws IOException {
+        (new TemporarySnapshot()).delete(); // when converting to candidate, delete any content of the temporary snapshot
         this.container.changeConsensusModuleImpl(new Candidate(this.id, this.configuration, this.log,
                 this.stateMachine, this.container));
     }
@@ -179,7 +218,13 @@ public class Follower extends ConsensusModule {
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                toCandidate();
+                try {
+                    toCandidate();
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Impossible to delete the temporary snapshot file");
+                    e.printStackTrace();
+                    Server.shutDown();
+                }
             }
         }, delay);
     }

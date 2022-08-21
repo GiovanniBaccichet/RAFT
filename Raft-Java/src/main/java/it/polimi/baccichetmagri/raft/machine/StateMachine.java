@@ -15,5 +15,9 @@ public abstract class StateMachine {
     public State getState() {
         return this.state;
     }
+
+    public void resetState(State state) {
+        this.state = state;
+    }
     
 }

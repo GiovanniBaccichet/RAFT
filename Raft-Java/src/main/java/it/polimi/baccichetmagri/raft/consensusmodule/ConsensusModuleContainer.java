@@ -70,10 +70,15 @@ public class ConsensusModuleContainer implements ConsensusModuleInterface {
 
     @Override
     public synchronized int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
-        this.logger.log(Level.FINE, "Calling " + this.consensusModule + "::installSnapshot(term = "
-            + term + ",\nleaderID = " + leaderID + ",\nlastIncludedIndex = " + lastIncludedIndex + ",\nlastIncludedTerm = " +
-                lastIncludedTerm + ",\noffset = " + offset + ",\ndone = " + done + ")");
-        return this.consensusModule.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
+        try {
+            this.logger.log(Level.FINE, "Calling " + this.consensusModule + "::installSnapshot(term = "
+                    + term + ",\nleaderID = " + leaderID + ",\nlastIncludedIndex = " + lastIncludedIndex + ",\nlastIncludedTerm = " +
+                    lastIncludedTerm + ",\noffset = " + offset + ",\ndone = " + done + ")");
+            return this.consensusModule.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
+        } catch (IOException e) {
+            this.handleIOException(e);
+        }
+        return -1;
     }
 
     public synchronized int getId() {

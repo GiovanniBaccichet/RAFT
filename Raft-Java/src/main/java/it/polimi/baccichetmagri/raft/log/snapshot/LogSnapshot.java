@@ -3,7 +3,7 @@ package it.polimi.baccichetmagri.raft.log.snapshot;
 import it.polimi.baccichetmagri.raft.machine.State;
 import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -33,6 +33,13 @@ public class LogSnapshot {
      */
     public void writeSnapshot(State state, int lastIncludedIndex, int lastIncludedTerm) throws IOException {
         JsonFilesHandler.write(SNAPSHOT_PATH, new JSONSnapshot(state, lastIncludedIndex, lastIncludedTerm));
+    }
+
+    public void saveTemporarySnapshot() throws IOException {
+        TemporarySnapshot temporarySnapshot = new TemporarySnapshot();
+        JSONSnapshot snapshotToWrite = temporarySnapshot.getJsonSnapshot();
+        temporarySnapshot.delete();
+        this.writeSnapshot(snapshotToWrite.getState(), snapshotToWrite.getLastIncludedIndex(), snapshotToWrite.getLastIncludedTerm());
     }
 
     private JSONSnapshot readSnapshot() throws IOException {

@@ -58,7 +58,7 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
     public abstract ExecuteCommandResult executeCommand(Command command) throws IOException;
 
     @Override
-    public abstract int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done);
+    public abstract int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) throws IOException;
 
     public int getId() {
         return this.id;
