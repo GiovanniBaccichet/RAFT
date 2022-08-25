@@ -1,7 +1,7 @@
 package it.polimi.baccichetmagri.raft.messages;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
-import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
+import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
 public class VoteReply extends Message{
 

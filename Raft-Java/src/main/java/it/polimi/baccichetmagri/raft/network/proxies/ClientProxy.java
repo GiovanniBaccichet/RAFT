@@ -1,11 +1,12 @@
-package it.polimi.baccichetmagri.raft.network;
+package it.polimi.baccichetmagri.raft.network.proxies;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.messages.ExecuteCommandRequest;
 import it.polimi.baccichetmagri.raft.messages.ExecuteCommandReply;
 import it.polimi.baccichetmagri.raft.messages.Message;
 import it.polimi.baccichetmagri.raft.messages.MessageType;
+import it.polimi.baccichetmagri.raft.network.messageserializer.MessageSerializer;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -50,8 +51,13 @@ public class ClientProxy implements Runnable{
 
         if (message.getMessageType() == MessageType.ExecuteCommandRequest) {
 
-            ExecuteCommandResult executeCommandResult = this.consensusModuleContainer.executeCommand(
-                    ((ExecuteCommandRequest) message).getCommand());
+            ExecuteCommandResult executeCommandResult = null;
+            try {
+                executeCommandResult = this.consensusModuleContainer.executeCommand(
+                        ((ExecuteCommandRequest) message).getCommand());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
             try {
                 PrintWriter out = new PrintWriter(this.socket.getOutputStream());

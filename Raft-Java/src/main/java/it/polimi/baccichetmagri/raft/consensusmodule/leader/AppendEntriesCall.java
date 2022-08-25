@@ -1,11 +1,11 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.leader;
 
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.log.snapshot.JSONSnapshot;
 import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
-import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,7 +19,7 @@ class AppendEntriesCall {
     private static final int SNAPSHOT_CHUNK_SIZE = 5*1024; // Send chunks of 5 KB at a time, this parameter needs to be tuned wrt network and storage
     private int nextIndex; // index of the next log entry to send to that server (initialized to leader last log index + 1)
     private int matchIndex; // index of the highest log entry known to be replicated on server (initialized to 0, increases monotonically)
-    private final ConsensusModuleProxy proxy;
+    private final ConsensusModuleInterface proxy;
     private Thread thread;
     private boolean isRunning;
     private final Log log;
@@ -31,7 +31,7 @@ class AppendEntriesCall {
 
     private final List<EntryReplication> entryReplicationsToNotify;
 
-    AppendEntriesCall(int nextIndex, int matchIndex, ConsensusModuleProxy proxy, Log log, int leaderId) {
+    AppendEntriesCall(int nextIndex, int matchIndex, ConsensusModuleInterface proxy, Log log, int leaderId) {
         this.nextIndex = nextIndex;
         this.matchIndex = matchIndex;
         this.proxy = proxy;
@@ -110,6 +110,8 @@ class AppendEntriesCall {
                     }
                 } catch (IOException e) {
 
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
                 this.isRunning = false;
             });

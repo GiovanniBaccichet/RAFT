@@ -7,7 +7,7 @@ import it.polimi.baccichetmagri.raft.messages.ExecuteCommandReply;
 import it.polimi.baccichetmagri.raft.messages.ExecuteCommandRequest;
 import it.polimi.baccichetmagri.raft.messages.Message;
 import it.polimi.baccichetmagri.raft.messages.MessageType;
-import it.polimi.baccichetmagri.raft.network.MessageSerializer;
+import it.polimi.baccichetmagri.raft.network.messageserializer.MessageSerializer;
 import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 

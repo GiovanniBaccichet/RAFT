@@ -1,6 +1,7 @@
-package it.polimi.baccichetmagri.raft.consensusmodule;
+package it.polimi.baccichetmagri.raft.consensusmodule.container;
 
 import it.polimi.baccichetmagri.raft.Server;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
@@ -9,19 +10,19 @@ import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.network.Configuration;
+import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConsensusModuleContainer implements ConsensusModuleInterface {
+public class ConsensusModuleContainerImpl extends ConsensusModuleContainer {
 
     private ConsensusModule consensusModule;
     private Logger logger;
 
-    public ConsensusModuleContainer(int id, Configuration configuration, Log log, StateMachine stateMachine) {
+    public ConsensusModuleContainerImpl(int id, Configuration configuration, Log log, StateMachine stateMachine) {
         try {
             this.consensusModule = new Follower(id, configuration, log, stateMachine, this);
             this.consensusModule.initialize();

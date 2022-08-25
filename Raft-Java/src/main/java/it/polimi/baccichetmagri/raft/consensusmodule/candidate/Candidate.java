@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.candidate;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.*;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.leader.Leader;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
@@ -8,11 +9,10 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandR
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
-import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.network.Configuration;
-import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
+import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
+import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,7 +26,7 @@ public class Candidate extends ConsensusModule {
     private final Logger logger;
 
     public Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine,
-              ConsensusModuleContainer container) {
+                     ConsensusModuleContainer container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
         this.logger = Logger.getLogger(Candidate.class.getName());
@@ -117,7 +117,7 @@ public class Candidate extends ConsensusModule {
         List<Thread> requestVoteRPCThreads = new ArrayList<>();
 
         while(proxies.hasNext()) {
-            ConsensusModuleProxy proxy = proxies.next();
+            ConsensusModuleInterface proxy = proxies.next();
             Thread rpcThread = new Thread(() -> {
                 try {
                     VoteResult voteResult = proxy.requestVote(currentTerm, id, lastLogIndex, lastLogTerm);
@@ -126,7 +126,7 @@ public class Candidate extends ConsensusModule {
                     } else if (voteResult.isVoteGranted()) {
                         this.election.incrementVotesReceived();
                     }
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException e) {
                     // error in network communication, assume vote not granted
                 }
             });

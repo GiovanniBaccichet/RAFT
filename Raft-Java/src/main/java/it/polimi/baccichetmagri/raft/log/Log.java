@@ -22,6 +22,8 @@ import static java.util.Collections.unmodifiableList;
 // log[]: log entries; each entry contains command for state machine, and term when entry was received by leader (first index is 1)
 public class Log {
 
+    public static String LOG_FILENAME = "log";
+
     /**
      * Number of entries in the Log after which compress it: modify in production
      */

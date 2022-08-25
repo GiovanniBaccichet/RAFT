@@ -1,6 +1,8 @@
 package it.polimi.baccichetmagri.raft.network;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
+import it.polimi.baccichetmagri.raft.network.proxies.ClientProxy;
 
 import java.io.IOException;
 import java.net.ServerSocket;

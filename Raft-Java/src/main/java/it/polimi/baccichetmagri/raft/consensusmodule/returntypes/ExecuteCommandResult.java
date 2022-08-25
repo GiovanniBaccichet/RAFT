@@ -1,8 +1,6 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.returntypes;
 
 import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
-import it.polimi.baccichetmagri.raft.messages.MessageType;
-import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
 
 public class ExecuteCommandResult {
     private final StateMachineResult stateMachineResult;

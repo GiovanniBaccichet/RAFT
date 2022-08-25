@@ -1,6 +1,6 @@
-package it.polimi.baccichetmagri.raft.network;
+package it.polimi.baccichetmagri.raft.network.proxies;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
@@ -8,6 +8,8 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.messages.*;
+import it.polimi.baccichetmagri.raft.network.messageserializer.MessageSerializer;
+import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 
 import java.io.IOException;
@@ -170,7 +172,12 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @throws IOException
      */
     public void callRequestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm, int requestId) throws IOException {
-        VoteResult voteResult =  this.consensusModuleContainer.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
+        VoteResult voteResult = null;
+        try {
+            voteResult = this.consensusModuleContainer.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         this.sendMessage(new VoteReply(voteResult, requestId));
     }
 
@@ -186,8 +193,13 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      */
     public void callAppendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries,
                                   int leaderCommit, int requestId) throws IOException {
-        AppendEntryResult appendEntryResult = this.consensusModuleContainer.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
-                logEntries, leaderCommit);
+        AppendEntryResult appendEntryResult = null;
+        try {
+            appendEntryResult = this.consensusModuleContainer.appendEntries(term, leaderID, prevLogIndex, prevLogTerm,
+                    logEntries, leaderCommit);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         this.sendMessage(new AppendEntryReply(appendEntryResult, requestId));
     }
 

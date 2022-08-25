@@ -1,10 +1,12 @@
 package it.polimi.baccichetmagri.raft;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainerImpl;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineImplementation;
-import it.polimi.baccichetmagri.raft.network.Configuration;
+import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
+import it.polimi.baccichetmagri.raft.network.configuration.ConfigurationImpl;
 import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
 
 import java.io.IOException;
@@ -13,7 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Server {
-
     private static Log log;
 
     private static Logger logger;
@@ -24,9 +25,9 @@ public class Server {
         try {
             int id = Integer.parseInt(args[0]);
             StateMachine stateMachine = new StateMachineImplementation();
-            log = new Log(Path.of("log"), stateMachine);
-            Configuration configuration = new Configuration();
-            ConsensusModuleContainer consensusModuleContainer = new ConsensusModuleContainer(id, configuration, log, stateMachine);
+            log = new Log(Path.of(Log.LOG_FILENAME), stateMachine);
+            Configuration configuration = new ConfigurationImpl();
+            ConsensusModuleContainer consensusModuleContainer = new ConsensusModuleContainerImpl(id, configuration, log, stateMachine);
             configuration.initialize(id, consensusModuleContainer);
             ServerSocketManager serverSocketManager = new ServerSocketManager(configuration, consensusModuleContainer);
             serverSocketManager.run();

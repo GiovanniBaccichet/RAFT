@@ -1,7 +1,6 @@
 package it.polimi.baccichetmagri.raft.messages;
 
-import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
-import it.polimi.baccichetmagri.raft.network.MessageSerializer;
+import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
 import java.io.IOException;
 

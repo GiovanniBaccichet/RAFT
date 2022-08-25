@@ -1,4 +1,4 @@
-package it.polimi.baccichetmagri.raft.network;
+package it.polimi.baccichetmagri.raft.network.messageserializer;
 
 import com.google.gson.Gson;
 import it.polimi.baccichetmagri.raft.messages.*;

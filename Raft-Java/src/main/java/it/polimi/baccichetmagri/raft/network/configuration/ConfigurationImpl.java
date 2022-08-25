@@ -1,8 +1,9 @@
-package it.polimi.baccichetmagri.raft.network;
+package it.polimi.baccichetmagri.raft.network.configuration;
 
 import com.google.gson.reflect.TypeToken;
 import it.polimi.baccichetmagri.raft.Server;
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
 import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
 
@@ -13,7 +14,7 @@ import java.util.logging.Logger;
 /**
  * A configuration is the set of servers participating in the Raft algorithm.
  */
-public class Configuration {
+public class ConfigurationImpl extends Configuration {
 
     private final List<ConsensusModuleProxy> proxies = new ArrayList<>();
     private Integer leaderId;
@@ -27,7 +28,7 @@ public class Configuration {
      * @param id the id of the ConsensusModuleImpl of the machine (to not create a connection with itself)
      */
     public void initialize(int id, ConsensusModuleContainer consensusModuleContainer) {
-        this.logger = Logger.getLogger(Configuration.class.getName());
+        this.logger = Logger.getLogger(ConfigurationImpl.class.getName());
         this.consensusModuleContainer = consensusModuleContainer;
 
         Map<Integer, String> addresses;
@@ -51,6 +52,7 @@ public class Configuration {
 
     /**
      * Returns the proxy corresponding to the provided id.
+     *
      * @param id an integer representing the id of the proxy to return
      * @return the proxy corresponding to the provided id
      * @throws NoSuchProxyException if the id provided does not correspond to any server proxy

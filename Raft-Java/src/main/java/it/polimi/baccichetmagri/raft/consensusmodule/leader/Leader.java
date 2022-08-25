@@ -1,7 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.leader;
 
 import it.polimi.baccichetmagri.raft.Server;
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
@@ -13,8 +13,8 @@ import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
-import it.polimi.baccichetmagri.raft.network.Configuration;
-import it.polimi.baccichetmagri.raft.network.ConsensusModuleProxy;
+import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
+import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
 import java.io.IOException;
 import java.util.*;

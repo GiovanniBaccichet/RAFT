@@ -1,7 +1,8 @@
-package it.polimi.baccichetmagri.raft.network;
+package it.polimi.baccichetmagri.raft.network.messageserializer;
 
 import it.polimi.baccichetmagri.raft.messages.Message;
 import it.polimi.baccichetmagri.raft.messages.MessageType;
+import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
 public class GenericMessage extends Message {
 

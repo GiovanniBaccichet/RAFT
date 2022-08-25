@@ -1,7 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.follower;
 
 import it.polimi.baccichetmagri.raft.Server;
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.candidate.Candidate;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
@@ -15,8 +15,7 @@ import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
 import it.polimi.baccichetmagri.raft.log.snapshot.TemporarySnapshot;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.machine.StateMachineImplementation;
-import it.polimi.baccichetmagri.raft.network.Configuration;
+import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +31,7 @@ public class Follower extends ConsensusModule {
     private final Logger logger;
 
     public Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
-             ConsensusModuleContainer container) {
+                    ConsensusModuleContainer container) {
         super(id, configuration, log, stateMachine, container);
         this.timer = new Timer();
         this.logger = Logger.getLogger(Follower.class.getName());
