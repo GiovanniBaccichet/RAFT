@@ -81,11 +81,16 @@ class AppendEntriesCall {
                         // CALL APPEND_ENTRIES_RPC ON THE FOLLOWER
                         int prevLogIndex = firstIndexToSend - 1;
                         int prevLogTerm;
-                        try {
-                            prevLogTerm = this.log.getEntryTerm(prevLogIndex);
-                        } catch (SnapshottedEntryException e) {
-                            prevLogTerm = this.log.getJSONSnapshot().getLastIncludedTerm();
+                        if (prevLogIndex == 0) { // first entry sent is the first entry of the log (no previous entry)
+                            prevLogTerm = 0;
+                        } else {
+                            try {
+                                prevLogTerm = this.log.getEntryTerm(prevLogIndex);
+                            } catch (SnapshottedEntryException e) {
+                                prevLogTerm = this.log.getJSONSnapshot().getLastIncludedTerm();
+                            }
                         }
+
 
                         AppendEntryResult appendEntryResult = proxy.appendEntries(this.term, this.leaderId, prevLogIndex,
                                 prevLogTerm, logEntries, this.leaderCommit);

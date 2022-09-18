@@ -68,6 +68,9 @@ public class Log {
      * @throws IOException
      */
     public synchronized LogEntryStatus containsEntry(int index, int term) throws IOException {
+        if (index == 0 && term == 0) { // fictitious entry with index 0
+            return LogEntryStatus.NOT_SNAPSHOTTED;
+        }
         this.validateIndex(index);
         if (index <= snapshot.getLastIncludedIndex() && term <= snapshot.getLastIncludedTerm()) {
             return LogEntryStatus.SNAPSHOTTED;
