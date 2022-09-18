@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.follower;
 
 import it.polimi.baccichetmagri.raft.Server;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusPersistentState;
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.candidate.Candidate;
@@ -30,9 +31,9 @@ public class Follower extends ConsensusModule {
     private final Timer timer;
     private final Logger logger;
 
-    public Follower(int id, Configuration configuration, Log log, StateMachine stateMachine,
-                    ConsensusModuleContainer container) {
-        super(id, configuration, log, stateMachine, container);
+    public Follower(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
+                    Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer container) {
+        super(id, consensusPersistentState, commitIndex, lastApplied, configuration, log, stateMachine, container);
         this.timer = new Timer();
         this.logger = Logger.getLogger(Follower.class.getName());
     }
@@ -205,8 +206,8 @@ public class Follower extends ConsensusModule {
 
     private synchronized void toCandidate() throws IOException {
         (new TemporarySnapshot()).delete(); // when converting to candidate, delete any content of the temporary snapshot
-        this.container.changeConsensusModuleImpl(new Candidate(this.id, this.configuration, this.log,
-                this.stateMachine, this.container));
+        this.container.changeConsensusModuleImpl(new Candidate(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
+                this.configuration, this.log, this.stateMachine, this.container));
     }
 
     private void startElectionTimer() {

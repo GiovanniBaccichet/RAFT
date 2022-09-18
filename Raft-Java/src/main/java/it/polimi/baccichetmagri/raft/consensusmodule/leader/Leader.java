@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.leader;
 
 import it.polimi.baccichetmagri.raft.Server;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusPersistentState;
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
@@ -35,8 +36,9 @@ public class Leader extends ConsensusModule {
 
     private AtomicBoolean toFollower;
 
-    public Leader(int id, Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer consensusModuleContainer) throws IOException {
-        super(id, configuration, log, stateMachine, consensusModuleContainer);
+    public Leader(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
+                  Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer consensusModuleContainer) throws IOException {
+        super(id, consensusPersistentState, commitIndex, lastApplied, configuration, log, stateMachine, consensusModuleContainer);
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         int lastLogIndex = this.log.getLastLogIndex();
         this.appendEntriesCalls = new ArrayList<>();
@@ -198,7 +200,8 @@ public class Leader extends ConsensusModule {
     }
 
     private Follower toFollower(Integer leaderId) {
-        Follower follower = new Follower(this.id, this.configuration, this.log, this.stateMachine, this.container);
+        Follower follower = new Follower(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
+                this.configuration, this.log, this.stateMachine, this.container);
         for (AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {
             appendEntriesCall.interruptCall();
         }

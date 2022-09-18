@@ -25,9 +25,9 @@ public class Candidate extends ConsensusModule {
     private Election election; // represents the current election
     private final Logger logger;
 
-    public Candidate(int id, Configuration configuration, Log log, StateMachine stateMachine,
-                     ConsensusModuleContainer container) {
-        super(id, configuration, log, stateMachine, container);
+    public Candidate(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
+                     Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer container) {
+        super(id, consensusPersistentState, commitIndex, lastApplied, configuration, log, stateMachine, container);
         this.timer = new Timer();
         this.logger = Logger.getLogger(Candidate.class.getName());
         this.logger.setLevel(Level.FINE);
@@ -63,7 +63,8 @@ public class Candidate extends ConsensusModule {
             // a new leader has been established, convert to follower and process the request as follower
             this.stopElectionTimer();
             this.election.loseElection();
-            Follower follower = new Follower(this.id, this.configuration, this.log, this.stateMachine, this.container);
+            Follower follower = new Follower(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
+                    this.configuration, this.log, this.stateMachine, this.container);
             return follower.appendEntries(term, leaderID, prevLogIndex, prevLogTerm, logEntries, leaderCommit);
         }
     }
@@ -83,7 +84,8 @@ public class Candidate extends ConsensusModule {
             // a new leader has been established, convert to follower and process the request as follower
             this.stopElectionTimer();
             this.election.loseElection();
-            Follower follower = new Follower(this.id, this.configuration, this.log, this.stateMachine, this.container);
+            Follower follower = new Follower(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
+                    this.configuration, this.log, this.stateMachine, this.container);
             return follower.installSnapshot(term, leaderID, lastIncludedIndex, lastIncludedTerm, offset, data, done);
         }
     }
@@ -166,13 +168,13 @@ public class Candidate extends ConsensusModule {
     }
 
     private void toFollower() {
-        this.container.changeConsensusModuleImpl(new Follower(this.id, this.configuration, this.log,
-                this.stateMachine, this.container));
+        this.container.changeConsensusModuleImpl(new Follower(this.id, this.consensusPersistentState, this.commitIndex,
+                this.lastApplied, this.configuration, this.log, this.stateMachine, this.container));
     }
 
     private void toLeader() throws IOException {
-        this.container.changeConsensusModuleImpl(new Leader(this.id, this.configuration, this.log,
-                this.stateMachine, this.container));
+        this.container.changeConsensusModuleImpl(new Leader(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
+                this.configuration, this.log, this.stateMachine, this.container));
     }
 
 }

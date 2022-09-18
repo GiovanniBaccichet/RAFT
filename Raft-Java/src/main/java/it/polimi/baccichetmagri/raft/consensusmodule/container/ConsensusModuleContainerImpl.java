@@ -2,6 +2,7 @@ package it.polimi.baccichetmagri.raft.consensusmodule.container;
 
 import it.polimi.baccichetmagri.raft.Server;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusPersistentState;
 import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
@@ -24,7 +25,7 @@ public class ConsensusModuleContainerImpl extends ConsensusModuleContainer {
 
     public ConsensusModuleContainerImpl(int id, Configuration configuration, Log log, StateMachine stateMachine) {
         try {
-            this.consensusModule = new Follower(id, configuration, log, stateMachine, this);
+            this.consensusModule = new Follower(id, new ConsensusPersistentState(), 0, 0, configuration, log, stateMachine, this);
             this.consensusModule.initialize();
             this.logger = Logger.getLogger(ConsensusModuleContainer.class.getName());
             this.logger.setLevel(Level.FINE);

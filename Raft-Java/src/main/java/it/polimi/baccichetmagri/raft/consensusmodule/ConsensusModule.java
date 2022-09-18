@@ -27,12 +27,12 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
     protected StateMachine stateMachine;
     protected ConsensusModuleContainer container;
 
-    public ConsensusModule(int id, Configuration configuration, Log log, StateMachine stateMachine,
-                           ConsensusModuleContainer container) {
+    public ConsensusModule(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
+                           Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer container) {
         this.id = id;
-        this.consensusPersistentState = new ConsensusPersistentState();
-        this.commitIndex = 0;
-        this.lastApplied = 0;
+        this.consensusPersistentState = consensusPersistentState;
+        this.commitIndex = commitIndex;
+        this.lastApplied = lastApplied;
         this.configuration = configuration;
         this.log = log;
         this.stateMachine = stateMachine;
