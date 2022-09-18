@@ -1,6 +1,8 @@
 package it.polimi.baccichetmagri.raft.machine;
 
-public class CommandImplementation extends Command{
+import java.io.Serializable;
+
+public class CommandImplementation extends Command implements Serializable{
 
     private final int numberToAdd;
 

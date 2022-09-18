@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 
 public class Follower extends ConsensusModule {
 
-    private final Timer timer;
+    private Timer timer;
     private final Logger logger;
 
     public Follower(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
@@ -79,22 +79,24 @@ public class Follower extends ConsensusModule {
         }
 
         // If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it
-        try {
-            boolean conflict = false;
-            for (int i = 0; i < logEntries.size() && !conflict; i++) {
-                int entryTerm = this.log.getEntryTerm(prevLogIndex + i + 1);
-                if (entryTerm != logEntries.get(i).getTerm()) {
-                    this.log.deleteEntriesFrom(i);
-                    conflict = true;
+        int lastLogIndex = this.log.getLastLogIndex();
+        if (prevLogIndex < lastLogIndex) { // some of the entries sent overlap with existing entries:
+                                           // if terms are different, they conflict, otherwise they are the same entry
+            try {
+                boolean conflict = false;
+                for (int i = 0; i < logEntries.size() && !conflict && prevLogIndex + i + 1 <= lastLogIndex; i++) {
+                    int entryTerm = this.log.getEntryTerm(prevLogIndex + i + 1);
+                    if (entryTerm != logEntries.get(i).getTerm()) {
+                        this.log.deleteEntriesFrom(i);
+                        conflict = true;
+                    }
                 }
+            } catch (SnapshottedEntryException e) {
+                // if the entry is snapshotted, then there is no need to perform this operation, as the entry is already committed
             }
-        } catch (SnapshottedEntryException e) {
-            // if the entry is snapshotted, then there is no need to perform this operation, as the entry is already committed
         }
 
-
         // Append any new entries not already in the log
-        int lastLogIndex = this.log.getLastLogIndex();
         for (int i = 0; i < logEntries.size(); i++) {
             if (lastLogIndex < prevLogIndex + i + 1) {
                 this.log.appendEntry(logEntries.get(i), this.commitIndex);
@@ -213,6 +215,7 @@ public class Follower extends ConsensusModule {
     private void startElectionTimer() {
         int delay = (new Random()).nextInt(ConsensusModule.ELECTION_TIMEOUT_MAX -
                 ConsensusModule.ELECTION_TIMEOUT_MIN + 1) + ConsensusModule.ELECTION_TIMEOUT_MIN;
+        this.timer = new Timer();
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {

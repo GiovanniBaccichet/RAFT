@@ -2,7 +2,9 @@ package it.polimi.baccichetmagri.raft.log;
 
 import it.polimi.baccichetmagri.raft.machine.Command;
 
-public class LogEntry {
+import java.io.Serializable;
+
+public class LogEntry implements Serializable {
 
     private int term;
     private Command command;
