@@ -6,6 +6,7 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 
 public class JsonFilesHandler {
 
@@ -24,14 +25,13 @@ public class JsonFilesHandler {
      * @return the parsed file.
      */
     public static <T> T read(String path, Type classOfT) throws IOException {
-        String fileContent = Files.readString(Path.of(path));
+        String fileContent = Files.readString(Path.of("files/" + path));
         return gson.fromJson(fileContent, classOfT);
     }
 
     public static void write(String path, Object content) throws IOException {
-        try (PrintWriter out = new PrintWriter(new FileWriter(path))) {
+        try (PrintWriter out = new PrintWriter(new FileWriter("files/" + path))) {
             out.write(gson.toJson(content));
         }
     }
-
 }

@@ -1,6 +1,5 @@
 package it.polimi.baccichetmagri.raft.consensusmodule;
 
-import com.google.gson.Gson;
 import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
 
 import java.io.IOException;

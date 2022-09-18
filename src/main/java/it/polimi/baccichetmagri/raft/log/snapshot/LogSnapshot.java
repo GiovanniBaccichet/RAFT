@@ -4,12 +4,6 @@ import it.polimi.baccichetmagri.raft.machine.State;
 import it.polimi.baccichetmagri.raft.utils.JsonFilesHandler;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.util.Comparator;
-
-import static java.nio.file.StandardOpenOption.*;
-import static java.nio.file.StandardOpenOption.SYNC;
 
 public class LogSnapshot {
 

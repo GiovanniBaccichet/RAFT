@@ -5,7 +5,6 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandR
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
-import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
 
 import java.io.IOException;
 import java.util.List;
