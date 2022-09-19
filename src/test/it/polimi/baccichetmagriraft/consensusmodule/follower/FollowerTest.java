@@ -135,6 +135,18 @@ class FollowerTest {
         voteResult = follower.requestVote(3, 0, 2, 3);
         assertFalse(voteResult.isVoteGranted());
         assertEquals(3, voteResult.getTerm());
+
+        // log up-to-date, follower has not voted yet, and then has voted for same candidate -> reply two times true
+        for (int i = 0; i < 2; i++) {
+            voteResult = follower.requestVote(4, 0, 4, 4);
+            assertTrue(voteResult.isVoteGranted());
+            assertEquals(4, voteResult.getTerm());
+        }
+
+        // vote already granted to another candidate -> reply false
+        voteResult = follower.requestVote(4, 1, 4, 4);
+        assertFalse(voteResult.isVoteGranted());
+        assertEquals(4, voteResult.getTerm());
     }
 
 }
