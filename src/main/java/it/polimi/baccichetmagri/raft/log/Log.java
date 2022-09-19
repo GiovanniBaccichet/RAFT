@@ -209,7 +209,12 @@ public class Log {
 
     public synchronized int getLastLogTerm() throws IOException {
         try {
-            return this.getEntry(getLastLogIndex()).getTerm();
+            int lastLogIndex = this.getLastLogIndex();
+            if (lastLogIndex == 0) {
+                return 0;
+            } else {
+                return this.getEntryTerm(lastLogIndex);
+            }
         } catch (SnapshottedEntryException e) {
             return this.snapshot.getLastIncludedTerm();
         }
