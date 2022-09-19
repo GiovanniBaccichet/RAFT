@@ -133,8 +133,8 @@ public class Follower extends ConsensusModule {
 
     public synchronized VoteResult requestVote(int term,
                                                int candidateID,
-                                               int lastLogIndex,
-                                               int lastLogTerm) throws IOException{
+                                               int candidateLastLogIndex,
+                                               int candidateLastLogTerm) throws IOException{
         this.stopElectionTimer();
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
@@ -147,10 +147,17 @@ public class Follower extends ConsensusModule {
 
         this.updateTerm(term);
 
-        //  If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote
+        // If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote.
+
+        // Raft determines which of two logs is more up-to-date by comparing the index and term of the last entries in the logs.
+        // If the logs have last entries with different terms, then the log with the later term is more up-to-date.
+        // If the logs end with the same term, then whichever log is longer is more up-to-date.
         Integer votedFor = this.consensusPersistentState.getVotedFor();
         int lastIndex = this.log.getLastLogIndex();
-        if ((votedFor == null || votedFor == candidateID) && (lastIndex <= lastLogIndex && this.log.getLastLogTerm() <= lastLogTerm)) {
+        int lastTerm = this.log.getLastLogTerm();
+
+        boolean upToDate = (lastTerm != candidateLastLogTerm) ? (lastTerm > candidateLastLogTerm) : (lastIndex >= candidateLastLogIndex);
+        if ((votedFor == null || votedFor == candidateID) && upToDate) {
             this.consensusPersistentState.setVotedFor(candidateID);
             this.startElectionTimer();
             return new VoteResult(currentTerm, true);
