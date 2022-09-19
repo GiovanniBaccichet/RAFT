@@ -34,7 +34,7 @@ public class Leader extends ConsensusModule {
 
     private final Logger logger;
 
-    private AtomicBoolean toFollower;
+    private final AtomicBoolean toFollower;
 
     public Leader(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
                   Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer consensusModuleContainer) throws IOException {
