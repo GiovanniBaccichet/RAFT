@@ -11,4 +11,8 @@ public class StateImplementation extends State {
         this.number += commandImplementation.getNumberToAdd();
         return new StateMachineResultImplementation(this.number);
     }
+
+    public int getNumber() { // for testing purposes
+        return number;
+    }
 }

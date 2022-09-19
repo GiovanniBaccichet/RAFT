@@ -156,7 +156,7 @@ public class Follower extends ConsensusModule {
         int lastIndex = this.log.getLastLogIndex();
         int lastTerm = this.log.getLastLogTerm();
 
-        boolean upToDate = (lastTerm != candidateLastLogTerm) ? (lastTerm > candidateLastLogTerm) : (lastIndex >= candidateLastLogIndex);
+        boolean upToDate = (lastTerm != candidateLastLogTerm) ? (lastTerm < candidateLastLogTerm) : (lastIndex <= candidateLastLogIndex);
         if ((votedFor == null || votedFor == candidateID) && upToDate) {
             this.consensusPersistentState.setVotedFor(candidateID);
             this.startElectionTimer();
