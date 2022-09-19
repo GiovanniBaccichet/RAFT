@@ -75,7 +75,7 @@ public class Follower extends ConsensusModule {
         //  Reply false  if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm
         if (this.log.containsEntry(prevLogIndex, prevLogTerm) == LogEntryStatus.NOT_EXISTENT) {
             this.startElectionTimer();
-            return new AppendEntryResult(currentTerm, false);
+            return new AppendEntryResult(this.consensusPersistentState.getCurrentTerm(), false);
         }
 
         // If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it
@@ -121,7 +121,7 @@ public class Follower extends ConsensusModule {
         }
 
         this.startElectionTimer();
-        return new AppendEntryResult(currentTerm, true);
+        return new AppendEntryResult(this.consensusPersistentState.getCurrentTerm(), true);
     }
 
     @Override
