@@ -87,7 +87,7 @@ public class Follower extends ConsensusModule {
                 for (int i = 0; i < logEntries.size() && !conflict && prevLogIndex + i + 1 <= lastLogIndex; i++) {
                     int entryTerm = this.log.getEntryTerm(prevLogIndex + i + 1);
                     if (entryTerm != logEntries.get(i).getTerm()) {
-                        this.log.deleteEntriesFrom(i);
+                        this.log.deleteEntriesFrom(prevLogIndex + i + 1);
                         conflict = true;
                     }
                 }
@@ -96,6 +96,7 @@ public class Follower extends ConsensusModule {
             }
         }
 
+        lastLogIndex = this.log.getLastLogIndex();
         // Append any new entries not already in the log
         for (int i = 0; i < logEntries.size(); i++) {
             if (lastLogIndex < prevLogIndex + i + 1) {
