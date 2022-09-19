@@ -3,6 +3,7 @@ package it.polimi.baccichetmagriraft.consensusmodule.follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusPersistentState;
 import it.polimi.baccichetmagri.raft.consensusmodule.follower.Follower;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
@@ -111,6 +112,29 @@ class FollowerTest {
         assertEquals(3, log.getEntryTerm(4));
         assertEquals(3, log.getEntryTerm(5));
         assertEquals(11, ((StateImplementation) stateMachine.getState()).getNumber());
+    }
+
+    @Test
+    void testRequestVote() throws  IOException {
+        // initialize follower log
+        List<LogEntry> logEntries = new ArrayList<>();
+        for (int i = 1; i <= 3; i++) {
+            logEntries.add(new LogEntry(i, new CommandImplementation(i)));
+        }
+        follower.appendEntries(3, 0, 0, 0, logEntries, 0);
+
+        // candidate term < follower term -> reply false
+        VoteResult voteResult = follower.requestVote(2, 0, 3, 3);
+        assertFalse(voteResult.isVoteGranted());
+        assertEquals(3, voteResult.getTerm());
+
+        // candidate log not up-to-date w.r.t. follower log -> reply false
+        voteResult = follower.requestVote(3, 0, 3, 2);
+        assertFalse(voteResult.isVoteGranted());
+        assertEquals(3, voteResult.getTerm());
+        voteResult = follower.requestVote(3, 0, 2, 3);
+        assertFalse(voteResult.isVoteGranted());
+        assertEquals(3, voteResult.getTerm());
     }
 
 }
