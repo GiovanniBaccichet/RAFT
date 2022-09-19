@@ -47,7 +47,7 @@ public class Leader extends ConsensusModule {
         }
         this.timer = new Timer();
         this.logger = Logger.getLogger(Leader.class.getName());
-        this.toFollower.set(false);
+        this.toFollower = new AtomicBoolean(false);
     }
 
     @Override
