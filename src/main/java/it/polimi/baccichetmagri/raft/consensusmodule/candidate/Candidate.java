@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 public class Candidate extends ConsensusModule {
 
-    private final Timer timer;
+    private Timer timer;
     private Election election; // represents the current election
     private final Logger logger;
 
@@ -155,6 +155,7 @@ public class Candidate extends ConsensusModule {
         int delay = (new Random()).nextInt(ConsensusModule.ELECTION_TIMEOUT_MAX -
                 ConsensusModule.ELECTION_TIMEOUT_MIN + 1) + ConsensusModule.ELECTION_TIMEOUT_MIN;
         // when the timer expires, interrupt all threads where RequestVoteRPC was sent
+        this.timer = new Timer();
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {

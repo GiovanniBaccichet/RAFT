@@ -30,7 +30,7 @@ public class Leader extends ConsensusModule {
 
     private final List<AppendEntriesCall> appendEntriesCalls;
 
-    private final Timer timer; // timer for sending heartbeats
+    private Timer timer; // timer for sending heartbeats
 
     private final Logger logger;
 
@@ -153,6 +153,7 @@ public class Leader extends ConsensusModule {
     }
 
     private void startHeartbeatTimer() {
+        this.timer = new Timer();
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() { // send heartbeat to all servers
