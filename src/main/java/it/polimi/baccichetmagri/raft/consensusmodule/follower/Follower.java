@@ -181,6 +181,9 @@ public class Follower extends ConsensusModule {
             return currentTerm;
         }
 
+        this.updateTerm(term);
+        currentTerm = this.consensusPersistentState.getCurrentTerm();
+
         this.configuration.setLeader(leaderID);
 
         // Write data into snapshot file at given offset
