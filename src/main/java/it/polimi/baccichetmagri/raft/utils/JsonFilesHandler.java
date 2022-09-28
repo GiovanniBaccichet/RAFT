@@ -25,12 +25,12 @@ public class JsonFilesHandler {
      * @return the parsed file.
      */
     public static <T> T read(String path, Type classOfT) throws IOException {
-        String fileContent = Files.readString(Path.of("files/" + path));
+        String fileContent = Files.readString(Path.of("Config/" + path));
         return gson.fromJson(fileContent, classOfT);
     }
 
     public static void write(String path, Object content) throws IOException {
-        try (PrintWriter out = new PrintWriter(new FileWriter("files/" + path))) {
+        try (PrintWriter out = new PrintWriter(new FileWriter("Config/" + path))) {
             out.write(gson.toJson(content));
         }
     }

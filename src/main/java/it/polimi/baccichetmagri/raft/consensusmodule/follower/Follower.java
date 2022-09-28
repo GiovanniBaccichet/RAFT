@@ -34,12 +34,14 @@ public class Follower extends ConsensusModule {
     public Follower(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
                     Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer container) {
         super(id, consensusPersistentState, commitIndex, lastApplied, configuration, log, stateMachine, container);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Instancing a FOLLOWER");
         this.timer = new Timer();
         this.logger = Logger.getLogger(Follower.class.getName());
     }
 
     @Override
     public synchronized void initialize() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Initializing a FOLLOWER");
         this.configuration.discardAppendEntryReplies(true);
         this.configuration.discardRequestVoteReplies(true);
         this.configuration.discardInstallSnapshotReplies(true);
@@ -58,6 +60,7 @@ public class Follower extends ConsensusModule {
 
         // Read currentTerm (1 time access)
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Current term is: " + this.consensusPersistentState.getCurrentTerm());
 
         //  Reply false if term < currentTerm
         if (term < currentTerm ) {

@@ -12,7 +12,7 @@ import java.io.RandomAccessFile;
  * of the chunks will be completed.
  */
 public class TemporarySnapshot {
-    private final static String TEMPORARY_SNAPSHOT_PATH = "temporary_snapshot.json";
+    private final static String TEMPORARY_SNAPSHOT_PATH = "Log/temporary_snapshot.json";
 
     public void writeChunk(byte[] chunk, int offset) throws IOException {
         // write the chunk to the file at the given offset

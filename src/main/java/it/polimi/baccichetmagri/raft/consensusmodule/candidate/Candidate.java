@@ -28,6 +28,7 @@ public class Candidate extends ConsensusModule {
     public Candidate(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
                      Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer container) {
         super(id, consensusPersistentState, commitIndex, lastApplied, configuration, log, stateMachine, container);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Instancing a CANDIDATE");
         this.timer = new Timer();
         this.logger = Logger.getLogger(Candidate.class.getName());
         this.logger.setLevel(Level.FINE);
@@ -35,6 +36,7 @@ public class Candidate extends ConsensusModule {
 
     @Override
     public synchronized void initialize() throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Initializing a CANDIDATE");
         this.configuration.discardAppendEntryReplies(true);
         this.configuration.discardRequestVoteReplies(false);
         this.configuration.discardInstallSnapshotReplies(true);
@@ -43,8 +45,10 @@ public class Candidate extends ConsensusModule {
 
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote");
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         if (term > currentTerm) { // there is an election occurring in a term > currentTerm, convert to follower
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Converting to FOLLOWER (election lost)");
             this.stopElectionTimer();
             this.election.loseElection();
         }
@@ -98,6 +102,7 @@ public class Candidate extends ConsensusModule {
     private synchronized void startElection() throws IOException {
 
         this.logger.log(Level.FINE, "Starting election");
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Starting election");
 
         // increment current term
         this.consensusPersistentState.setCurrentTerm(this.consensusPersistentState.getCurrentTerm() + 1);
@@ -109,6 +114,7 @@ public class Candidate extends ConsensusModule {
         this.startElectionTimer();
 
         // send RequestVote RPCs to all other servers
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Send RPCs to other servers");
         this.election = new Election(this.configuration.getServersNumber() / 2
                 + this.configuration.getServersNumber() % 2);
         this.election.incrementVotesReceived();
@@ -122,6 +128,7 @@ public class Candidate extends ConsensusModule {
             ConsensusModuleInterface proxy = proxies.next();
             Thread rpcThread = new Thread(() -> {
                 try {
+                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote from id: " + id);
                     VoteResult voteResult = proxy.requestVote(currentTerm, id, lastLogIndex, lastLogTerm);
                     if (!voteResult.isVoteGranted() && voteResult.getTerm() > currentTerm) {
                         this.election.loseElection();
@@ -130,6 +137,7 @@ public class Candidate extends ConsensusModule {
                     }
                 } catch (IOException | InterruptedException e) {
                     // error in network communication, assume vote not granted
+                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "NETWORK ERROR!");
                 }
             });
             requestVoteRPCThreads.add(rpcThread);
@@ -143,6 +151,7 @@ public class Candidate extends ConsensusModule {
         }
 
         this.logger.log(Level.FINE, "Election outcome: " + electionOutcome);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election outcome " + electionOutcome);
 
         switch (electionOutcome) {
             case WON: this.toLeader();

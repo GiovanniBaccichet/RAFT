@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * @param <S> the type of the reply message
  */
 class RPCCallHandler<T extends Message, S extends Message> {
-    public static final int REPLY_TIMEOUT = 100; // in milliseconds
+    public static final int REPLY_TIMEOUT = 1000; // in milliseconds
 
     private int nextMsgId;
     private final BlockingQueue<S> repliesQueue;
@@ -34,6 +34,7 @@ class RPCCallHandler<T extends Message, S extends Message> {
         // send the request message over the network and wait for the reply; if timeout expires, redo call
         S reply = null;
         while(reply == null) {
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message: " + requestMsg);
             msgSender.accept(requestMsg); // send the message
             reply = this.repliesQueue.poll(REPLY_TIMEOUT, TimeUnit.MILLISECONDS);
             if (reply != null && reply.getMessageId() != requestMsg.getMessageId()) {
@@ -45,6 +46,7 @@ class RPCCallHandler<T extends Message, S extends Message> {
     }
 
     void receiveReply(S replyMsg) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received reply " + replyMsg);
         if (!this.discardReplies) {
             this.repliesQueue.add(replyMsg);
         }

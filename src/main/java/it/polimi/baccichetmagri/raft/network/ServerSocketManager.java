@@ -38,6 +38,7 @@ public class ServerSocketManager implements Runnable{
      * Receives messages from the network and creates or initializes the proxies corresponding to the new connections.
      */
     public void run() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Running the socket on port " + RAFT_PORT);
         while (true) {
             Socket socket = null;
             try {
@@ -45,17 +46,20 @@ public class ServerSocketManager implements Runnable{
                 socket = this.serverSocket.accept();
                 Scanner in = new Scanner(socket.getInputStream());
                 String connectMessage = in.nextLine();
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received message: " + connectMessage);
 
                 if (connectMessage.contains("SERVER")) {
                     // if the message is "SERVER X", where x is an integer number, the connection is requested from
                     // the server with id = X
                     int id = Integer.parseInt(connectMessage.substring(7));
-                    this.logger.log(Level.FINE, "Received connection with server " + id);
+                    this.logger.log(Level.WARNING, "Received connection with server " + id);
                     this.configuration.getConsensusModuleProxy(id).setSocket(socket);
+                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received msg from: " + id);
                 } else if (connectMessage.equals("CLIENT")){
                     //if the message is "CLIENT", the connection is requested from a client
                     new ClientProxy(socket, this.consensusModuleContainer);
-                    this.logger.log(Level.FINE, "Received connection with client");
+                    this.logger.log(Level.WARNING, "Received connection with client");
+                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Client connected");
                 } else {
                     socket.close();
                     this.logger.log(Level.WARNING, "Connection refused. Invalid message: " + connectMessage);

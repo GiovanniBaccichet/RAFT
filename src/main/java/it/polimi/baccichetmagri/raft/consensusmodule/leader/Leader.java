@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 public class Leader extends ConsensusModule {
 
-    private static final int HEARTBEAT_TIMEOUT = 100; // the timeout for sending a heartbeat is lower than the minimum election
+    private static final int HEARTBEAT_TIMEOUT = 1000; // the timeout for sending a heartbeat is lower than the minimum election
                                                       // timeout possible, so that elections don't start when the leader is still alive
 
     private final List<AppendEntriesCall> appendEntriesCalls;
@@ -39,6 +39,7 @@ public class Leader extends ConsensusModule {
     public Leader(int id, ConsensusPersistentState consensusPersistentState, int commitIndex, int lastApplied,
                   Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer consensusModuleContainer) throws IOException {
         super(id, consensusPersistentState, commitIndex, lastApplied, configuration, log, stateMachine, consensusModuleContainer);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Instancing a LEADER");
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         int lastLogIndex = this.log.getLastLogIndex();
         this.appendEntriesCalls = new ArrayList<>();
@@ -52,6 +53,7 @@ public class Leader extends ConsensusModule {
 
     @Override
     public synchronized void initialize() throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Initializing a LEADER");
         this.configuration.discardRequestVoteReplies(false);
         this.configuration.discardAppendEntryReplies(false);
         this.configuration.discardInstallSnapshotReplies(false);
@@ -176,6 +178,7 @@ public class Leader extends ConsensusModule {
     }
 
     private void sendHeartbeat() throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending heartbeat");
         for(AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {
             EntryReplication entryReplication = new EntryReplication(this.toFollower);
             appendEntriesCall.callAppendEntries(this.consensusPersistentState.getCurrentTerm(), this.commitIndex, entryReplication);
@@ -183,6 +186,7 @@ public class Leader extends ConsensusModule {
     }
 
     private StateMachineResult applyCommittedEntries() throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Applying committed entries");
         try {
             // if commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
             StateMachineResult stateMachineResult = null;
@@ -201,6 +205,7 @@ public class Leader extends ConsensusModule {
     }
 
     private Follower toFollower(Integer leaderId) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Converting to FOLLOWER");
         Follower follower = new Follower(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
                 this.configuration, this.log, this.stateMachine, this.container);
         for (AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {

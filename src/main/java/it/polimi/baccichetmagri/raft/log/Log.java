@@ -22,7 +22,7 @@ import static java.util.Collections.unmodifiableList;
 // log[]: log entries; each entry contains command for state machine, and term when entry was received by leader (first index is 1)
 public class Log {
 
-    public static String LOG_FILENAME = "files/log";
+    public static String LOG_FILENAME = "Log/log";
 
     /**
      * Number of entries in the Log after which compress it: modify in production
@@ -40,6 +40,7 @@ public class Log {
     private final Logger logger;
 
     public Log(Path logFilePath, StateMachine stateMachine) throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Instancing Log...");
         this.fileChannel = FileChannel.open(logFilePath, READ, WRITE, CREATE, SYNC);
         this.stateMachine = stateMachine;
         this.snapshot = new LogSnapshot();
@@ -53,6 +54,7 @@ public class Log {
      * @throws IOException
      */
     public synchronized void close() throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Closing Log file channel...");
         this.fileChannel.close();
     }
 
@@ -271,6 +273,7 @@ public class Log {
      * @param index index to check
      */
     private void validateIndex(int index) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Validating snapshot's index...");
         if (index < 1) {
             throw new IllegalArgumentException("[ERROR] Indices start at 1");
         }

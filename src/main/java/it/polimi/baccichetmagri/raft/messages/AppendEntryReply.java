@@ -9,6 +9,7 @@ public class AppendEntryReply extends Message{
 
     public AppendEntryReply(AppendEntryResult appendEntryResult, int messageId) {
         super(MessageType.AppendEntryReply, messageId);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Append Entry Reply ID: " + messageId);
         this.appendEntryResult = appendEntryResult;
     }
 

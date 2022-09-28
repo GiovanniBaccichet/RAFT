@@ -41,6 +41,7 @@ class AppendEntriesCall {
     }
 
     synchronized void callAppendEntries(int term, int leaderCommit, EntryReplication entryReplication) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Calling AppendEntries");
         this.leaderCommit = leaderCommit;
         this.term = term;
         this.entryReplicationsToNotify.add(entryReplication);

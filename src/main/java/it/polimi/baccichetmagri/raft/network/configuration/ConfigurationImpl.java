@@ -29,18 +29,22 @@ public class ConfigurationImpl extends Configuration {
      */
     public void initialize(int id, ConsensusModuleContainer consensusModuleContainer) {
         this.logger = Logger.getLogger(ConfigurationImpl.class.getName());
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Network initialization");
         this.consensusModuleContainer = consensusModuleContainer;
 
         Map<Integer, String> addresses;
         try {
             // load configuration file with <id, ip> of other servers
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Loading ID/IP pairs:");
             addresses = JsonFilesHandler.read("configuration.json",new TypeToken<Map<Integer, String>>() {}.getType());
             // create list of proxies
             for (Map.Entry<Integer, String> address : addresses.entrySet()) {
                 if (address.getKey() != id) {
                     this.proxies.add(new ConsensusModuleProxy(address.getKey(), address.getValue(), consensusModuleContainer));
+                    System.out.println("\t" + address.getKey() + " -> " + address.getValue());
                 } else {
                     this.ip = address.getValue();
+                    System.out.println("\t" + address.getKey() + " -> " + address.getValue());
                 }
             }
         } catch (java.io.IOException e) {
@@ -48,6 +52,7 @@ public class ConfigurationImpl extends Configuration {
             e.printStackTrace();
             Server.shutDown();
         }
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Connected proxies: " + proxies.size());
     }
 
     /**
@@ -58,6 +63,7 @@ public class ConfigurationImpl extends Configuration {
      * @throws NoSuchProxyException if the id provided does not correspond to any server proxy
      */
     public ConsensusModuleProxy getConsensusModuleProxy(int id) throws NoSuchProxyException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Getting the proxy");
         return this.proxies.stream().filter(proxy -> proxy.getId() == id).findAny().
                 orElseThrow(() -> {throw new NoSuchProxyException("no proxy with id " + id);});
     }
@@ -89,10 +95,13 @@ public class ConfigurationImpl extends Configuration {
      */
     public String getLeaderIP() {
         if (this.leaderId == null) {
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "No leader IP");
             return null;
         } else if (this.leaderId == this.consensusModuleContainer.getId()) {
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Leader IP: " + this.ip);
             return this.ip;
         } else {
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Leader IP: " + this.getConsensusModuleProxy(this.leaderId).getIp());
             return this.getConsensusModuleProxy(this.leaderId).getIp();
         }
     }
@@ -122,12 +131,14 @@ public class ConfigurationImpl extends Configuration {
      * @param discard a boolean that tells if discard or process the RequestVoteReply messages
      */
     public void discardRequestVoteReplies(boolean discard) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Discarding request-vote replies");
         for (ConsensusModuleProxy proxy : this.proxies) {
             proxy.discardVoteReplies(discard);
         }
     }
 
     public void discardInstallSnapshotReplies(boolean discard) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Discarding install-snapshot replies");
         for (ConsensusModuleProxy proxy : this.proxies) {
             proxy.discardInstallSnapshotReplies(discard);
         }

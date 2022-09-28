@@ -39,6 +39,7 @@ public class ConsensusPersistentState {
     }
 
     private void writeState(ConsensusPersistentStateForGson state) throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Writing state on file");
         JsonFilesHandler.write("consensus_persistent_state.json", state);
     }
 

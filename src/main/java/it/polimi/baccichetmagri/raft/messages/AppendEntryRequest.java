@@ -18,6 +18,7 @@ public class AppendEntryRequest extends Message{
     public AppendEntryRequest(int term, int leaderId, int prevLogIndex, int prevLogTerm,
                               List<LogEntry> logEntries, int leaderCommit) {
         super(MessageType.AppendEntryRequest);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Append Entry Request | term: " + term + " | leaderId: " + leaderId + " |");
         this.term = term;
         this.leaderId = leaderId;
         this.prevLogIndex = prevLogIndex;

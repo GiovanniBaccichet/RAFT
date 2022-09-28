@@ -15,16 +15,19 @@ class Election {
         this.votesReceived++;
         if (this.votesReceived >= this.votesNeeded) {
             this.electionOutcome = ElectionOutcome.WON;
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election WON");
             this.notify();
         }
     }
 
     synchronized void loseElection() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election LOST");
         this.electionOutcome = ElectionOutcome.LOST;
         this.notify();
     }
 
     synchronized void expireElection() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election EXPIRED");
         this.electionOutcome = ElectionOutcome.EXPIRED;
         this.notify();
     }

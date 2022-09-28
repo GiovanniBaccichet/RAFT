@@ -39,6 +39,7 @@ public class ConsensusModuleContainerImpl extends ConsensusModuleContainer {
         try {
             this.logger.log(Level.FINE, "Calling " + this.consensusModule + "::requestVote(term = " + term + ",\ncandidateId = " +
                     candidateID + ",\nlastLogIndex = " + lastLogIndex + ",\nlastLogTerm = " + lastLogTerm + ")");
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote in term: " + term + "for Candidate: " + candidateID);
             return this.consensusModule.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
         } catch (IOException e) {
             this.handleIOException(e);

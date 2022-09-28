@@ -63,6 +63,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
             while(true) {
                 try {
                     Message message = this.readMessage();
+                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received msg from: " + message);
                     message.execute(this);
                 } catch (BadMessageException e) {
                     this.logger.log(Level.WARNING, e.getMessage());
@@ -121,7 +122,8 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
                     this::sendMessage);
             return voteReply.getVoteResult();
         } catch (InterruptedException e) {
-            return null;
+//            return null;
+            return new VoteResult(term, false); // may be wrong here
         }
     }
 
