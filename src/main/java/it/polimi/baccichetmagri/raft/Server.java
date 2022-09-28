@@ -30,7 +30,9 @@ public class Server {
             ConsensusModuleContainer consensusModuleContainer = new ConsensusModuleContainerImpl(id, configuration, log, stateMachine);
             configuration.initialize(id, consensusModuleContainer);
             ServerSocketManager serverSocketManager = new ServerSocketManager(configuration, consensusModuleContainer);
-            serverSocketManager.run();
+
+            new Thread(serverSocketManager).start();
+
         } catch (NumberFormatException e) {
             logger.log(Level.SEVERE, "Invalid ID argument, please insert an integer number.");
         } catch (IOException e) {

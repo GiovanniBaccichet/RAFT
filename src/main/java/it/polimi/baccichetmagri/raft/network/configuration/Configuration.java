@@ -5,6 +5,7 @@ import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
 
 import java.util.Iterator;
+import java.util.List;
 
 public abstract class Configuration {
     public abstract void initialize(int id, ConsensusModuleContainer consensusModuleContainer);

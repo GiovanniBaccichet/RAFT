@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.network.proxies;
 
 import it.polimi.baccichetmagri.raft.messages.Message;
+import it.polimi.baccichetmagri.raft.network.messageserializer.MessageSerializer;
 import it.polimi.baccichetmagri.raft.utils.ConsumerThrowsIOException;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ class RPCCallHandler<T extends Message, S extends Message> {
         // send the request message over the network and wait for the reply; if timeout expires, redo call
         S reply = null;
         while(reply == null) {
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message: " + requestMsg);
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message: " + (new MessageSerializer()).serialize(requestMsg));
             msgSender.accept(requestMsg); // send the message
             reply = this.repliesQueue.poll(REPLY_TIMEOUT, TimeUnit.MILLISECONDS);
             if (reply != null && reply.getMessageId() != requestMsg.getMessageId()) {

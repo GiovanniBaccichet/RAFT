@@ -119,25 +119,30 @@ public class Candidate extends ConsensusModule {
                 + this.configuration.getServersNumber() % 2);
         this.election.incrementVotesReceived();
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
+        // here printing
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
-        int lastLogIndex = this.log.getLastLogIndex();
-        int lastLogTerm = this.log.getLastLogTerm();
+//        int lastLogIndex = this.log.getLastLogIndex(); // NOT WORKING
+        int lastLogIndex = 13;
+//        int lastLogTerm = this.log.getLastLogTerm();
+        int lastLogTerm = 13;
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "===========================================");
         List<Thread> requestVoteRPCThreads = new ArrayList<>();
 
         while(proxies.hasNext()) {
-            ConsensusModuleInterface proxy = proxies.next();
+            ConsensusModuleProxy proxy = proxies.next();
             Thread rpcThread = new Thread(() -> {
                 try {
-                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote from id: " + id);
+                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote to id: " + proxy.getIp());
                     VoteResult voteResult = proxy.requestVote(currentTerm, id, lastLogIndex, lastLogTerm);
                     if (!voteResult.isVoteGranted() && voteResult.getTerm() > currentTerm) {
                         this.election.loseElection();
                     } else if (voteResult.isVoteGranted()) {
                         this.election.incrementVotesReceived();
                     }
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     // error in network communication, assume vote not granted
                     System.out.println("[" + this.getClass().getSimpleName() + "] " + "NETWORK ERROR!");
+                    e.printStackTrace();
                 }
             });
             requestVoteRPCThreads.add(rpcThread);
@@ -161,14 +166,14 @@ public class Candidate extends ConsensusModule {
     }
 
     private void startElectionTimer() {
-        int delay = (new Random()).nextInt(ConsensusModule.ELECTION_TIMEOUT_MAX -
-                ConsensusModule.ELECTION_TIMEOUT_MIN + 1) + ConsensusModule.ELECTION_TIMEOUT_MIN;
+        int delay = (new Random()).nextInt(ConsensusModule.ELECTION_TIMEOUT_MAX - ConsensusModule.ELECTION_TIMEOUT_MIN + 1) + ConsensusModule.ELECTION_TIMEOUT_MIN + 15000;
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Started election time w/ delay: " + delay);
         // when the timer expires, interrupt all threads where RequestVoteRPC was sent
         this.timer = new Timer();
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                election.expireElection();
+                new Thread(()->{election.expireElection(); System.out.println("[Candidate] " + "Timer expired -> " + delay);}).start();
             }
         }, delay);
     }

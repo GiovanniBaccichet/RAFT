@@ -254,6 +254,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     private void checkSocket() throws IOException {
         if (!this.isRunning) {
             this.logger.log(Level.FINE, "Reconnection with server " + this.id);
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Server IP: " + this.ip);
             this.setSocket(new Socket(this.ip, ServerSocketManager.RAFT_PORT));
             PrintWriter out = new PrintWriter(this.socket.getOutputStream());
             out.println("SERVER " + this.consensusModuleContainer.getId());

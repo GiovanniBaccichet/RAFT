@@ -15,7 +15,8 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ClientProxy implements Runnable{
+public class
+ClientProxy implements Runnable{
 
     private final Socket socket;
     private final ConsensusModuleContainer consensusModuleContainer;
