@@ -202,7 +202,7 @@ public class Log {
 
     // Get last entry's index from the log
     public synchronized int getLastLogIndex() throws IOException {
-        return this.size();
+        return Math.max(this.size(), 0);
     }
 
     public synchronized int getNextLogIndex() throws IOException {
