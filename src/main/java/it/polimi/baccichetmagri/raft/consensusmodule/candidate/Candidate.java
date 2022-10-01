@@ -156,9 +156,9 @@ public class Candidate extends ConsensusModule {
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election outcome " + electionOutcome);
 
         switch (electionOutcome) {
-            case WON: this.toLeader();
-            case LOST: this.toFollower();
-            case EXPIRED: this.startElection();
+            case WON: this.toLeader(); break;
+            case LOST: this.toFollower(); break;
+            case EXPIRED: this.startElection(); break;
         }
     }
 

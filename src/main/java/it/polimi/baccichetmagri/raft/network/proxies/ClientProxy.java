@@ -38,7 +38,7 @@ ClientProxy implements Runnable{
 
             Scanner in = new Scanner(this.socket.getInputStream());
             String jsonMessage = in.nextLine();
-            message = new MessageSerializer().deserialiaze(jsonMessage);
+            message = new MessageSerializer().deserialize(jsonMessage);
 
         } catch (Exception e) {
             e.printStackTrace();

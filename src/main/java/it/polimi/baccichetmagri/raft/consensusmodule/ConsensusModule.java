@@ -62,6 +62,7 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
     public abstract int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) throws IOException;
 
     public int getId() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "ConsensusModule ID: " + this.id);
         return this.id;
     }
 

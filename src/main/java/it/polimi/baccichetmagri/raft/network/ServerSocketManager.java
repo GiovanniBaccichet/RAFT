@@ -46,6 +46,7 @@ public class ServerSocketManager implements Runnable{
                 // accept new connections and read the first message
                 socket = this.serverSocket.accept();
                 Scanner in = new Scanner(socket.getInputStream());
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "Receiving connection...");
                 String connectMessage = in.nextLine();
                 System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received message: " + connectMessage);
 
