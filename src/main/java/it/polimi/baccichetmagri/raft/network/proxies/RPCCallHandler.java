@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @param <S> the type of the reply message
  */
 class RPCCallHandler<T extends Message, S extends Message> {
-    public static final int REPLY_TIMEOUT = 1000; // in milliseconds
+    public static final int REPLY_TIMEOUT = 5000; // in milliseconds
 
     private int nextMsgId;
     private final BlockingQueue<S> repliesQueue;
@@ -46,8 +46,8 @@ class RPCCallHandler<T extends Message, S extends Message> {
         return reply;
     }
 
-    void receiveReply(S replyMsg) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received reply " + replyMsg);
+    void receiveReply(S replyMsg) {  // CHECK THIS OUT
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received reply: " + replyMsg);
         if (!this.discardReplies) {
             this.repliesQueue.add(replyMsg);
         }

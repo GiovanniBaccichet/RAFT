@@ -59,6 +59,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * Listens for messages on the socket and processes them.
      */
     public void run() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Running socket");
         try {
             while(true) {
                 try {
@@ -100,6 +101,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     public void setSocket(Socket socket) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Socket listening");
         this.socket = socket;
         if (!this.isRunning) {
             (new Thread(this)).start();
@@ -241,6 +243,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         String jsonMessage = this.messageSerializer.serialize(message);
         out.println(jsonMessage);
         this.logger.log(Level.FINE, "Sent message to server + " + this.id + ":\n" + jsonMessage);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message to: " + this.ip);
     }
 
     private Message readMessage() throws IOException, BadMessageException {
@@ -248,6 +251,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         Scanner in = new Scanner(this.socket.getInputStream());
         String jsonMessage = in.nextLine();
         this.logger.log(Level.FINE, "Received message from server " + this.id + ":\n" + jsonMessage);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received message from: " + this.id + " message: " + jsonMessage);
         return this.messageSerializer.deserialiaze(jsonMessage);
     }
 
