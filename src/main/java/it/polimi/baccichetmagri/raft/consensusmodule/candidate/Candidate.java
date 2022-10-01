@@ -121,10 +121,8 @@ public class Candidate extends ConsensusModule {
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         // here printing
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
-        int lastLogIndex = this.log.getLastLogIndex(); // TO BE CHECKED
-//        int lastLogIndex = 13;
-        int lastLogTerm = this.log.getLastLogTerm(); // TO BE CHECKED
-//        int lastLogTerm = 13;
+        int lastLogIndex = this.log.getLastLogIndex();
+        int lastLogTerm = this.log.getLastLogTerm();
         List<Thread> requestVoteRPCThreads = new ArrayList<>();
 
         while(proxies.hasNext()) {
