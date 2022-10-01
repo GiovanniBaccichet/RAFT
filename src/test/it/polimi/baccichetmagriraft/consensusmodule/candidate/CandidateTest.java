@@ -1,5 +1,6 @@
 package it.polimi.baccichetmagriraft.consensusmodule.candidate;
 
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusPersistentState;
 import it.polimi.baccichetmagri.raft.consensusmodule.candidate.Candidate;
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
@@ -18,13 +19,14 @@ public class CandidateTest {
 
     private Candidate candidate;
     private ContainerStub container;
+    private CandidateTestConfiguration configuration;
 
 
     void setUp(List<ConsensusModuleStub> stubs) throws IOException {
         ConsensusPersistentState consensusPersistentState = new ConsensusPersistentState();
         consensusPersistentState.setVotedFor(null);
         consensusPersistentState.setCurrentTerm(0);
-        CandidateTestConfiguration configuration = new CandidateTestConfiguration(stubs);
+        configuration = new CandidateTestConfiguration(stubs);
         StateMachine stateMachine = new StateMachineImplementation();
         Log log = new Log(Path.of(Log.LOG_FILENAME), stateMachine);
         log.deleteEntriesFrom(1);
@@ -41,6 +43,39 @@ public class CandidateTest {
         stubs.add(new ConsensusModuleStub(true, 0));
         stubs.add(new ConsensusModuleStub(false, 0));
         setUp(stubs);
+        assertEquals("LEADER", container.getConsensusModuleType());
+    }
+
+    @Test
+    void testElectionLostBecauseOfVotes() throws IOException {
+        List<ConsensusModuleStub> stubs = new ArrayList<>();
+        stubs.add(new ConsensusModuleStub(false, 0));
+        stubs.add(new ConsensusModuleStub(false, 0));
+        setUp(stubs);
+        assertEquals("FOLLOWER", container.getConsensusModuleType());
+    }
+
+    @Test
+    void testElectionLostBecauseOfTerm() throws IOException {
+        List<ConsensusModuleStub> stubs = new ArrayList<>();
+        stubs.add(new ConsensusModuleStub(false, 2));
+        stubs.add(new ConsensusModuleStub(false, 2));
+        setUp(stubs);
+        assertEquals("FOLLOWER", container.getConsensusModuleType());
+    }
+
+    @Test
+    void testElectionExpiredAndThenWon() throws IOException, InterruptedException {
+        List<ConsensusModuleStub> stubs = new ArrayList<>();
+        stubs.add(new ConsensusModuleStub(false, 0, ConsensusModule.ELECTION_TIMEOUT_MAX * 10));
+        stubs.add(new ConsensusModuleStub(true, 0, ConsensusModule.ELECTION_TIMEOUT_MAX * 10));
+        setUp(stubs);
+        Thread.sleep(ConsensusModule.ELECTION_TIMEOUT_MAX * 10);
+        stubs.clear();
+        stubs.add(new ConsensusModuleStub(true, 0));
+        stubs.add(new ConsensusModuleStub(true, 0));
+        configuration.setStubs(stubs);
+        Thread.sleep(ConsensusModule.ELECTION_TIMEOUT_MAX + 100);
         assertEquals("LEADER", container.getConsensusModuleType());
     }
 }

@@ -115,8 +115,8 @@ public class Candidate extends ConsensusModule {
 
         // send RequestVote RPCs to all other servers
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Send RPCs to other servers");
-        this.election = new Election(this.configuration.getServersNumber() / 2 + 1);
-        this.election.incrementVotesReceived();
+        this.election = new Election(this.configuration.getServersNumber() / 2 + 1, this.configuration.getServersNumber());
+        this.election.incrementVotesReceived(true);
         Iterator<ConsensusModuleInterface> proxies = this.configuration.getIteratorOnAllProxies();
         // here printing
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
@@ -132,10 +132,11 @@ public class Candidate extends ConsensusModule {
                 try {
                     System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote to id: " + proxy.getId());
                     VoteResult voteResult = proxy.requestVote(currentTerm, id, lastLogIndex, lastLogTerm);
+                    // vote not granted, result.getTerm() <= currentTerm
                     if (!voteResult.isVoteGranted() && voteResult.getTerm() > currentTerm) {
                         this.election.loseElection();
-                    } else if (voteResult.isVoteGranted()) {
-                        this.election.incrementVotesReceived();
+                    } else {
+                        this.election.incrementVotesReceived(voteResult.isVoteGranted());
                     }
                 } catch (IOException | InterruptedException e) {
                     // error in network communication, assume vote not granted
@@ -157,9 +158,9 @@ public class Candidate extends ConsensusModule {
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election outcome " + electionOutcome);
 
         switch (electionOutcome) {
-            case WON: this.toLeader(); break;
-            case LOST: this.toFollower(); break;
-            case EXPIRED: this.startElection(); break;
+            case WON -> this.toLeader();
+            case LOST -> this.toFollower();
+            case EXPIRED -> this.startElection();
         }
     }
 

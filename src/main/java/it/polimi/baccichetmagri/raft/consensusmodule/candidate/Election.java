@@ -2,20 +2,32 @@ package it.polimi.baccichetmagri.raft.consensusmodule.candidate;
 
 class Election {
     private ElectionOutcome electionOutcome;
-    private int votesReceived;
-    private final int votesNeeded;
+    private int positiveVotesReceived;
+    private int totalVotesReceived;
+    private final int positiveVotesNeeded;
+    private final int totalVotesNeeded;
 
-    Election(int votesNeeded) {
+    Election(int positiveVotesNeeded, int totalVotesNeeded) {
         this.electionOutcome = null;
-        this.votesReceived = 0;
-        this.votesNeeded = votesNeeded;
+        this.positiveVotesReceived = 0;
+        this.totalVotesReceived = 0;
+        this.positiveVotesNeeded = positiveVotesNeeded;
+        this.totalVotesNeeded = totalVotesNeeded;
     }
 
-    synchronized void incrementVotesReceived() {
-        this.votesReceived++;
-        if (this.votesReceived >= this.votesNeeded) {
+    synchronized void incrementVotesReceived(boolean voteGranted) {
+        this.totalVotesReceived++;
+        if (voteGranted) {
+            this.positiveVotesReceived++;
+        }
+        if (this.positiveVotesReceived >= this.positiveVotesNeeded) {
             this.electionOutcome = ElectionOutcome.WON;
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election WON");
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + this.electionOutcome);
+            this.notify();
+        }
+        if(totalVotesReceived == totalVotesNeeded) {
+            this.electionOutcome = (this.positiveVotesReceived >= this.positiveVotesNeeded) ? ElectionOutcome.WON : ElectionOutcome.LOST;
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + this.electionOutcome);
             this.notify();
         }
     }

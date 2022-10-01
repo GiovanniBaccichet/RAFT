@@ -15,8 +15,8 @@ import java.util.List;
 
 public abstract class ConsensusModule implements ConsensusModuleInterface {
 
-    protected final static int ELECTION_TIMEOUT_MIN = 1500; // milliseconds
-    protected final static int ELECTION_TIMEOUT_MAX = 3000; // milliseconds
+    public final static int ELECTION_TIMEOUT_MIN = 1500; // milliseconds
+    public final static int ELECTION_TIMEOUT_MAX = 3000; // milliseconds
 
     protected int id;
     protected ConsensusPersistentState consensusPersistentState; // currentTerm, votedFor

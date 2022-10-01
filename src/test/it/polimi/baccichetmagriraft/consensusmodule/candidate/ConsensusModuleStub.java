@@ -11,16 +11,32 @@ import java.io.IOException;
 import java.util.List;
 
 public class ConsensusModuleStub implements ConsensusModuleInterface {
-    boolean voteGranted;
-    int term;
+    private boolean voteGranted;
+    private int term;
 
-    ConsensusModuleStub(boolean voteGranted, int term) {
+    private int delay;
+
+    ConsensusModuleStub(boolean voteGranted, int term, int delay) {
         this.voteGranted = voteGranted;
         this.term = term;
+        this.delay = delay;
     }
+    ConsensusModuleStub(boolean voteGranted, int term) {
+        this(voteGranted, term, 0);
+    }
+
+
 
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException, InterruptedException {
+        try {
+            if (this.delay > 0) {
+                Thread.sleep(delay);
+            }
+        } catch (InterruptedException e) {
+
+        }
+
         return new VoteResult(this.term, this.voteGranted);
     }
 

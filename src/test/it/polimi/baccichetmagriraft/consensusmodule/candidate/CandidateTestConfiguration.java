@@ -73,4 +73,8 @@ public class CandidateTestConfiguration extends Configuration {
     public String getIp() {
         return null;
     }
+
+    public void setStubs(List<ConsensusModuleStub> stubs) {
+        this.consensusModuleStubs = stubs;
+    }
 }
