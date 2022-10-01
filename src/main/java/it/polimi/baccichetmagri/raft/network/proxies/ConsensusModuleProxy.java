@@ -251,17 +251,20 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         Scanner in = new Scanner(this.socket.getInputStream());
         String jsonMessage = in.nextLine();
         this.logger.log(Level.FINE, "Received message from server " + this.id + ":\n" + jsonMessage);
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received message from: " + this.id + " message: " + jsonMessage);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received message from: " + this.id + " ✉️: " + jsonMessage);
         return this.messageSerializer.deserialiaze(jsonMessage);
     }
 
-    private void checkSocket() throws IOException {
+    private void checkSocket() throws IOException { // broken
         if (!this.isRunning) {
-            this.logger.log(Level.FINE, "Reconnection with server " + this.id);
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Server IP: " + this.ip);
-            this.setSocket(new Socket(this.ip, ServerSocketManager.RAFT_PORT));
+            try {
+                this.setSocket(new Socket(this.ip, ServerSocketManager.RAFT_PORT));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             PrintWriter out = new PrintWriter(this.socket.getOutputStream());
             out.println("SERVER " + this.consensusModuleContainer.getId());
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Server IP: " + this.ip);
         }
     }
 }

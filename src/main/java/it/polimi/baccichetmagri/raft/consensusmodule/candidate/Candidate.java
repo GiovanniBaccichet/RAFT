@@ -116,7 +116,7 @@ public class Candidate extends ConsensusModule {
         // send RequestVote RPCs to all other servers
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Send RPCs to other servers");
         this.election = new Election(this.configuration.getServersNumber() / 2
-                + this.configuration.getServersNumber() % 2);
+                + 1);
         this.election.incrementVotesReceived();
         Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
         // here printing
