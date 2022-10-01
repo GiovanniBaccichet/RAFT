@@ -263,7 +263,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
                 e.printStackTrace();
             }
             PrintWriter out = new PrintWriter(this.socket.getOutputStream());
-            out.println("SERVER " + this.consensusModuleContainer.getId());
+            out.println("SERVER" + this.consensusModuleContainer.getId());
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Server IP: " + this.ip);
         }
     }
