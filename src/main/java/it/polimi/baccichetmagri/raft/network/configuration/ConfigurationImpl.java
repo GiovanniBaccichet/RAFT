@@ -2,6 +2,7 @@ package it.polimi.baccichetmagri.raft.network.configuration;
 
 import com.google.gson.reflect.TypeToken;
 import it.polimi.baccichetmagri.raft.Server;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
@@ -70,10 +71,12 @@ public class ConfigurationImpl extends Configuration {
 
     /**
      * Returns an iterator over the collection of all ConsensusModuleProxies.
+     *
      * @return an iterator over the collection of all ConsensusModuleProxies
      */
-    public Iterator<ConsensusModuleProxy> getIteratorOnAllProxies() {
-        return this.proxies.listIterator();
+    public Iterator<ConsensusModuleInterface> getIteratorOnAllProxies() {
+        List<ConsensusModuleInterface> cModules = new ArrayList<>(this.proxies);
+        return cModules.listIterator();
     }
 
     /**

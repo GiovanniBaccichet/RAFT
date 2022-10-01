@@ -115,10 +115,9 @@ public class Candidate extends ConsensusModule {
 
         // send RequestVote RPCs to all other servers
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Send RPCs to other servers");
-        this.election = new Election(this.configuration.getServersNumber() / 2
-                + this.configuration.getServersNumber() % 2);
+        this.election = new Election(this.configuration.getServersNumber() / 2 + 1);
         this.election.incrementVotesReceived();
-        Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
+        Iterator<ConsensusModuleInterface> proxies = this.configuration.getIteratorOnAllProxies();
         // here printing
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         int lastLogIndex = this.log.getLastLogIndex(); // TO BE CHECKED
@@ -128,17 +127,17 @@ public class Candidate extends ConsensusModule {
         List<Thread> requestVoteRPCThreads = new ArrayList<>();
 
         while(proxies.hasNext()) {
-            ConsensusModuleProxy proxy = proxies.next();
+            ConsensusModuleInterface proxy = proxies.next();
             Thread rpcThread = new Thread(() -> {
                 try {
-                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote to id: " + proxy.getIp());
+                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote to id: " + proxy.getId());
                     VoteResult voteResult = proxy.requestVote(currentTerm, id, lastLogIndex, lastLogTerm);
                     if (!voteResult.isVoteGranted() && voteResult.getTerm() > currentTerm) {
                         this.election.loseElection();
                     } else if (voteResult.isVoteGranted()) {
                         this.election.incrementVotesReceived();
                     }
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException e) {
                     // error in network communication, assume vote not granted
                     System.out.println("[" + this.getClass().getSimpleName() + "] " + "NETWORK ERROR!");
                     e.printStackTrace();
@@ -158,9 +157,9 @@ public class Candidate extends ConsensusModule {
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election outcome " + electionOutcome);
 
         switch (electionOutcome) {
-            case WON: this.toLeader();
-            case LOST: this.toFollower();
-            case EXPIRED: this.startElection();
+            case WON: this.toLeader(); break;
+            case LOST: this.toFollower(); break;
+            case EXPIRED: this.startElection(); break;
         }
     }
 
@@ -178,6 +177,7 @@ public class Candidate extends ConsensusModule {
     }
 
     private synchronized void stopElectionTimer() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "canceling timer");
         this.timer.cancel();
     }
 

@@ -1,18 +1,18 @@
 package it.polimi.baccichetmagri.raft.network.configuration;
 
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
 
 import java.util.Iterator;
-import java.util.List;
 
 public abstract class Configuration {
     public abstract void initialize(int id, ConsensusModuleContainer consensusModuleContainer);
 
     public abstract ConsensusModuleProxy getConsensusModuleProxy(int id) throws NoSuchProxyException;
 
-    public abstract Iterator<ConsensusModuleProxy> getIteratorOnAllProxies();
+    public abstract Iterator<ConsensusModuleInterface> getIteratorOnAllProxies();
 
     public abstract int getServersNumber();
 

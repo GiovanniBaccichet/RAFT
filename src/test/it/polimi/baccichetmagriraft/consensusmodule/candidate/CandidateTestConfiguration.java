@@ -1,14 +1,23 @@
-package it.polimi.baccichetmagriraft.consensusmodule.follower;
+package it.polimi.baccichetmagriraft.consensusmodule.candidate;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
-import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 import it.polimi.baccichetmagri.raft.network.exceptions.NoSuchProxyException;
+import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-class FollowerTestConfiguration extends Configuration {
+public class CandidateTestConfiguration extends Configuration {
+
+    List<ConsensusModuleStub> consensusModuleStubs;
+
+    CandidateTestConfiguration(List<ConsensusModuleStub> stubs) {
+        this.consensusModuleStubs = stubs;
+    }
+
     @Override
     public void initialize(int id, ConsensusModuleContainer consensusModuleContainer) {
 
@@ -21,12 +30,13 @@ class FollowerTestConfiguration extends Configuration {
 
     @Override
     public Iterator<ConsensusModuleInterface> getIteratorOnAllProxies() {
-        return null;
+        List<ConsensusModuleInterface> cModules = new ArrayList<>(this.consensusModuleStubs);
+        return cModules.listIterator();
     }
 
     @Override
     public int getServersNumber() {
-        return 0;
+        return this.consensusModuleStubs.size() + 1;
     }
 
     @Override

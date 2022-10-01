@@ -49,4 +49,5 @@ public interface ConsensusModuleInterface {
      */
     int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) throws IOException;
 
+    int getId();
 }

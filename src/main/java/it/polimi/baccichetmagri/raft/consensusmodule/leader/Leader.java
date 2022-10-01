@@ -1,6 +1,7 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.leader;
 
 import it.polimi.baccichetmagri.raft.Server;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusPersistentState;
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
@@ -40,7 +41,7 @@ public class Leader extends ConsensusModule {
                   Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer consensusModuleContainer) throws IOException {
         super(id, consensusPersistentState, commitIndex, lastApplied, configuration, log, stateMachine, consensusModuleContainer);
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Instancing a LEADER");
-        Iterator<ConsensusModuleProxy> proxies = this.configuration.getIteratorOnAllProxies();
+        Iterator<ConsensusModuleInterface> proxies = this.configuration.getIteratorOnAllProxies();
         int lastLogIndex = this.log.getLastLogIndex();
         this.appendEntriesCalls = new ArrayList<>();
         while (proxies.hasNext()) {

@@ -11,7 +11,6 @@ import it.polimi.baccichetmagri.raft.machine.CommandImplementation;
 import it.polimi.baccichetmagri.raft.machine.StateImplementation;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineImplementation;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
