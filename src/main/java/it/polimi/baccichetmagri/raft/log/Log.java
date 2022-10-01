@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,13 +54,18 @@ public class Log {
      * Close file channel
      * @throws IOException
      */
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Closing Log file channel...");
         this.fileChannel.close();
     }
 
-    public int size() throws IOException {
-        return entryEndIndex.size() + this.snapshot.getLastIncludedIndex() - 1;
+    public synchronized int size() throws IOException { // THERE IS A PROBLEM
+        try {
+            return entryEndIndex.size() + this.snapshot.getLastIncludedIndex() - 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 
     /**
@@ -69,7 +75,7 @@ public class Log {
      * @return an ENUM, depending on the position of the Log Entry (if it exists)
      * @throws IOException
      */
-    public LogEntryStatus containsEntry(int index, int term) throws IOException {
+    public synchronized LogEntryStatus containsEntry(int index, int term) throws IOException {
         if (index == 0 && term == 0) { // fictitious entry with index 0
             return LogEntryStatus.NOT_SNAPSHOTTED;
         }
@@ -92,7 +98,7 @@ public class Log {
      * @param commitIndex parameter needed to avoid snapshotting uncommitted entries
      * @throws IOException
      */
-    public void appendEntry(LogEntry entry, int commitIndex) throws IOException {
+    public synchronized void appendEntry(LogEntry entry, int commitIndex) throws IOException {
         byte[] entryBytes = EntrySerializer.serialize(entry);
         ByteBuffer byteBuffer = ByteBuffer.allocate(entryBytes.length + 4);
         byteBuffer.putInt(entryBytes.length);
@@ -114,7 +120,7 @@ public class Log {
      * @param fromIndex index from which deleting the others
      * @throws IOException
      */
-    public void deleteEntriesFrom(int fromIndex) throws IOException {
+    public synchronized void deleteEntriesFrom(int fromIndex) throws IOException {
         if (fromIndex <= snapshot.getLastIncludedIndex()) {
             /*
              * If fromIndex is related to an Entry included in a snapshot,
@@ -137,7 +143,7 @@ public class Log {
      * @return a List of LogEntries
      * @throws IOException
      */
-    public List<LogEntry> getEntries() throws IOException {
+    public synchronized List<LogEntry> getEntries() throws IOException {
         List<LogEntry> entries = new ArrayList<>();
         for (int i = 0; i < size(); i++) {
             entries.add(readEntry(i + 1));
@@ -150,8 +156,8 @@ public class Log {
      * @param index requested index
      * @return LogEntry, having requested index
      */
-    public LogEntry getEntry(int index) throws IOException, SnapshottedEntryException {
-        validateIndex(index);
+    public synchronized LogEntry getEntry(int index) throws IOException, SnapshottedEntryException {
+//        validateIndex(index);
         if (index <= this.snapshot.getLastIncludedIndex()) {
             throw new SnapshottedEntryException();
         }
@@ -164,7 +170,7 @@ public class Log {
      * @param toIndexExclusive upper bound (NOT included) index
      * @return a list of LogEntries, having index in the requested range
      */
-    public List<LogEntry> getEntries(int fromIndexInclusive, int toIndexExclusive) throws IOException, SnapshottedEntryException {
+    public synchronized List<LogEntry> getEntries(int fromIndexInclusive, int toIndexExclusive) throws IOException, SnapshottedEntryException {
         List<LogEntry> entries = new ArrayList<>();
         if (fromIndexInclusive > toIndexExclusive) {
             throw new IllegalArgumentException();
@@ -185,7 +191,7 @@ public class Log {
      * @param index requested index
      * @return LogEntry's Command, having the requested index
      */
-    public Command getEntryCommand(int index) throws IOException, SnapshottedEntryException {
+    public synchronized Command getEntryCommand(int index) throws IOException, SnapshottedEntryException {
         validateIndex(index);
         return this.getEntry(index).getCommand();
     }
@@ -195,21 +201,24 @@ public class Log {
      * @param index requested index
      * @return term related to the requested index
      */
-    public int getEntryTerm(int index) throws IOException, SnapshottedEntryException {
+    public synchronized int getEntryTerm(int index) throws IOException, SnapshottedEntryException {
         validateIndex(index);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Entry term: " + this.getEntry(index).getTerm());
         return this.getEntry(index).getTerm();
     }
 
     // Get last entry's index from the log
-    public int getLastLogIndex() throws IOException {
-        return Math.max(this.size(), 0);
+    public synchronized int getLastLogIndex() throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Last log index: " + this.size());
+        return this.size();
     }
 
-    public int getNextLogIndex() throws IOException {
+    public synchronized int getNextLogIndex() throws IOException {
         return this.size() + 1;
     }
 
-    public int getLastLogTerm() throws IOException {
+    public synchronized int getLastLogTerm() throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Getting last log term");
         try {
             int lastLogIndex = this.getLastLogIndex();
             if (lastLogIndex == 0) {
@@ -222,7 +231,7 @@ public class Log {
         }
     }
 
-    public JSONSnapshot getJSONSnapshot() throws IOException {
+    public synchronized JSONSnapshot getJSONSnapshot() throws IOException {
         return new JSONSnapshot(this.snapshot.getMachineState(), this.snapshot.getLastIncludedIndex(), this.snapshot.getLastIncludedTerm());
     }
 
@@ -230,7 +239,7 @@ public class Log {
      * Initializes entryEndIndex from the (persistent) Log content
      * @throws IOException
      */
-    public void reIndex() throws IOException {
+    public synchronized void reIndex() throws IOException {
             this.entryEndIndex = new ArrayList<>();
             this.entryEndIndex.add(0L);
             this.fileChannel.position(0);
@@ -251,7 +260,7 @@ public class Log {
      * Used to create the Log Snapshot
      * @param commitIndex commit index needed to not snapshot uncommitted entries
      */
-    private void createSnapshot(int commitIndex) {
+    private synchronized void createSnapshot(int commitIndex) {
         try {
             snapshot.writeSnapshot(this.stateMachine.getState(), commitIndex, this.getLastLogTerm());
             List<LogEntry> uncommittedEntries = this.getEntries(commitIndex+1, this.getLastLogIndex()+1);
@@ -273,7 +282,7 @@ public class Log {
      * @param index index to check
      */
     private void validateIndex(int index) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Validating snapshot's index...");
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Validating log's index...");
         if (index < 1) {
             throw new IllegalArgumentException("[ERROR] Indices start at 1");
         }

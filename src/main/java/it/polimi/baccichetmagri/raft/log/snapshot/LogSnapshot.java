@@ -7,7 +7,7 @@ import java.io.*;
 
 public class LogSnapshot {
 
-    private final static String SNAPSHOT_PATH = "snapshot.json";
+    private final static String SNAPSHOT_PATH = "Log/snapshot.json";
 
     public State getMachineState() throws IOException {
         return readSnapshot().getState();

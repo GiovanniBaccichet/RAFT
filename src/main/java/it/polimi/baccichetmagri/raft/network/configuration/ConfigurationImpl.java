@@ -36,7 +36,7 @@ public class ConfigurationImpl extends Configuration {
         try {
             // load configuration file with <id, ip> of other servers
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Loading ID/IP pairs:");
-            addresses = JsonFilesHandler.read("configuration.json",new TypeToken<Map<Integer, String>>() {}.getType());
+            addresses = JsonFilesHandler.read("Config/configuration.json",new TypeToken<Map<Integer, String>>() {}.getType());
             // create list of proxies
             for (Map.Entry<Integer, String> address : addresses.entrySet()) {
                 if (address.getKey() != id) {

@@ -35,12 +35,12 @@ public class ConsensusPersistentState {
     }
 
     private ConsensusPersistentStateForGson readState() throws IOException {
-        return JsonFilesHandler.read("consensus_persistent_state.json", ConsensusPersistentStateForGson.class);
+        return JsonFilesHandler.read("Config/consensus_persistent_state.json", ConsensusPersistentStateForGson.class);
     }
 
     private void writeState(ConsensusPersistentStateForGson state) throws IOException {
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Writing state on file");
-        JsonFilesHandler.write("consensus_persistent_state.json", state);
+        JsonFilesHandler.write("Config/consensus_persistent_state.json", state);
     }
 
 
