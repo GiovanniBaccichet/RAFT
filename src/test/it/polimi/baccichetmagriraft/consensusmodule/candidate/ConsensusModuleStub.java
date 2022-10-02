@@ -15,11 +15,13 @@ public class ConsensusModuleStub implements ConsensusModuleInterface {
     private int term;
 
     private int delay;
+    private boolean firstCall;
 
     ConsensusModuleStub(boolean voteGranted, int term, int delay) {
         this.voteGranted = voteGranted;
         this.term = term;
         this.delay = delay;
+        this.firstCall = true;
     }
     ConsensusModuleStub(boolean voteGranted, int term) {
         this(voteGranted, term, 0);
@@ -30,11 +32,12 @@ public class ConsensusModuleStub implements ConsensusModuleInterface {
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException, InterruptedException {
         try {
-            if (this.delay > 0) {
+            if (this.delay > 0 && this.firstCall) {
+                this.firstCall = false;
                 Thread.sleep(delay);
             }
         } catch (InterruptedException e) {
-
+            System.out.println("Interrupted");
         }
 
         return new VoteResult(this.term, this.voteGranted);

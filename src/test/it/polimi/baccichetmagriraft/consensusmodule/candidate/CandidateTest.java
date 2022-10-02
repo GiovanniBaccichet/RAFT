@@ -70,11 +70,6 @@ public class CandidateTest {
         stubs.add(new ConsensusModuleStub(false, 0, ConsensusModule.ELECTION_TIMEOUT_MAX * 10));
         stubs.add(new ConsensusModuleStub(true, 0, ConsensusModule.ELECTION_TIMEOUT_MAX * 10));
         setUp(stubs);
-        Thread.sleep(ConsensusModule.ELECTION_TIMEOUT_MAX * 10);
-        stubs.clear();
-        stubs.add(new ConsensusModuleStub(true, 0));
-        stubs.add(new ConsensusModuleStub(true, 0));
-        configuration.setStubs(stubs);
         Thread.sleep(ConsensusModule.ELECTION_TIMEOUT_MAX + 100);
         assertEquals("LEADER", container.getConsensusModuleType());
     }

@@ -44,6 +44,10 @@ class Election {
         this.notify();
     }
 
+    synchronized boolean isExpired() {
+        return this.electionOutcome == ElectionOutcome.EXPIRED;
+    }
+
     synchronized ElectionOutcome getElectionOutcome() {
         if (this.electionOutcome == null) {
             try {

@@ -12,7 +12,6 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
-import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
 import java.io.IOException;
 import java.util.*;
@@ -133,10 +132,12 @@ public class Candidate extends ConsensusModule {
                     System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote to id: " + proxy.getId());
                     VoteResult voteResult = proxy.requestVote(currentTerm, id, lastLogIndex, lastLogTerm);
                     // vote not granted, result.getTerm() <= currentTerm
-                    if (!voteResult.isVoteGranted() && voteResult.getTerm() > currentTerm) {
-                        this.election.loseElection();
-                    } else {
-                        this.election.incrementVotesReceived(voteResult.isVoteGranted());
+                    if (!this.election.isExpired()) {
+                        if (!voteResult.isVoteGranted() && voteResult.getTerm() > currentTerm) {
+                            this.election.loseElection();
+                        } else {
+                            this.election.incrementVotesReceived(voteResult.isVoteGranted());
+                        }
                     }
                 } catch (IOException | InterruptedException e) {
                     // error in network communication, assume vote not granted
