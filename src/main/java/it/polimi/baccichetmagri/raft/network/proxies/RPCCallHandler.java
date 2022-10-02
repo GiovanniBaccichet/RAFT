@@ -41,9 +41,12 @@ class RPCCallHandler<T extends Message, S extends Message> {
             Scanner in = new Scanner(socket.getInputStream());
             S reply = null;
             out.println("SERVER " + this.id);
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "sending connect message to " + this.ip);
             String requestMsgString = (new MessageSerializer()).serialize(requestMsg);
             out.println(requestMsgString);
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "sending request message " + requestMsgString + " from " + this.ip);
             String replyString = in.nextLine();
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "received reply " + replyString + "from " + this.ip);
 
         /*while(reply == null) {
             String requestMsgString = (new MessageSerializer()).serialize(requestMsg);
