@@ -50,9 +50,9 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         this.logger.setLevel(Level.FINE);
         this.isRunning = false;
         this.consensusModuleContainer = consensusModuleContainer;
-        this.appendEntryRPCHandler = new RPCCallHandler<>(ip);
-        this.voteRequestRPCHandler = new RPCCallHandler<>(ip);
-        this.installSnapshotRPCHandler = new RPCCallHandler<>(ip);
+        this.appendEntryRPCHandler = new RPCCallHandler<>(ip, id);
+        this.voteRequestRPCHandler = new RPCCallHandler<>(ip, id);
+        this.installSnapshotRPCHandler = new RPCCallHandler<>(ip, id);
     }
 
     /**

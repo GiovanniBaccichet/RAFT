@@ -2,6 +2,7 @@ package it.polimi.baccichetmagri.raft.network.proxies;
 
 import it.polimi.baccichetmagri.raft.messages.Message;
 import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
+import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 import it.polimi.baccichetmagri.raft.network.messageserializer.MessageSerializer;
 import it.polimi.baccichetmagri.raft.utils.ConsumerThrowsIOException;
 
@@ -23,27 +24,39 @@ class RPCCallHandler<T extends Message, S extends Message> {
     private final BlockingQueue<S> repliesQueue;
     private boolean discardReplies;
     private final String ip; // ip of the server with which this object is used to communicate
+    private final int id;
 
-    RPCCallHandler(String ip) {
+    RPCCallHandler(String ip, int id) {
         this.repliesQueue = new LinkedBlockingQueue<>();
         this.discardReplies = false;
         this.ip = ip;
+        this.id = id;
     }
 
     S makeCall(T requestMsg) throws InterruptedException, IOException {
-        // send the request message over the network and wait for the reply; if timeout expires, redo call
-        Socket socket = new Socket(this.ip, ServerSocketManager.RAFT_PORT);
-        PrintWriter out = new PrintWriter(socket.getOutputStream());
-        Scanner in = new Scanner(socket.getInputStream());
-        S reply = null;
-        while(reply == null) {
-            out.println(requestMsg);
+        try {
+            // send the request message over the network and wait for the reply; if timeout expires, redo call
+            Socket socket = new Socket(this.ip, ServerSocketManager.RAFT_PORT);
+            PrintWriter out = new PrintWriter(socket.getOutputStream());
+            Scanner in = new Scanner(socket.getInputStream());
+            S reply = null;
+            out.println("SERVER " + this.id);
+            String requestMsgString = (new MessageSerializer()).serialize(requestMsg);
+            out.println(requestMsgString);
+            String replyString = in.nextLine();
+
+        /*while(reply == null) {
+            String requestMsgString = (new MessageSerializer()).serialize(requestMsg);
+            out.println(requestMsgString);
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending request to server " + this.ip);
             reply = this.repliesQueue.poll(REPLY_TIMEOUT, TimeUnit.MILLISECONDS);
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received reply from queue from server " + this.ip);
+        }*/
+            socket.close();
+            return (S) (new MessageSerializer()).deserialize(replyString);
+        } catch (BadMessageException e) {
+            e.printStackTrace();
         }
-        socket.close();
-        return reply;
+        return null;
     }
 
     void receiveReply(S replyMsg) {
