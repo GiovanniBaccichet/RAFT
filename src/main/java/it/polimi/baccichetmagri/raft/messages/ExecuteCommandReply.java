@@ -6,8 +6,8 @@ import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 public class ExecuteCommandReply extends Message{
     private final ExecuteCommandResult executeCommandResult;
 
-    public ExecuteCommandReply(ExecuteCommandResult executeCommandResult, int messageId) {
-        super(MessageType.ExecuteCommandReply, messageId);
+    public ExecuteCommandReply(ExecuteCommandResult executeCommandResult) {
+        super(MessageType.ExecuteCommandReply);
         this.executeCommandResult = executeCommandResult;
     }
 

@@ -25,9 +25,36 @@ public class InstallSnapshotRequest extends Message{
         this.done = done;
     }
 
+    public int getTerm() {
+        return term;
+    }
+
+    public int getLeaderId() {
+        return leaderId;
+    }
+
+    public int getLastIncludedIndex() {
+        return lastIncludedIndex;
+    }
+
+    public int getLastIncludedTerm() {
+        return lastIncludedTerm;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
     @Override
     public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
-        consensusModuleProxy.callInstallSnapshot(this.term, this.leaderId, this.lastIncludedIndex, this.lastIncludedTerm,
-                this.offset, this.data, this.done, this.getMessageId());
+
     }
 }

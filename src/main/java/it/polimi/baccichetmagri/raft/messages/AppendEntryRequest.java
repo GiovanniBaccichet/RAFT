@@ -26,10 +26,32 @@ public class AppendEntryRequest extends Message{
         this.logEntries = logEntries;
         this.leaderCommit = leaderCommit;
     }
+    public int getTerm() {
+        return term;
+    }
+
+    public int getLeaderId() {
+        return leaderId;
+    }
+
+    public int getPrevLogIndex() {
+        return prevLogIndex;
+    }
+
+    public int getPrevLogTerm() {
+        return prevLogTerm;
+    }
+
+    public List<LogEntry> getLogEntries() {
+        return logEntries;
+    }
+
+    public int getLeaderCommit() {
+        return leaderCommit;
+    }
 
     @Override
     public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
-        consensusModuleProxy.callAppendEntries(this.term, this.leaderId, this.prevLogIndex, this.prevLogTerm,
-                this.logEntries, this.leaderCommit, this.getMessageId());
+
     }
 }

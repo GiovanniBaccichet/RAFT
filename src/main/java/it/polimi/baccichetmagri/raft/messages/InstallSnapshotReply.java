@@ -7,8 +7,8 @@ import java.io.IOException;
 public class InstallSnapshotReply extends Message{
     private final int term;
 
-    public InstallSnapshotReply(int messageId, int term) {
-        super(MessageType.InstallSnapshotReply, messageId);
+    public InstallSnapshotReply( int term) {
+        super(MessageType.InstallSnapshotReply);
         this.term = term;
     }
 

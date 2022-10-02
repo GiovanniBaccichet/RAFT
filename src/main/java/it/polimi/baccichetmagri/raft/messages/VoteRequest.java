@@ -19,8 +19,24 @@ public class VoteRequest extends Message{
         this.lastLogTerm = lastLogTerm;
     }
 
+    public int getTerm() {
+        return term;
+    }
+
+    public int getCandidateId() {
+        return candidateId;
+    }
+
+    public int getLastLogIndex() {
+        return lastLogIndex;
+    }
+
+    public int getLastLogTerm() {
+        return lastLogTerm;
+    }
+
     @Override
     public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
-        consensusModuleProxy.callRequestVote(this.term, this.candidateId, this.lastLogIndex, this.lastLogTerm, this.getMessageId());
+
     }
 }
