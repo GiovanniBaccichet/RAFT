@@ -56,7 +56,7 @@ public class Client {
                         // send execute command request
                         Command command = new CommandImplementation(Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
                         logger.log(Level.FINE, "Sending ExecuteCommandRequest to Raft Server " + leaderIp);
-                        out.println(messageSerializer.serialize(new ExecuteCommandRequest(command, messageIdToSend)));
+                        out.println(messageSerializer.serialize(new ExecuteCommandRequest(command)));
                         messageIdToSend++;
 
                         // receive execute command reply

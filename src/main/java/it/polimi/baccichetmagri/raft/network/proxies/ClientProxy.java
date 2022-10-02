@@ -62,7 +62,7 @@ ClientProxy implements Runnable{
 
             try {
                 PrintWriter out = new PrintWriter(this.socket.getOutputStream());
-                out.println(new ExecuteCommandReply(executeCommandResult, message.getMessageId()));
+                out.println(new ExecuteCommandReply(executeCommandResult));
             } catch (Exception e) {
                 e.printStackTrace();
                 logger.log(Level.SEVERE, "Error in sending the response to the client. Socket closed.");
