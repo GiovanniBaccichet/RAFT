@@ -104,7 +104,6 @@ public class ConfigurationImpl extends Configuration {
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Leader IP: " + this.ip);
             return this.ip;
         } else {
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Leader IP: " + this.getConsensusModuleProxy(this.leaderId).getIp());
             return this.getConsensusModuleProxy(this.leaderId).getIp();
         }
     }

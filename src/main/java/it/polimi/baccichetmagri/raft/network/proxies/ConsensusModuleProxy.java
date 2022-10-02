@@ -26,7 +26,7 @@ import java.util.logging.Logger;
  */
 public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable {
 
-
+    private final String ip;
     private final int id;
     private Socket socket;
 
@@ -42,6 +42,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     private final RPCCallHandler<InstallSnapshotRequest, InstallSnapshotReply> installSnapshotRPCHandler;
 
     public ConsensusModuleProxy(int id, String ip, ConsensusModuleContainer consensusModuleContainer) {
+        this.ip = ip;
         this.id = id;
         this.socket = null;
         this.messageSerializer = new MessageSerializer();
@@ -260,5 +261,9 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    public String getIp() {
+        return this.ip;
     }
 }
