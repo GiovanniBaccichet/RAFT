@@ -6,6 +6,9 @@ import it.polimi.baccichetmagri.raft.consensusmodule.candidate.Candidate;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineImplementation;
+import it.polimi.baccichetmagriraft.consensusmodule.ConfigurationStub;
+import it.polimi.baccichetmagriraft.consensusmodule.ConsensusModuleStub;
+import it.polimi.baccichetmagriraft.consensusmodule.ContainerStub;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.IOException;
@@ -24,7 +27,7 @@ public class CandidateTest {
         ConsensusPersistentState consensusPersistentState = new ConsensusPersistentState();
         consensusPersistentState.setVotedFor(null);
         consensusPersistentState.setCurrentTerm(0);
-        CandidateTestConfiguration configuration = new CandidateTestConfiguration(stubs);
+        ConfigurationStub configuration = new ConfigurationStub(stubs);
         StateMachine stateMachine = new StateMachineImplementation();
         Log log = new Log(Path.of(Log.LOG_FILENAME), stateMachine);
         log.deleteEntriesFrom(1);

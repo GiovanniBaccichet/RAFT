@@ -118,75 +118,6 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface {
         }
     }
 
-    /**
-     * Calls ConsensusModuleImpl::requestVote and sends the result to the peer.
-
-     * @throws IOException
-     */
-    public VoteReply callRequestVote(VoteRequest voteRequest) throws IOException {
-        VoteResult voteResult = null;
-        try {
-            voteResult = this.consensusModuleContainer.requestVote(voteRequest.getTerm(), voteRequest.getCandidateId(),
-                    voteRequest.getLastLogIndex(), voteRequest.getLastLogTerm());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return new VoteReply(voteResult);
-    }
-
-    /**
-     * Calls ConsensusModuleImpl::appendEntries and sends the result to the peer.
-     * @throws IOException
-     */
-    public AppendEntryReply callAppendEntries(AppendEntryRequest appendEntryRequest) throws IOException {
-        AppendEntryResult appendEntryResult = null;
-        try {
-            appendEntryResult = this.consensusModuleContainer.appendEntries(appendEntryRequest.getTerm(), appendEntryRequest.getLeaderId(),
-                    appendEntryRequest.getPrevLogIndex(), appendEntryRequest.getPrevLogTerm(), appendEntryRequest.getLogEntries(),
-                    appendEntryRequest.getLeaderCommit());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return new AppendEntryReply(appendEntryResult);
-    }
-
-    public InstallSnapshotReply callInstallSnapshot(InstallSnapshotRequest installSnapshotRequest) throws IOException {
-        int currentTerm = this.consensusModuleContainer.installSnapshot(installSnapshotRequest.getTerm(), installSnapshotRequest.getLeaderId(),
-                installSnapshotRequest.getLastIncludedIndex(), installSnapshotRequest.getLastIncludedTerm(), installSnapshotRequest.getOffset(),
-                installSnapshotRequest.getData(), installSnapshotRequest.isDone());
-        return new InstallSnapshotReply(currentTerm);
-    }
-
-    public void discardAppendEntryReplies(boolean discard) {
-        this.appendEntryRPCHandler.setDiscardReplies(discard);
-    }
-
-    public void discardVoteReplies(boolean discard) {
-        this.voteRequestRPCHandler.setDiscardReplies(discard);
-    }
-
-    public void discardInstallSnapshotReplies(boolean discard) {
-        this.installSnapshotRPCHandler.setDiscardReplies(discard);
-    }
-
-    private void sendMessage(Message message, Socket socket) throws IOException {
-        PrintWriter out = new PrintWriter(socket.getOutputStream());
-        String jsonMessage = this.messageSerializer.serialize(message);
-        out.println(jsonMessage);
-        out.flush();
-        this.logger.log(Level.FINE, "Sent message to server + " + this.id + ":\n" + jsonMessage);
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message to: " + this.id);
-        System.out.println("[✉️]: " + jsonMessage);
-    }
-
-    private Message readMessage(Socket socket) throws IOException, BadMessageException { // TODO CHECK THIS
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received message from: " + this.id);
-        String jsonMessage = in.readLine();
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "[✉️]: " + jsonMessage);
-        return this.messageSerializer.deserialize(jsonMessage);
-    }
-
     public void receiveMethodCall(Socket socket) {
         try {
             Message request = this.readMessage(socket);
@@ -213,4 +144,75 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface {
     public String getIp() {
         return this.ip;
     }
+
+    public void discardAppendEntryReplies(boolean discard) {
+        this.appendEntryRPCHandler.setDiscardReplies(discard);
+    }
+
+    public void discardVoteReplies(boolean discard) {
+        this.voteRequestRPCHandler.setDiscardReplies(discard);
+    }
+
+    public void discardInstallSnapshotReplies(boolean discard) {
+        this.installSnapshotRPCHandler.setDiscardReplies(discard);
+    }
+
+    /**
+     * Calls ConsensusModuleImpl::requestVote and sends the result to the peer.
+
+     * @throws IOException
+     */
+    private VoteReply callRequestVote(VoteRequest voteRequest) throws IOException {
+        VoteResult voteResult = null;
+        try {
+            voteResult = this.consensusModuleContainer.requestVote(voteRequest.getTerm(), voteRequest.getCandidateId(),
+                    voteRequest.getLastLogIndex(), voteRequest.getLastLogTerm());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return new VoteReply(voteResult);
+    }
+
+    /**
+     * Calls ConsensusModuleImpl::appendEntries and sends the result to the peer.
+     * @throws IOException
+     */
+    private AppendEntryReply callAppendEntries(AppendEntryRequest appendEntryRequest) throws IOException {
+        AppendEntryResult appendEntryResult = null;
+        try {
+            appendEntryResult = this.consensusModuleContainer.appendEntries(appendEntryRequest.getTerm(), appendEntryRequest.getLeaderId(),
+                    appendEntryRequest.getPrevLogIndex(), appendEntryRequest.getPrevLogTerm(), appendEntryRequest.getLogEntries(),
+                    appendEntryRequest.getLeaderCommit());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return new AppendEntryReply(appendEntryResult);
+    }
+
+    private InstallSnapshotReply callInstallSnapshot(InstallSnapshotRequest installSnapshotRequest) throws IOException {
+        int currentTerm = this.consensusModuleContainer.installSnapshot(installSnapshotRequest.getTerm(), installSnapshotRequest.getLeaderId(),
+                installSnapshotRequest.getLastIncludedIndex(), installSnapshotRequest.getLastIncludedTerm(), installSnapshotRequest.getOffset(),
+                installSnapshotRequest.getData(), installSnapshotRequest.isDone());
+        return new InstallSnapshotReply(currentTerm);
+    }
+
+    private void sendMessage(Message message, Socket socket) throws IOException {
+        PrintWriter out = new PrintWriter(socket.getOutputStream());
+        String jsonMessage = this.messageSerializer.serialize(message);
+        out.println(jsonMessage);
+        out.flush();
+        this.logger.log(Level.FINE, "Sent message to server + " + this.id + ":\n" + jsonMessage);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message to: " + this.id);
+        System.out.println("[✉️]: " + jsonMessage);
+    }
+
+    private Message readMessage(Socket socket) throws IOException, BadMessageException { // TODO CHECK THIS
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received message from: " + this.id);
+        String jsonMessage = in.readLine();
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "[✉️]: " + jsonMessage);
+        return this.messageSerializer.deserialize(jsonMessage);
+    }
+
+
 }

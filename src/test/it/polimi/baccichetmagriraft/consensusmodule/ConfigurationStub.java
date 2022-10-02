@@ -1,4 +1,4 @@
-package it.polimi.baccichetmagriraft.consensusmodule.candidate;
+package it.polimi.baccichetmagriraft.consensusmodule;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class CandidateTestConfiguration extends Configuration {
+public class ConfigurationStub extends Configuration {
 
-    List<ConsensusModuleStub> consensusModuleStubs;
+    private List<ConsensusModuleStub> consensusModuleStubs;
 
-    CandidateTestConfiguration(List<ConsensusModuleStub> stubs) {
+    public ConfigurationStub(List<ConsensusModuleStub> stubs) {
         this.consensusModuleStubs = stubs;
     }
 
@@ -74,7 +74,4 @@ public class CandidateTestConfiguration extends Configuration {
         return null;
     }
 
-    public void setStubs(List<ConsensusModuleStub> stubs) {
-        this.consensusModuleStubs = stubs;
-    }
 }

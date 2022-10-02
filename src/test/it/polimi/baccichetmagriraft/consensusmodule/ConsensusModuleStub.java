@@ -1,7 +1,6 @@
-package it.polimi.baccichetmagriraft.consensusmodule.candidate;
+package it.polimi.baccichetmagriraft.consensusmodule;
 
-import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
-import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
+import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
@@ -11,18 +10,41 @@ import it.polimi.baccichetmagri.raft.machine.Command;
 import java.io.IOException;
 import java.util.List;
 
-public class ContainerStub extends ConsensusModuleContainer {
+public class ConsensusModuleStub implements ConsensusModuleInterface {
+    private final boolean success;
+    private final int term;
 
-    ConsensusModule consensusModule;
+    private final int delay;
+    private boolean firstCall;
+
+    public ConsensusModuleStub(boolean success, int term, int delay) {
+        this.success = success;
+        this.term = term;
+        this.delay = delay;
+        this.firstCall = true;
+    }
+    public ConsensusModuleStub(boolean success, int term) {
+        this(success, term, 0);
+    }
+
 
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException, InterruptedException {
-        return null;
+        try {
+            if (this.delay > 0 && this.firstCall) {
+                this.firstCall = false;
+                Thread.sleep(delay);
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted");
+        }
+
+        return new VoteResult(this.term, this.success);
     }
 
     @Override
     public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) throws IOException, InterruptedException {
-        return null;
+        return new AppendEntryResult(this.term, this.success);
     }
 
     @Override
@@ -38,14 +60,5 @@ public class ContainerStub extends ConsensusModuleContainer {
     @Override
     public int getId() {
         return 0;
-    }
-
-    @Override
-    public void changeConsensusModuleImpl(ConsensusModule consensusModule) {
-        this.consensusModule = consensusModule;
-    }
-
-    String getConsensusModuleType() {
-        return this.consensusModule.toString();
     }
 }
