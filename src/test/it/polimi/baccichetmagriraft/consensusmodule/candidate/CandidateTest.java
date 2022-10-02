@@ -3,7 +3,6 @@ package it.polimi.baccichetmagriraft.consensusmodule.candidate;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModule;
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusPersistentState;
 import it.polimi.baccichetmagri.raft.consensusmodule.candidate.Candidate;
-import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.machine.StateMachineImplementation;
@@ -19,14 +18,13 @@ public class CandidateTest {
 
     private Candidate candidate;
     private ContainerStub container;
-    private CandidateTestConfiguration configuration;
 
 
     void setUp(List<ConsensusModuleStub> stubs) throws IOException {
         ConsensusPersistentState consensusPersistentState = new ConsensusPersistentState();
         consensusPersistentState.setVotedFor(null);
         consensusPersistentState.setCurrentTerm(0);
-        configuration = new CandidateTestConfiguration(stubs);
+        CandidateTestConfiguration configuration = new CandidateTestConfiguration(stubs);
         StateMachine stateMachine = new StateMachineImplementation();
         Log log = new Log(Path.of(Log.LOG_FILENAME), stateMachine);
         log.deleteEntriesFrom(1);
