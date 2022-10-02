@@ -59,7 +59,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * Listens for messages on the socket and processes them.
      */
     public void run() {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Running socket");
+        /*System.out.println("[" + this.getClass().getSimpleName() + "] " + "Running socket");
         try {
             while(true) {
                 try {
@@ -81,7 +81,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
                 ex.printStackTrace();
             }
             this.isRunning = false;
-        }
+        }*/
     }
 
     /**
@@ -232,7 +232,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         System.out.println("[✉️]: " + jsonMessage);
     }
 
-    private Message readMessage() throws IOException, BadMessageException { // TODO CHECK THIS
+    private Message readMessage(Socket socket) throws IOException, BadMessageException { // TODO CHECK THIS
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received message from: " + this.id);
         String jsonMessage = in.readLine();
@@ -242,7 +242,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
 
     public void receiveMethodCall(Socket socket) {
         try {
-            Message request = this.readMessage();
+            Message request = this.readMessage(socket);
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received msg from: " + request);
             Message reply = null;
             switch (request.getMessageType()) {
