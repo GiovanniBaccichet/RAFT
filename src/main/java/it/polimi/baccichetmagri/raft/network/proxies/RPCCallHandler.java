@@ -37,17 +37,18 @@ class RPCCallHandler<T extends Message, S extends Message> {
         Scanner in = new Scanner(socket.getInputStream());
         S reply = null;
         while(reply == null) {
-            out.println(requestMsg);
+            String requestMessage = new MessageSerializer().serialize(requestMsg);
+            out.println(requestMessage);
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending request to server " + this.ip);
+            System.out.println("\t[REQUEST]: " + requestMessage);
             reply = this.repliesQueue.poll(REPLY_TIMEOUT, TimeUnit.MILLISECONDS);
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received reply from queue from server " + this.ip);
         }
         socket.close();
         return reply;
     }
 
     void receiveReply(S replyMsg) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received reply: " +  (new MessageSerializer()).serialize(replyMsg));
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "\t [REPLY]: " + (new MessageSerializer().serialize(replyMsg)));
         if (!this.discardReplies) {
             this.repliesQueue.add(replyMsg);
         }

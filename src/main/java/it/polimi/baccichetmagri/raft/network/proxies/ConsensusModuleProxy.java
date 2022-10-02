@@ -199,7 +199,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     public void receiveVoteReply(VoteReply voteReply) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received vote reply");
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received vote reply: " + voteReply.getVoteResult());
         this.voteRequestRPCHandler.receiveReply(voteReply);
     }
 
