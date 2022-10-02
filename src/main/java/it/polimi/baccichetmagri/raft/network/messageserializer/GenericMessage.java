@@ -10,10 +10,4 @@ public class GenericMessage extends Message {
         super(messageType, 0);
     }
 
-    @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) {
-
-    }
-
-
 }

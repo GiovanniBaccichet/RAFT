@@ -9,7 +9,6 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.messages.*;
 import it.polimi.baccichetmagri.raft.network.messageserializer.MessageSerializer;
-import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 
 import java.io.BufferedReader;
@@ -24,17 +23,13 @@ import java.util.logging.Logger;
 /**
  * A proxy for consensus modules of other servers in the cluster.
  */
-public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable {
+public class ConsensusModuleProxy implements ConsensusModuleInterface {
 
     private final String ip;
     private final int id;
-    private Socket socket;
 
     private final MessageSerializer messageSerializer;
     private final Logger logger;
-
-    private boolean isRunning; // true if a socket is open and communicating with the remote server
-
     private final ConsensusModuleContainer consensusModuleContainer; // the local consensus module
 
     private final RPCCallHandler<AppendEntryRequest, AppendEntryReply> appendEntryRPCHandler;
@@ -44,45 +39,15 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     public ConsensusModuleProxy(int id, String ip, ConsensusModuleContainer consensusModuleContainer) {
         this.ip = ip;
         this.id = id;
-        this.socket = null;
         this.messageSerializer = new MessageSerializer();
         this.logger = Logger.getLogger(ConsensusModuleProxy.class.getName());
         this.logger.setLevel(Level.FINE);
-        this.isRunning = false;
         this.consensusModuleContainer = consensusModuleContainer;
         this.appendEntryRPCHandler = new RPCCallHandler<>(ip, consensusModuleContainer.getId());
         this.voteRequestRPCHandler = new RPCCallHandler<>(ip, consensusModuleContainer.getId());
         this.installSnapshotRPCHandler = new RPCCallHandler<>(ip, consensusModuleContainer.getId());
     }
 
-    /**
-     * Listens for messages on the socket and processes them.
-     */
-    public void run() {
-        /*System.out.println("[" + this.getClass().getSimpleName() + "] " + "Running socket");
-        try {
-            while(true) {
-                try {
-                    Message message = this.readMessage();
-                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received msg from: " + message);
-                    message.execute(this);
-                } catch (BadMessageException e) {
-                    this.logger.log(Level.WARNING, e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-        } catch (IOException e) {
-            this.logger.log(Level.WARNING, "Error in network communication. Socket will be closed.");
-            e.printStackTrace();
-            try {
-                this.socket.close();
-            } catch (IOException ex) {
-                this.logger.log(Level.WARNING, "Impossible to close the socket.");
-                ex.printStackTrace();
-            }
-            this.isRunning = false;
-        }*/
-    }
 
     /**
      * Returns the id of the server represented by the proxy.
@@ -91,15 +56,6 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     public int getId() {
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Proxy ID: " + this.id);
         return this.id;
-    }
-
-    public void setSocket(Socket socket) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Socket listening");
-        this.socket = socket;
-        if (!this.isRunning) {
-            (new Thread(this)).start();
-            this.isRunning = true;
-        }
     }
 
     /**
@@ -116,8 +72,8 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
             VoteReply voteReply = this.voteRequestRPCHandler.makeCall(new VoteRequest(term, candidateID, lastLogIndex, lastLogTerm));
             return voteReply.getVoteResult();
         } catch (InterruptedException e) {
-//            return null;
-            return new VoteResult(term, false);
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Request vote method call to server " + this.id + " interrupted");
+            return null;
         }
     }
 
@@ -138,6 +94,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
                     logEntries, leaderCommit));
             return appendEntryReply.getAppendEntryResult();
         } catch (InterruptedException e) {
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Append entries method call to server " + this.id + " interrupted");
             return null;
         }
 
@@ -145,6 +102,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
 
     @Override
     public ExecuteCommandResult executeCommand(Command command) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Method executeCommand should not be called");
         return null;
     }
 
@@ -155,6 +113,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
                     lastIncludedTerm, offset, data, done));
             return installSnapshotReply.getTerm();
         } catch (InterruptedException e) {
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Install snapsnot method call to server " + this.id + " interrupted");
             return 0;
         }
     }
@@ -198,19 +157,6 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         return new InstallSnapshotReply(currentTerm);
     }
 
-    public void receiveVoteReply(VoteReply voteReply) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received vote reply: " + voteReply.getVoteResult());
-        this.voteRequestRPCHandler.receiveReply(voteReply);
-    }
-
-    public void receiveAppendEntriesReply(AppendEntryReply appendEntryReply) {
-        this.appendEntryRPCHandler.receiveReply(appendEntryReply);
-    }
-
-    public void receiveInstallSnapshotReply(InstallSnapshotReply installSnapshotReply) {
-        this.installSnapshotRPCHandler.receiveReply(installSnapshotReply);
-    }
-
     public void discardAppendEntryReplies(boolean discard) {
         this.appendEntryRPCHandler.setDiscardReplies(discard);
     }
@@ -227,6 +173,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         PrintWriter out = new PrintWriter(socket.getOutputStream());
         String jsonMessage = this.messageSerializer.serialize(message);
         out.println(jsonMessage);
+        out.flush();
         this.logger.log(Level.FINE, "Sent message to server + " + this.id + ":\n" + jsonMessage);
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message to: " + this.id);
         System.out.println("[✉️]: " + jsonMessage);

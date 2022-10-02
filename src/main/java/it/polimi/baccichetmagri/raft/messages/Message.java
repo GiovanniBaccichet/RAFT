@@ -20,6 +20,4 @@ public abstract class Message {
         return this.messageType;
     }
 
-    public abstract void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException;
-
 }

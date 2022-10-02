@@ -53,8 +53,4 @@ public class InstallSnapshotRequest extends Message{
         return done;
     }
 
-    @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
-
-    }
 }

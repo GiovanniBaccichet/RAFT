@@ -13,10 +13,6 @@ public class AppendEntryReply extends Message{
         this.appendEntryResult = appendEntryResult;
     }
 
-    @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) {
-        consensusModuleProxy.receiveAppendEntriesReply(this);
-    }
 
     public AppendEntryResult getAppendEntryResult() {
         return this.appendEntryResult;

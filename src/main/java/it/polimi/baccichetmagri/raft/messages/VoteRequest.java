@@ -35,8 +35,4 @@ public class VoteRequest extends Message{
         return lastLogTerm;
     }
 
-    @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
-
-    }
 }

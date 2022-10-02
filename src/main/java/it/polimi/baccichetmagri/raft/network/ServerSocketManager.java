@@ -44,9 +44,10 @@ public class ServerSocketManager implements Runnable{
             try {
                 // accept new connections and read the first message
                 socket = this.serverSocket.accept();
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "Accepted new connection");
                 Scanner in = new Scanner(socket.getInputStream());
                 String connectMessage = in.nextLine();
-                System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received message: " + connectMessage);
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received connect message: " + connectMessage);
 
                 if (connectMessage.contains("SERVER")) {
                     // if the message is "SERVER X", where x is an integer number, the connection is requested from

@@ -11,10 +11,6 @@ public class ExecuteCommandReply extends Message{
         this.executeCommandResult = executeCommandResult;
     }
 
-    @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) {
-        // this message can't be sent by a server, so this method does nothing
-    }
 
     public ExecuteCommandResult getExecuteCommandResult() {
         return executeCommandResult;

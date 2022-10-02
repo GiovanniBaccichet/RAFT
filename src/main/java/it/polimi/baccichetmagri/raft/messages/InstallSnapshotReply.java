@@ -12,10 +12,6 @@ public class InstallSnapshotReply extends Message{
         this.term = term;
     }
 
-    @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
-        consensusModuleProxy.receiveInstallSnapshotReply(this);
-    }
 
     public int getTerm() {
         return term;

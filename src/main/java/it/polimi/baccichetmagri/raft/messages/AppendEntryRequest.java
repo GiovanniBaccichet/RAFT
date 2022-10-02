@@ -50,8 +50,4 @@ public class AppendEntryRequest extends Message{
         return leaderCommit;
     }
 
-    @Override
-    public void execute(ConsensusModuleProxy consensusModuleProxy) throws IOException {
-
-    }
 }
