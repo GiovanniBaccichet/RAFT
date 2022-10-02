@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,8 +59,13 @@ public class Log {
         this.fileChannel.close();
     }
 
-    public synchronized int size() throws IOException {
-        return entryEndIndex.size() + this.snapshot.getLastIncludedIndex() - 1;
+    public synchronized int size() throws IOException { // THERE IS A PROBLEM
+        try {
+            return entryEndIndex.size() + this.snapshot.getLastIncludedIndex() - 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 
     /**
@@ -151,7 +157,7 @@ public class Log {
      * @return LogEntry, having requested index
      */
     public synchronized LogEntry getEntry(int index) throws IOException, SnapshottedEntryException {
-        validateIndex(index);
+//        validateIndex(index);
         if (index <= this.snapshot.getLastIncludedIndex()) {
             throw new SnapshottedEntryException();
         }
@@ -197,12 +203,14 @@ public class Log {
      */
     public synchronized int getEntryTerm(int index) throws IOException, SnapshottedEntryException {
         validateIndex(index);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Entry term: " + this.getEntry(index).getTerm());
         return this.getEntry(index).getTerm();
     }
 
     // Get last entry's index from the log
     public synchronized int getLastLogIndex() throws IOException {
-        return Math.max(this.size(), 0);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Last log index: " + this.size());
+        return this.size();
     }
 
     public synchronized int getNextLogIndex() throws IOException {
@@ -210,6 +218,7 @@ public class Log {
     }
 
     public synchronized int getLastLogTerm() throws IOException {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Getting last log term");
         try {
             int lastLogIndex = this.getLastLogIndex();
             if (lastLogIndex == 0) {
@@ -273,7 +282,7 @@ public class Log {
      * @param index index to check
      */
     private void validateIndex(int index) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Validating snapshot's index...");
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Validating log's index...");
         if (index < 1) {
             throw new IllegalArgumentException("[ERROR] Indices start at 1");
         }

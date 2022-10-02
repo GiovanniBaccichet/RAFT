@@ -63,7 +63,7 @@ public class Client {
                         String jsonMessage = in.nextLine();
                         logger.log(Level.FINE, "Received message from Raft Server" + leaderIp + " :\n" + jsonMessage);
                         try {
-                            Message message = messageSerializer.deserialiaze(jsonMessage);
+                            Message message = messageSerializer.deserialize(jsonMessage);
                             if (message.getMessageType().equals(MessageType.ExecuteCommandReply)) {
                                 ExecuteCommandReply executeCommandReply = (ExecuteCommandReply) message;
                                 ExecuteCommandResult executeCommandResult= executeCommandReply.getExecuteCommandResult();

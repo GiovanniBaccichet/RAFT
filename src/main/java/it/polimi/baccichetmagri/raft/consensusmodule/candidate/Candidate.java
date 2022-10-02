@@ -12,6 +12,7 @@ import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.machine.Command;
 import it.polimi.baccichetmagri.raft.machine.StateMachine;
 import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
+import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
 import java.io.IOException;
 import java.util.*;
@@ -48,6 +49,7 @@ public class Candidate extends ConsensusModule {
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         if (term > currentTerm) { // there is an election occurring in a term > currentTerm, convert to follower
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Converting to FOLLOWER (election lost)");
+            this.stopElectionTimer();
             this.election.loseElection();
         }
         return new VoteResult(currentTerm, false);
@@ -63,6 +65,7 @@ public class Candidate extends ConsensusModule {
             return new AppendEntryResult(currentTerm, false);
         } else {
             // a new leader has been established, convert to follower and process the request as follower
+            this.stopElectionTimer();
             this.election.loseElection();
             Follower follower = new Follower(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
                     this.configuration, this.log, this.stateMachine, this.container);
@@ -83,6 +86,7 @@ public class Candidate extends ConsensusModule {
             return currentTerm;
         } else {
             // a new leader has been established, convert to follower and process the request as follower
+            this.stopElectionTimer();
             this.election.loseElection();
             Follower follower = new Follower(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
                     this.configuration, this.log, this.stateMachine, this.container);
@@ -116,10 +120,8 @@ public class Candidate extends ConsensusModule {
         Iterator<ConsensusModuleInterface> proxies = this.configuration.getIteratorOnAllProxies();
         // here printing
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
-        int lastLogIndex = this.log.getLastLogIndex(); // TO BE CHECKED
-//        int lastLogIndex = 13;
-        int lastLogTerm = this.log.getLastLogTerm(); // TO BE CHECKED
-//        int lastLogTerm = 13;
+        int lastLogIndex = this.log.getLastLogIndex();
+        int lastLogTerm = this.log.getLastLogTerm();
         List<Thread> requestVoteRPCThreads = new ArrayList<>();
 
         while(proxies.hasNext()) {

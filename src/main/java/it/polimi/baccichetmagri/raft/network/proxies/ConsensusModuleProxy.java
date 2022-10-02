@@ -12,11 +12,12 @@ import it.polimi.baccichetmagri.raft.network.messageserializer.MessageSerializer
 import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -59,6 +60,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * Listens for messages on the socket and processes them.
      */
     public void run() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Running socket");
         try {
             while(true) {
                 try {
@@ -88,6 +90,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
      * @return The id of the server represented by the proxy.
      */
     public int getId() {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Proxy ID: " + this.id);
         return this.id;
     }
 
@@ -100,6 +103,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     public void setSocket(Socket socket) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Socket listening");
         this.socket = socket;
         if (!this.isRunning) {
             (new Thread(this)).start();
@@ -123,7 +127,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
             return voteReply.getVoteResult();
         } catch (InterruptedException e) {
 //            return null;
-            return new VoteResult(term, false); // may be wrong here
+            return new VoteResult(term, false);
         }
     }
 
@@ -212,6 +216,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
     }
 
     public void receiveVoteReply(VoteReply voteReply) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received vote reply");
         this.voteRequestRPCHandler.receiveReply(voteReply);
     }
 
@@ -241,23 +246,35 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface, Runnable 
         String jsonMessage = this.messageSerializer.serialize(message);
         out.println(jsonMessage);
         this.logger.log(Level.FINE, "Sent message to server + " + this.id + ":\n" + jsonMessage);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message to: " + this.ip);
+        System.out.println("[✉️]: " + jsonMessage);
     }
 
-    private Message readMessage() throws IOException, BadMessageException {
+    private Message readMessage() throws IOException, BadMessageException { // TODO CHECK THIS
         this.checkSocket();
-        Scanner in = new Scanner(this.socket.getInputStream());
-        String jsonMessage = in.nextLine();
-        this.logger.log(Level.FINE, "Received message from server " + this.id + ":\n" + jsonMessage);
-        return this.messageSerializer.deserialiaze(jsonMessage);
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received message from: " + this.id);
+        String jsonMessage = in.readLine();
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "[✉️]: " + jsonMessage);
+        return this.messageSerializer.deserialize(jsonMessage);
     }
 
-    private void checkSocket() throws IOException {
+    private void checkSocket() throws IOException { // TODO: BROKEN
         if (!this.isRunning) {
-            this.logger.log(Level.FINE, "Reconnection with server " + this.id);
+            try {
+                this.setSocket(new Socket(this.ip, ServerSocketManager.RAFT_PORT));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            PrintWriter out = new PrintWriter(this.socket.getOutputStream(), true);
+            try {
+//                out.println("SERVER" + this.consensusModuleContainer.getId());
+                out.println("SERVER 1");
+            } catch (Exception e) {
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "ERROR sending the message to " + this.ip);
+                e.printStackTrace();
+            }
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Server IP: " + this.ip);
-            this.setSocket(new Socket(this.ip, ServerSocketManager.RAFT_PORT));
-            PrintWriter out = new PrintWriter(this.socket.getOutputStream());
-            out.println("SERVER " + this.consensusModuleContainer.getId());
         }
     }
 }

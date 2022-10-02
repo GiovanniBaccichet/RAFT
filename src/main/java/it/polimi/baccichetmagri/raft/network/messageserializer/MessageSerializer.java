@@ -12,7 +12,7 @@ public class MessageSerializer {
         return this.gson.toJson(message);
     }
 
-    public Message deserialiaze(String jsonMessage) throws BadMessageException {
+    public Message deserialize(String jsonMessage) throws BadMessageException {
         if (jsonMessage == null) {
             throw new NullPointerException();
         }

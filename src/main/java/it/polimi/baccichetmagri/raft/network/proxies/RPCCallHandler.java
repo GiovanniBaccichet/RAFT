@@ -11,11 +11,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A class that allows to make RPCs to remote servers.
- * @param <T> the type of the request message
- * @param <S> the type of the reply message
+ * @param <T> the type of the REQUEST message
+ * @param <S> the type of the REPLY message
  */
 class RPCCallHandler<T extends Message, S extends Message> {
-    public static final int REPLY_TIMEOUT = 1000; // in milliseconds
+    public static final int REPLY_TIMEOUT = 5000; // in milliseconds
 
     private int nextMsgId;
     private final BlockingQueue<S> repliesQueue;
@@ -35,7 +35,6 @@ class RPCCallHandler<T extends Message, S extends Message> {
         // send the request message over the network and wait for the reply; if timeout expires, redo call
         S reply = null;
         while(reply == null) {
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message: " + (new MessageSerializer()).serialize(requestMsg));
             msgSender.accept(requestMsg); // send the message
             reply = this.repliesQueue.poll(REPLY_TIMEOUT, TimeUnit.MILLISECONDS);
             if (reply != null && reply.getMessageId() != requestMsg.getMessageId()) {
@@ -47,7 +46,7 @@ class RPCCallHandler<T extends Message, S extends Message> {
     }
 
     void receiveReply(S replyMsg) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received reply " + replyMsg);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received reply: " +  (new MessageSerializer()).serialize(replyMsg));
         if (!this.discardReplies) {
             this.repliesQueue.add(replyMsg);
         }
