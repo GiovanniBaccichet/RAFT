@@ -53,11 +53,8 @@ public class ServerSocketManager implements Runnable{
                     // if the message is "SERVER X", where x is an integer number, the connection is requested from
                     // the server with id = X
                     int id = Integer.parseInt(connectMessage.substring(7));
-                    this.logger.log(Level.WARNING, "Received connection with server " + id);
-                    //this.configuration.getConsensusModuleProxy(id).setSocket(socket);
                     Socket finalSocket = socket;
                     (new Thread(() -> this.configuration.getConsensusModuleProxy(id).receiveMethodCall(finalSocket))).start();
-                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received msg from: " + id);
                 } else if (connectMessage.equals("CLIENT")){
                     //if the message is "CLIENT", the connection is requested from a client
                     new ClientProxy(socket, this.consensusModuleContainer);

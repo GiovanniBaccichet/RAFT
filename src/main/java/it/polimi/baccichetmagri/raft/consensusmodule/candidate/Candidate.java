@@ -45,7 +45,7 @@ public class Candidate extends ConsensusModule {
 
     @Override
     public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) throws IOException {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote");
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Executing requestVote");
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         if (term > currentTerm) { // there is an election occurring in a term > currentTerm, convert to follower
             System.out.println("[" + this.getClass().getSimpleName() + "] " + "Converting to FOLLOWER (election lost)");
@@ -58,6 +58,8 @@ public class Candidate extends ConsensusModule {
     @Override
     public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit)
         throws IOException {
+
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Executing AppendEntryResult");
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         // reply false if term < currentTerm
@@ -75,12 +77,16 @@ public class Candidate extends ConsensusModule {
 
     @Override
     public synchronized ExecuteCommandResult executeCommand(Command command) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Executing command");
         return new ExecuteCommandResult(null, false, null);
     }
 
     @Override
     public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done)
         throws IOException {
+
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Installing snapshot");
+
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
         if (term < currentTerm) {
             return currentTerm;
@@ -165,7 +171,7 @@ public class Candidate extends ConsensusModule {
     }
 
     private void startElectionTimer() {
-        int delay = (new Random()).nextInt(ConsensusModule.ELECTION_TIMEOUT_MAX - ConsensusModule.ELECTION_TIMEOUT_MIN + 1) + ConsensusModule.ELECTION_TIMEOUT_MIN + 15000;
+        int delay = (new Random()).nextInt(ConsensusModule.ELECTION_TIMEOUT_MAX - ConsensusModule.ELECTION_TIMEOUT_MIN + 1) + ConsensusModule.ELECTION_TIMEOUT_MIN;
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Started election time w/ delay: " + delay);
         // when the timer expires, interrupt all threads where RequestVoteRPC was sent
         this.timer = new Timer();

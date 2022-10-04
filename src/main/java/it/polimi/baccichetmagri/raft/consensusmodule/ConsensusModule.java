@@ -31,6 +31,11 @@ public abstract class ConsensusModule implements ConsensusModuleInterface {
                            Configuration configuration, Log log, StateMachine stateMachine, ConsensusModuleContainer container) {
         this.id = id;
         this.consensusPersistentState = consensusPersistentState;
+        try {
+            consensusPersistentState.setVotedFor(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         this.commitIndex = commitIndex;
         this.lastApplied = lastApplied;
         this.configuration = configuration;

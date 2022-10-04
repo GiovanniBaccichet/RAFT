@@ -18,21 +18,14 @@ public class MessageSerializer {
         }
 
         GenericMessage message = this.gson.fromJson(jsonMessage, GenericMessage.class);
-        switch (message.getMessageType()) {
-            case AppendEntryRequest:
-                return this.gson.fromJson(jsonMessage, AppendEntryRequest.class);
-            case AppendEntryReply:
-                return this.gson.fromJson(jsonMessage, AppendEntryReply.class);
-            case ExecuteCommandRequest:
-                return this.gson.fromJson(jsonMessage, ExecuteCommandRequest.class);
-            case ExecuteCommandReply:
-                return this.gson.fromJson(jsonMessage, ExecuteCommandReply.class);
-            case VoteRequest:
-                return this.gson.fromJson(jsonMessage, VoteRequest.class);
-            case VoteReply:
-                return this.gson.fromJson(jsonMessage, VoteReply.class);
-            default:
-                throw new BadMessageException("invalid message: " + jsonMessage);
-        }
+        return switch (message.getMessageType()) {
+            case AppendEntryRequest -> this.gson.fromJson(jsonMessage, AppendEntryRequest.class);
+            case AppendEntryReply -> this.gson.fromJson(jsonMessage, AppendEntryReply.class);
+            case ExecuteCommandRequest -> this.gson.fromJson(jsonMessage, ExecuteCommandRequest.class);
+            case ExecuteCommandReply -> this.gson.fromJson(jsonMessage, ExecuteCommandReply.class);
+            case VoteRequest -> this.gson.fromJson(jsonMessage, VoteRequest.class);
+            case VoteReply -> this.gson.fromJson(jsonMessage, VoteReply.class);
+            default -> throw new BadMessageException("invalid message: " + jsonMessage);
+        };
     }
 }

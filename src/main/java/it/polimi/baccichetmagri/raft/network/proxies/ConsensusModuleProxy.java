@@ -94,7 +94,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface {
                     logEntries, leaderCommit));
             return appendEntryReply.getAppendEntryResult();
         } catch (InterruptedException e) {
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Append entries method call to server " + this.id + " interrupted");
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Append entries method call to server " + this.id + " INTERRUPTED");
             return null;
         }
 
@@ -113,7 +113,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface {
                     lastIncludedTerm, offset, data, done));
             return installSnapshotReply.getTerm();
         } catch (InterruptedException e) {
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Install snapsnot method call to server " + this.id + " interrupted");
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Install snapsnot method call to server " + this.id + " INTERRUPTED");
             return 0;
         }
     }
@@ -121,7 +121,7 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface {
     public void receiveMethodCall(Socket socket) {
         try {
             Message request = this.readMessage(socket);
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received msg from: " + request);
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "MessageType: " + request.getMessageType());
             Message reply = null;
             switch (request.getMessageType()) {
                 case AppendEntryRequest -> reply = callAppendEntries((AppendEntryRequest) request);
@@ -164,12 +164,15 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface {
      */
     private VoteReply callRequestVote(VoteRequest voteRequest) throws IOException {
         VoteResult voteResult = null;
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Calling requestVote");
         try {
             voteResult = this.consensusModuleContainer.requestVote(voteRequest.getTerm(), voteRequest.getCandidateId(),
                     voteRequest.getLastLogIndex(), voteRequest.getLastLogTerm());
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Vote Result: " + voteResult.isVoteGranted() + " in term " + voteResult.getTerm());
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+
         return new VoteReply(voteResult);
     }
 
@@ -179,12 +182,14 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface {
      */
     private AppendEntryReply callAppendEntries(AppendEntryRequest appendEntryRequest) throws IOException {
         AppendEntryResult appendEntryResult = null;
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Calling AppendEntries");
         try {
             appendEntryResult = this.consensusModuleContainer.appendEntries(appendEntryRequest.getTerm(), appendEntryRequest.getLeaderId(),
                     appendEntryRequest.getPrevLogIndex(), appendEntryRequest.getPrevLogTerm(), appendEntryRequest.getLogEntries(),
                     appendEntryRequest.getLeaderCommit());
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Append Entry: " + appendEntryResult.isSuccess() + " in term " + appendEntryResult.getTerm());
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         return new AppendEntryReply(appendEntryResult);
     }
@@ -201,16 +206,14 @@ public class ConsensusModuleProxy implements ConsensusModuleInterface {
         String jsonMessage = this.messageSerializer.serialize(message);
         out.println(jsonMessage);
         out.flush();
-        this.logger.log(Level.FINE, "Sent message to server + " + this.id + ":\n" + jsonMessage);
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending message to: " + this.id);
         System.out.println("[✉️]: " + jsonMessage);
     }
 
-    private Message readMessage(Socket socket) throws IOException, BadMessageException { // TODO CHECK THIS
+    private Message readMessage(Socket socket) throws IOException, BadMessageException {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "📬 Received message from: " + this.id);
         String jsonMessage = in.readLine();
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "[✉️]: " + jsonMessage);
+        System.out.println("\u001B[45m" + "\u001B[37m" + "[" + this.getClass().getSimpleName() + "] " + "Received message from: " + this.id + " message: " + jsonMessage + "\u001B[0m");
         return this.messageSerializer.deserialize(jsonMessage);
     }
 

@@ -12,9 +12,7 @@ import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.log.Log;
 import it.polimi.baccichetmagri.raft.log.LogEntry;
 import it.polimi.baccichetmagri.raft.log.snapshot.SnapshottedEntryException;
-import it.polimi.baccichetmagri.raft.machine.Command;
-import it.polimi.baccichetmagri.raft.machine.StateMachine;
-import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
+import it.polimi.baccichetmagri.raft.machine.*;
 import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
 import it.polimi.baccichetmagri.raft.network.proxies.ConsensusModuleProxy;
 
@@ -26,7 +24,7 @@ import java.util.logging.Logger;
 
 public class Leader extends ConsensusModule {
 
-    private static final int HEARTBEAT_TIMEOUT = 1000; // the timeout for sending a heartbeat is lower than the minimum election
+    private static final int HEARTBEAT_TIMEOUT = 500; // the timeout for sending a heartbeat is lower than the minimum election
                                                       // timeout possible, so that elections don't start when the leader is still alive
 
     private final List<AppendEntriesCall> appendEntriesCalls;
@@ -97,8 +95,11 @@ public class Leader extends ConsensusModule {
         int lastLogIndex = this.log.getLastLogIndex();
 
         // append command to local log as new entry
-        LogEntry logEntry = new LogEntry(currentTerm, command);
+        LogEntry logEntry = new LogEntry(currentTerm, (CommandImplementation) command);
         this.log.appendEntry(logEntry, this.commitIndex);
+
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Appended new log entry w/ term: " + logEntry.getTerm() + "\u001B[0m");
+
 
         EntryReplication entryReplication = new EntryReplication(this.toFollower);
 
@@ -116,6 +117,9 @@ public class Leader extends ConsensusModule {
             try {
                 // wait until one of the followers reply to the RPC
                 ExecuteCommandDirective directive = entryReplication.waitForFollowerReplies();
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Executing command: " + directive + "\u001B[0m");
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Last applied: " + this.lastApplied + "\u001B[0m");
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Commit index: " + this.commitIndex + "\u001B[0m");
                 if (directive.equals(ExecuteCommandDirective.COMMIT)) {
                     // UPDATE COMMIT INDEX
                     if (this.appendEntriesCalls.stream().map(AppendEntriesCall::getMatchIndex).filter(index -> index == indexToCommit).count()
@@ -135,7 +139,7 @@ public class Leader extends ConsensusModule {
         }
 
         this.startHeartbeatTimer();
-        return new ExecuteCommandResult(stateMachineResult, true, this.configuration.getIp());
+        return new ExecuteCommandResult((StateMachineResultImplementation) stateMachineResult, true, this.configuration.getIp());
     }
 
     @Override
@@ -179,7 +183,7 @@ public class Leader extends ConsensusModule {
     }
 
     private void sendHeartbeat() throws IOException {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending heartbeat");
+        System.out.println("[" + this.getClass().getSimpleName() + "][" + Thread.currentThread().getId() + "] " + "Sending heartbeat");
         for(AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {
             EntryReplication entryReplication = new EntryReplication(this.toFollower);
             appendEntriesCall.callAppendEntries(this.consensusPersistentState.getCurrentTerm(), this.commitIndex, entryReplication);
@@ -187,18 +191,18 @@ public class Leader extends ConsensusModule {
     }
 
     private StateMachineResult applyCommittedEntries() throws IOException {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Applying committed entries");
         try {
             // if commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
             StateMachineResult stateMachineResult = null;
             while (this.lastApplied < this.commitIndex) {
                 this.lastApplied++;
                 stateMachineResult = this.stateMachine.executeCommand(this.log.getEntryCommand(this.lastApplied));
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Last applied: " + this.lastApplied + "\u001B[0m");
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Commit index: " + this.commitIndex + "\u001B[0m");
             }
             return stateMachineResult;
         } catch(SnapshottedEntryException e) {
             // should never happen, because uncommitted entries cannot be snapshotted
-            this.logger.log(Level.SEVERE, "Uncommitted entry is snapshotted");
             e.printStackTrace();
             Server.shutDown();
         }
@@ -206,7 +210,6 @@ public class Leader extends ConsensusModule {
     }
 
     private Follower toFollower(Integer leaderId) {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Converting to FOLLOWER");
         Follower follower = new Follower(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
                 this.configuration, this.log, this.stateMachine, this.container);
         for (AppendEntriesCall appendEntriesCall : this.appendEntriesCalls) {
@@ -215,6 +218,7 @@ public class Leader extends ConsensusModule {
         this.timer.cancel();
         this.container.changeConsensusModuleImpl(follower);
         this.configuration.setLeader(leaderId);
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Converting to FOLLOWER");
         return follower;
     }
 

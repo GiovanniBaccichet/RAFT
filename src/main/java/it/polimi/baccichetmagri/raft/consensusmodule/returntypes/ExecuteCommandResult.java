@@ -1,13 +1,14 @@
 package it.polimi.baccichetmagri.raft.consensusmodule.returntypes;
 
 import it.polimi.baccichetmagri.raft.machine.StateMachineResult;
+import it.polimi.baccichetmagri.raft.machine.StateMachineResultImplementation;
 
 public class ExecuteCommandResult {
-    private final StateMachineResult stateMachineResult;
+    private final StateMachineResultImplementation stateMachineResult;
     private final boolean valid;
     private final String leaderIP;
 
-    public ExecuteCommandResult(StateMachineResult stateMachineResult, boolean valid, String leaderIP) {
+    public ExecuteCommandResult(StateMachineResultImplementation stateMachineResult, boolean valid, String leaderIP) {
         this.stateMachineResult = stateMachineResult;
         this.valid = valid;
         this.leaderIP = leaderIP;

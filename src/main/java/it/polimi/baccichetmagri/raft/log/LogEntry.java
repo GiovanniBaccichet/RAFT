@@ -1,15 +1,16 @@
 package it.polimi.baccichetmagri.raft.log;
 
 import it.polimi.baccichetmagri.raft.machine.Command;
+import it.polimi.baccichetmagri.raft.machine.CommandImplementation;
 
 import java.io.Serializable;
 
 public class LogEntry implements Serializable {
 
     private int term;
-    private Command command;
+    private CommandImplementation command;
 
-    public LogEntry(int term, Command command) {
+    public LogEntry(int term, CommandImplementation command) {
         this.term = term;
         this.command = command;
     }

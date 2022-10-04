@@ -35,11 +35,11 @@ public class ConsensusModuleContainerImpl extends ConsensusModuleContainer {
     }
 
     @Override
-    public synchronized VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
+    public VoteResult requestVote(int term, int candidateID, int lastLogIndex, int lastLogTerm) {
         try {
             this.logger.log(Level.FINE, "Calling " + this.consensusModule + "::requestVote(term = " + term + ",\ncandidateId = " +
                     candidateID + ",\nlastLogIndex = " + lastLogIndex + ",\nlastLogTerm = " + lastLogTerm + ")");
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote in term: " + term + "for Candidate: " + candidateID);
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Requesting vote in term: " + term + " for Candidate: " + candidateID);
             return this.consensusModule.requestVote(term, candidateID, lastLogIndex, lastLogTerm);
         } catch (IOException e) {
             this.handleIOException(e);
@@ -48,7 +48,7 @@ public class ConsensusModuleContainerImpl extends ConsensusModuleContainer {
     }
 
     @Override
-    public synchronized AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) {
+    public AppendEntryResult appendEntries(int term, int leaderID, int prevLogIndex, int prevLogTerm, List<LogEntry> logEntries, int leaderCommit) {
         try {
             this.logger.log(Level.FINE, "Calling " + this.consensusModule + "::appendEntries(term = " + term + ",\nleaderID = " +
                     leaderID + ",\nprevLogIndex = " + prevLogIndex + ",\nprevLogTerm = " + prevLogTerm + ",\nlogEntries = "
@@ -61,7 +61,7 @@ public class ConsensusModuleContainerImpl extends ConsensusModuleContainer {
     }
 
     @Override
-    public synchronized ExecuteCommandResult executeCommand(Command command) {
+    public ExecuteCommandResult executeCommand(Command command) {
         try {
             this.logger.log(Level.FINE, "Calling " + this.consensusModule + "::executeCommand(command = " + command + ")");
             return this.consensusModule.executeCommand(command);
@@ -72,7 +72,7 @@ public class ConsensusModuleContainerImpl extends ConsensusModuleContainer {
     }
 
     @Override
-    public synchronized int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
+    public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) {
         try {
             this.logger.log(Level.FINE, "Calling " + this.consensusModule + "::installSnapshot(term = "
                     + term + ",\nleaderID = " + leaderID + ",\nlastIncludedIndex = " + lastIncludedIndex + ",\nlastIncludedTerm = " +
@@ -84,11 +84,11 @@ public class ConsensusModuleContainerImpl extends ConsensusModuleContainer {
         return -1;
     }
 
-    public synchronized int getId() {
+    public int getId() {
         return this.consensusModule.getId();
     }
 
-    public synchronized void changeConsensusModuleImpl(ConsensusModule consensusModule) {
+    public void changeConsensusModuleImpl(ConsensusModule consensusModule) {
         try {
             this.logger.log(Level.FINE, "Changing consensus module from " + this.consensusModule + " to " + consensusModule);
             this.consensusModule = consensusModule;

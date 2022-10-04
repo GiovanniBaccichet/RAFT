@@ -56,6 +56,7 @@ public class Follower extends ConsensusModule {
                                                         List<LogEntry> logEntries,
                                                         int leaderCommit) throws IOException {
 
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Executing appendEntries");
         this.stopElectionTimer();
 
         // Read currentTerm (1 time access)
@@ -70,7 +71,7 @@ public class Follower extends ConsensusModule {
 
         // Update leader
         this.configuration.setLeader(leaderID);
-
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Leader set: " + leaderID);
         // If term T > currentTerm: set currentTerm = T
         this.updateTerm(term);
 
@@ -130,6 +131,7 @@ public class Follower extends ConsensusModule {
 
     @Override
     public synchronized ExecuteCommandResult executeCommand(Command command) {
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Executing executeCommand");
         return new ExecuteCommandResult(null, false,
                 this.configuration.getLeaderIP());
     }
@@ -138,6 +140,8 @@ public class Follower extends ConsensusModule {
                                                int candidateID,
                                                int candidateLastLogIndex,
                                                int candidateLastLogTerm) throws IOException{
+
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Executing requestVote");
         this.stopElectionTimer();
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();
@@ -174,6 +178,9 @@ public class Follower extends ConsensusModule {
 
     @Override
     public int installSnapshot(int term, int leaderID, int lastIncludedIndex, int lastIncludedTerm, int offset, byte[] data, boolean done) throws IOException {
+
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Executing installSnapshot");
+
         this.stopElectionTimer();
 
         int currentTerm = this.consensusPersistentState.getCurrentTerm();

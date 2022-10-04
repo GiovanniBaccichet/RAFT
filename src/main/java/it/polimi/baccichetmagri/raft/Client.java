@@ -36,7 +36,6 @@ public class Client {
         Socket socket = null;
         try {
             MessageSerializer messageSerializer = new MessageSerializer();
-            int messageIdToSend = 1;
             Scanner scanner = new Scanner(System.in);
             String leaderIp = args[0];
 
@@ -54,14 +53,20 @@ public class Client {
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
 
                         // send execute command request
-                        Command command = new CommandImplementation(Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
-                        logger.log(Level.FINE, "Sending ExecuteCommandRequest to Raft Server " + leaderIp);
-                        out.println(messageSerializer.serialize(new ExecuteCommandRequest(command)));
-                        messageIdToSend++;
+                        out.println("CLIENT");
+                        out.flush();
+                        System.out.println("[Client] " + "Connection message SENT");
+                        CommandImplementation command = new CommandImplementation(Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
+                        System.out.println("[Client] " + "COMMAND SENT: " + Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
+                        System.out.println("[Client] " + "Sending ExecuteCommandRequest to Raft Leader: " + leaderIp);
+                        String messageToSend = messageSerializer.serialize(new ExecuteCommandRequest(command));
+                        out.println(messageToSend);
+                        out.flush();
+                        System.out.println("[Client] " + "Sending command: " + messageToSend);
 
                         // receive execute command reply
                         String jsonMessage = in.nextLine();
-                        logger.log(Level.FINE, "Received message from Raft Server" + leaderIp + " :\n" + jsonMessage);
+                        System.out.println("\u001B[42m" + "[Client] " + "Received message from Raft Server: " + leaderIp + " message: " + jsonMessage + "\u001B[0m");
                         try {
                             Message message = messageSerializer.deserialize(jsonMessage);
                             if (message.getMessageType().equals(MessageType.ExecuteCommandReply)) {

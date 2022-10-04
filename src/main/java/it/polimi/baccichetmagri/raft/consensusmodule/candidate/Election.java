@@ -33,7 +33,7 @@ class Election {
     }
 
     synchronized void loseElection() {
-        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Election LOST");
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[43m" + "Election LOST" + "\u001B[0m");
         this.electionOutcome = ElectionOutcome.LOST;
         this.notify();
     }

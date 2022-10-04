@@ -43,18 +43,18 @@ class RPCCallHandler<T extends Message, S extends Message> {
             S reply = null;
             out.println("SERVER " + this.id);
             out.flush();
-            System.out.println("[" + this.getClass().getSimpleName() + "] " + "sending connect message to " + this.ip);
+            System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending CONNECT message to " + this.ip);
             String requestString = (new MessageSerializer()).serialize(requestMsg);
             while(reply == null && !discardReplies) {
                 out.println(requestString);
                 out.flush();
-                System.out.println("[" + this.getClass().getSimpleName() + "] " + "sending request message " + requestString + " from " + this.ip);
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "Sending REQUEST message " + requestString + " from " + this.ip);
                 try {
                     String replyString = in.readLine();
-                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "received reply " + replyString + "from " + this.ip);
+                    System.out.println("\u001B[42m" + "[" + this.getClass().getSimpleName() + "] " + "Received REPLY " + replyString + " from " + "\u001B[0m" + this.ip);
                     reply = (S) (new MessageSerializer()).deserialize(replyString);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("\u001B[41m" + "\u001B[37m" + "[" + this.getClass().getSimpleName() + "] " + "REPLY TIMEOUT because of " + requestString + "\u001B[0m");
                 }
 
             }
