@@ -4,11 +4,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class EntryReplication {
     private ExecuteCommandDirective directive;
-    private AtomicBoolean toFollower;
 
-    EntryReplication(AtomicBoolean toFollower) {
+    EntryReplication() {
         this.directive = ExecuteCommandDirective.COMMIT;
-        this.toFollower = toFollower;
     }
 
     synchronized void notifySuccessfulReply() {
@@ -17,7 +15,6 @@ class EntryReplication {
 
     synchronized void convertToFollower() {
         this.directive = ExecuteCommandDirective.CONVERT_TO_FOLLOWER;
-        this.toFollower.set(true);
         this.notify();
     }
 
