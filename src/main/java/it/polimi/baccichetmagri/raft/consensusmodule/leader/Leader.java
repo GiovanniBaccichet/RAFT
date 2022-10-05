@@ -196,6 +196,7 @@ public class Leader extends ConsensusModule {
     private void sendHeartbeat() throws IOException {
         System.out.println("[" + this.getClass().getSimpleName() + "][" + Thread.currentThread().getId() + "] " + "Sending heartbeat");
         this.callAppendEntriesOnAllServers(new EntryReplication());
+        this.startHeartbeatTimer();
     }
 
     private void callAppendEntriesOnAllServers(EntryReplication entryReplication) {
@@ -212,7 +213,6 @@ public class Leader extends ConsensusModule {
         System.out.println("[" + this.getClass().getSimpleName() + "] " + "Calling append entries on server " + proxy.getId());
         try {
             int lastLogIndex = this.log.getLastLogIndex();
-            if (lastLogIndex >= nextIndex.get(proxy.getId())){
                 boolean done = false;
                 while(!done) {
                     // RETRIEVE LOG ENTRIES TO SEND
@@ -224,6 +224,7 @@ public class Leader extends ConsensusModule {
                         try {
                             // the entries to send are the ones from nextIndex to the last one
                             logEntries = log.getEntries(firstIndexToSend, log.getLastLogIndex() + 1);
+
                             allEntriesToSendNotSnapshotted = true;
                         } catch (SnapshottedEntryException e) { // send snapshot instead of snapshotted entries
                             JSONSnapshot snapshotToSend = log.getJSONSnapshot();
@@ -254,9 +255,9 @@ public class Leader extends ConsensusModule {
                         }
                     }
                     int currentTerm = this.consensusPersistentState.getCurrentTerm();
+
                     AppendEntryResult appendEntryResult = proxy.appendEntries(currentTerm, this.id, prevLogIndex,
                             prevLogTerm, logEntries, this.commitIndex);
-
                     if (appendEntryResult.isSuccess()) {
                         // update nextIndex and matchIndex
                         this.nextIndex.put(proxy.getId(), prevLogIndex + logEntries.size() + 1);
@@ -271,7 +272,7 @@ public class Leader extends ConsensusModule {
                             // decrement next index
                             this.nextIndex.put(proxy.getId(), this.nextIndex.get(proxy.getId()) - 1);
                         }
-                    }
+
                 }
             }
         } catch (IOException e) {
