@@ -30,7 +30,6 @@ public class Client {
 
     public static String COMMAND = "COMMAND";
     public static String EXIT = "EXIT";
-    public static int REPLY_TIMEOUT = 5000;
 
     public static void main(String[] args) {
         Logger logger = Logger.getLogger(Client.class.getName());
@@ -52,7 +51,6 @@ public class Client {
                     while (!done) {
                         // open connection with the (supposed) leader
                         socket = new Socket(leaderIp, ServerSocketManager.RAFT_PORT);
-                        socket.setSoTimeout(REPLY_TIMEOUT);
                         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
 
@@ -61,20 +59,15 @@ public class Client {
                         System.out.println("[Client] " + "COMMAND SENT: " + Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
                         System.out.println("[Client] " + "Sending ExecuteCommandRequest to Raft Leader: " + leaderIp);
                         String replyString = null;
-                        while (replyString == null) {
-                            String messageToSend = messageSerializer.serialize(new ExecuteCommandRequest(command));
-                            out.println(messageToSend);
-                            out.flush();
-                            System.out.println("[Client] " + "Sending command: " + messageToSend);
+                        String messageToSend = messageSerializer.serialize(new ExecuteCommandRequest(command));
+                        out.println(messageToSend);
+                        out.flush();
+                        System.out.println("[Client] " + "Sending command: " + messageToSend);
 
-                            // receive execute command reply
-                            try {
-                                replyString = in.readLine();
-                            } catch (IOException e) {
-                                System.out.println("[Client] " + "Reply timeout expired");
-                            }
-                            System.out.println("\u001B[42m" + "[Client] " + "Received message from Raft Server: " + leaderIp + " message: " + replyString + "\u001B[0m");
-                        }
+                        // receive execute command reply
+                        replyString = in.readLine();
+                        System.out.println("\u001B[42m" + "[Client] " + "Received message from Raft Server: " + leaderIp + " message: " + replyString + "\u001B[0m");
+
                         try {
                             Message reply = messageSerializer.deserialize(replyString);
                             if (reply.getMessageType().equals(MessageType.ExecuteCommandReply)) {

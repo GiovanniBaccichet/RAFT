@@ -15,9 +15,9 @@ import java.net.Socket;
 import java.util.logging.Level;
 
 public class InboundRPCCallHandler {
-    private Socket socket;
-    private ConsensusModuleInterface consensusModule;
-    private MessageSerializer messageSerializer;
+    private final Socket socket;
+    private final ConsensusModuleInterface consensusModule;
+    private final MessageSerializer messageSerializer;
 
     public InboundRPCCallHandler(Socket socket, ConsensusModuleInterface consensusModule) {
         this.socket = socket;

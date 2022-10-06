@@ -42,20 +42,13 @@ public class ServerSocketManager implements Runnable{
         while (true) {
             Socket socket = null;
             try {
-                // accept new connections and read the first message
+                // accept new connections
                 socket = this.serverSocket.accept();
                 System.out.println("[" + this.getClass().getSimpleName() + "] " + "Accepted new connection");
                 Socket finalSocket = socket;
                 (new Thread(() -> new InboundRPCCallHandler(finalSocket, this.consensusModuleContainer).receiveMethodCall())).start();
-            } catch (NumberFormatException | IOException e) { // thrown by Integer.parseInt()
+            } catch (IOException e) {
                 e.printStackTrace();
-                try {
-                    if (socket != null) {
-                        socket.close();
-                    }
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
             }
         }
     }
