@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,7 +54,7 @@ public class Leader extends ConsensusModule {
             this.nextIndex.put(proxy.getId(), lastLogIndex + 1);
             this.matchIndex.put(proxy.getId(), 0);
         }
-        this.appendEntriesCallThreads = new ArrayList<>();
+        this.appendEntriesCallThreads = new CopyOnWriteArrayList<>();
     }
 
     @Override
@@ -133,6 +134,7 @@ public class Leader extends ConsensusModule {
                     try {
                         if (newCommitIndex > this.commitIndex && this.log.getEntryTerm(newCommitIndex) == currentTerm) {
                             this.commitIndex = newCommitIndex;
+                            System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Updated Commit index: " + this.commitIndex + "\u001B[0m");
                             // APPLY ENTRIES COMMITTED
                             stateMachineResult = this.applyCommittedEntries();
                         }
@@ -313,8 +315,8 @@ public class Leader extends ConsensusModule {
             while (this.lastApplied < this.commitIndex) {
                 this.lastApplied++;
                 stateMachineResult = this.stateMachine.executeCommand(this.log.getEntryCommand(this.lastApplied));
-                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Last applied: " + this.lastApplied + "\u001B[0m");
-                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Commit index: " + this.commitIndex + "\u001B[0m");
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Last applied in applyCommittedEntries(): " + this.lastApplied + "\u001B[0m");
+                System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Commit index in applyCommittedEntries(): " + this.commitIndex + "\u001B[0m");
             }
             return stateMachineResult;
         } catch(SnapshottedEntryException e) {
@@ -329,7 +331,9 @@ public class Leader extends ConsensusModule {
         Follower follower = new Follower(this.id, this.consensusPersistentState, this.commitIndex, this.lastApplied,
                 this.configuration, this.log, this.stateMachine, this.container);
         for (Thread thread : this.appendEntriesCallThreads) {
-            thread.interrupt();
+            if (thread != null) {
+                thread.interrupt();
+            }
         }
         this.timer.cancel();
         this.container.changeConsensusModuleImpl(follower);

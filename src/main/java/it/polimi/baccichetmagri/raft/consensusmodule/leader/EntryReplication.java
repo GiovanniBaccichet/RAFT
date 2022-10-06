@@ -19,9 +19,7 @@ class EntryReplication {
     }
 
     synchronized ExecuteCommandDirective waitForFollowerReplies() throws InterruptedException {
-        if (this.directive == null) {
-            this.wait();
-        }
+        this.wait();
         return this.directive;
     }
 }
