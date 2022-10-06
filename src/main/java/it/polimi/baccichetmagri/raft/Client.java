@@ -57,9 +57,6 @@ public class Client {
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
 
                         // send execute command request
-                        out.println("CLIENT");
-                        out.flush();
-                        System.out.println("[Client] " + "Connection message SENT");
                         CommandImplementation command = new CommandImplementation(Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
                         System.out.println("[Client] " + "COMMAND SENT: " + Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
                         System.out.println("[Client] " + "Sending ExecuteCommandRequest to Raft Leader: " + leaderIp);

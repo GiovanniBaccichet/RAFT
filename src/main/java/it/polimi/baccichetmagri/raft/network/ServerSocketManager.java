@@ -2,7 +2,7 @@ package it.polimi.baccichetmagri.raft.network;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.container.ConsensusModuleContainer;
 import it.polimi.baccichetmagri.raft.network.configuration.Configuration;
-import it.polimi.baccichetmagri.raft.network.proxies.ClientProxy;
+import it.polimi.baccichetmagri.raft.network.proxies.InboundRPCCallHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -45,25 +45,8 @@ public class ServerSocketManager implements Runnable{
                 // accept new connections and read the first message
                 socket = this.serverSocket.accept();
                 System.out.println("[" + this.getClass().getSimpleName() + "] " + "Accepted new connection");
-                Scanner in = new Scanner(socket.getInputStream());
-                String connectMessage = in.nextLine();
-                System.out.println("[" + this.getClass().getSimpleName() + "] " + "Received connect message: " + connectMessage);
-
-                if (connectMessage.contains("SERVER")) {
-                    // if the message is "SERVER X", where x is an integer number, the connection is requested from
-                    // the server with id = X
-                    int id = Integer.parseInt(connectMessage.substring(7));
-                    Socket finalSocket = socket;
-                    (new Thread(() -> this.configuration.getConsensusModuleProxy(id).receiveMethodCall(finalSocket))).start();
-                } else if (connectMessage.equals("CLIENT")){
-                    //if the message is "CLIENT", the connection is requested from a client
-                    new ClientProxy(socket, this.consensusModuleContainer);
-                    this.logger.log(Level.WARNING, "Received connection with client");
-                    System.out.println("[" + this.getClass().getSimpleName() + "] " + "Client connected");
-                } else {
-                    socket.close();
-                    this.logger.log(Level.WARNING, "Connection refused. Invalid message: " + connectMessage);
-                }
+                Socket finalSocket = socket;
+                (new Thread(() -> new InboundRPCCallHandler(finalSocket, this.consensusModuleContainer).receiveMethodCall())).start();
             } catch (NumberFormatException | IOException e) { // thrown by Integer.parseInt()
                 e.printStackTrace();
                 try {
