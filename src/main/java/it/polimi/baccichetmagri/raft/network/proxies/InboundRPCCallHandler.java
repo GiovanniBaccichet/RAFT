@@ -2,6 +2,7 @@ package it.polimi.baccichetmagri.raft.network.proxies;
 
 import it.polimi.baccichetmagri.raft.consensusmodule.ConsensusModuleInterface;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.AppendEntryResult;
+import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.ExecuteCommandResult;
 import it.polimi.baccichetmagri.raft.consensusmodule.returntypes.VoteResult;
 import it.polimi.baccichetmagri.raft.messages.*;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
@@ -34,6 +35,7 @@ public class InboundRPCCallHandler {
                 case AppendEntryRequest -> reply = callAppendEntries((AppendEntryRequest) request);
                 case VoteRequest -> reply = callRequestVote((VoteRequest) request);
                 case InstallSnapshotRequest -> reply = callInstallSnapshot((InstallSnapshotRequest) request);
+                case ExecuteCommandRequest -> reply = callExecuteCommand((ExecuteCommandRequest) request);
                 default -> System.out.println("[" + this.getClass().getSimpleName() + "]" + "Invalid message received ");
             }
             if (reply != null) {
@@ -102,5 +104,11 @@ public class InboundRPCCallHandler {
                 installSnapshotRequest.getLastIncludedIndex(), installSnapshotRequest.getLastIncludedTerm(), installSnapshotRequest.getOffset(),
                 installSnapshotRequest.getData(), installSnapshotRequest.isDone());
         return new InstallSnapshotReply(currentTerm);
+    }
+
+    private ExecuteCommandReply callExecuteCommand(ExecuteCommandRequest executeCommandRequest) throws IOException {
+        ExecuteCommandResult executeCommandResult = executeCommandResult = this.consensusModule.executeCommand(executeCommandRequest.getCommand());
+        System.out.println("[" + this.getClass().getSimpleName() + "] " + "Calling ExecuteCommand");
+        return new ExecuteCommandReply(executeCommandResult);
     }
 }
