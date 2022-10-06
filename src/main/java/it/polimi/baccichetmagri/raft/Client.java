@@ -11,7 +11,9 @@ import it.polimi.baccichetmagri.raft.network.messageserializer.MessageSerializer
 import it.polimi.baccichetmagri.raft.network.ServerSocketManager;
 import it.polimi.baccichetmagri.raft.network.exceptions.BadMessageException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
@@ -28,6 +30,7 @@ public class Client {
 
     public static String COMMAND = "COMMAND";
     public static String EXIT = "EXIT";
+    public static int REPLY_TIMEOUT = 5000;
 
     public static void main(String[] args) {
         Logger logger = Logger.getLogger(Client.class.getName());
@@ -49,7 +52,8 @@ public class Client {
                     while (!done) {
                         // open connection with the (supposed) leader
                         socket = new Socket(leaderIp, ServerSocketManager.RAFT_PORT);
-                        Scanner in = new Scanner(socket.getInputStream());
+                        socket.setSoTimeout(REPLY_TIMEOUT);
+                        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
 
                         // send execute command request
@@ -59,18 +63,25 @@ public class Client {
                         CommandImplementation command = new CommandImplementation(Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
                         System.out.println("[Client] " + "COMMAND SENT: " + Integer.parseInt(commandString.substring(COMMAND.length() + 1)));
                         System.out.println("[Client] " + "Sending ExecuteCommandRequest to Raft Leader: " + leaderIp);
-                        String messageToSend = messageSerializer.serialize(new ExecuteCommandRequest(command));
-                        out.println(messageToSend);
-                        out.flush();
-                        System.out.println("[Client] " + "Sending command: " + messageToSend);
+                        String replyString = null;
+                        while (replyString == null) {
+                            String messageToSend = messageSerializer.serialize(new ExecuteCommandRequest(command));
+                            out.println(messageToSend);
+                            out.flush();
+                            System.out.println("[Client] " + "Sending command: " + messageToSend);
 
-                        // receive execute command reply
-                        String jsonMessage = in.nextLine();
-                        System.out.println("\u001B[42m" + "[Client] " + "Received message from Raft Server: " + leaderIp + " message: " + jsonMessage + "\u001B[0m");
+                            // receive execute command reply
+                            try {
+                                replyString = in.readLine();
+                            } catch (IOException e) {
+                                System.out.println("[Client] " + "Reply timeout expired");
+                            }
+                            System.out.println("\u001B[42m" + "[Client] " + "Received message from Raft Server: " + leaderIp + " message: " + replyString + "\u001B[0m");
+                        }
                         try {
-                            Message message = messageSerializer.deserialize(jsonMessage);
-                            if (message.getMessageType().equals(MessageType.ExecuteCommandReply)) {
-                                ExecuteCommandReply executeCommandReply = (ExecuteCommandReply) message;
+                            Message reply = messageSerializer.deserialize(replyString);
+                            if (reply.getMessageType().equals(MessageType.ExecuteCommandReply)) {
+                                ExecuteCommandReply executeCommandReply = (ExecuteCommandReply) reply;
                                 ExecuteCommandResult executeCommandResult= executeCommandReply.getExecuteCommandResult();
 
                                 if (executeCommandResult.isValid()) {
