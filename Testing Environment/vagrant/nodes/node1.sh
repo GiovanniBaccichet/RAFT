@@ -2,7 +2,7 @@ export DEBIAN_FRONTEND=noninteractive
 # Startup commands go here
 
 sudo apt-get update
-sudo apt-get install net-tools
+sudo apt-get install -y net-tools openjdk-17-jre-headless
 
 # Networking
 sudo ip addr add 10.0.0.11/24 dev enp0s8
