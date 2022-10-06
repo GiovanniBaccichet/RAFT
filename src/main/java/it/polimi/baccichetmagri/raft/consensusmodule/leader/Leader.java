@@ -130,7 +130,8 @@ public class Leader extends ConsensusModule {
                 System.out.println("[" + this.getClass().getSimpleName() + "] " + "\u001B[46m" + "Commit index: " + this.commitIndex + "\u001B[0m");
                 if (directive.equals(ExecuteCommandDirective.COMMIT)) {
                     // UPDATE COMMIT INDEX
-                    int newCommitIndex = this.matchIndex.values().stream().sorted().collect(Collectors.toList()).get((this.matchIndex.size() - 1) / 2);
+                    int newCommitIndex = this.matchIndex.values().stream().sorted().collect(Collectors.toList()).get(this.matchIndex.size() / 2
+                            + (((this.matchIndex.size() % 2) == 0) ? 0 : 1));
                     try {
                         if (newCommitIndex > this.commitIndex && this.log.getEntryTerm(newCommitIndex) == currentTerm) {
                             this.commitIndex = newCommitIndex;
